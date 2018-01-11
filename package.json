@@ -1,0 +1,24 @@
+{
+  "name": "ripple-step",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "three": "^0.89.0",
+    "tone": "^0.11.11"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mysteryDate/ripple-step.git"
+  },
+  "author": "Aaron Krajeski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mysteryDate/ripple-step/issues"
+  },
+  "homepage": "https://github.com/mysteryDate/ripple-step#readme"
+}

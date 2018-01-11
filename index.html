@@ -5,36 +5,33 @@
 
     <link rel="stylesheet" type="text/css" href="style.css">
     <!-- <script src="js/three.r85.js"></script> -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/0.12.51/Tone.min.js"></script>
+    <script src="./node_modules/tone/build/Tone.js"></script>
+    <script src="./node_modules/three/build/three.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script> -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/0.12.51/Tone.min.js"></script> -->
   </head>
   <body>
     <script type="text/javascript">
       var context = new (window.AudioContext || window.webkitAudioContext)();
 
-      // //setup a polyphonic sampler
-      // var keys = new Tone.Players({
-      //   "A" : "./audio/casio/A1.[mp3|ogg]",
-      //   "C#" : "./audio/casio/Cs2.[mp3|ogg]",
-      //   "E" : "./audio/casio/E2.[mp3|ogg]",
-      //   "F#" : "./audio/casio/Fs2.[mp3|ogg]",
-      // }, {
-      //   "volume" : -10,
-      //   "fadeOut" : "64n",
-      // }).toMaster();
-      // //the notes
-      // var noteNames = ["F#", "E", "C#", "A"];
-      // var loop = new Tone.Sequence(function(time, col){
-      //   var column = matrix1.matrix[col];
-      //   for (var i = 0; i < 4; i++){
-      //     if (column[i] === 1){
-      //       //slightly randomized velocities
-      //       var vel = Math.random() * 0.5 + 0.5;
-      //       keys.get(noteNames[i]).start(time, 0, "32n", 0, vel);
-      //     }
-      //   }
-      // }, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], "16n");
-      // Tone.Transport.start();
+      //the synth
+      var synth = new Tone.Synth().toMaster()
+        .set("envelope.attack", 0.04);
+      //send audio to each of the effect channels
+      var chorusSend = synth.send("chorus", -Infinity);
+      var chebySend = synth.send("cheby", -Infinity);
+      var autowahSend = synth.send("autowah", -Infinity);
+      var reverbSend = synth.send("reverb", -Infinity);
+      //make some effects
+      var chorus = new Tone.Chorus()
+        .receive("chorus")
+        .toMaster();
+      var cheby = new Tone.Chebyshev(50)
+        .receive("cheby")
+        .toMaster();
+      var reverb = new Tone.Freeverb(0.8, 4000)
+        .receive("reverb")
+        .toMaster();
 
     </script>
   </body>
