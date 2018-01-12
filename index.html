@@ -4,35 +4,8 @@
     <meta charset="utf-8">
 
     <link rel="stylesheet" type="text/css" href="style.css">
-    <!-- <script src="js/three.r85.js"></script> -->
-    <script src="./node_modules/tone/build/Tone.js"></script>
-    <script src="./node_modules/three/build/three.js"></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script> -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/0.12.51/Tone.min.js"></script> -->
   </head>
   <body>
-    <script type="text/javascript">
-      var context = new (window.AudioContext || window.webkitAudioContext)();
-
-      //the synth
-      var synth = new Tone.Synth().toMaster()
-        .set("envelope.attack", 0.04);
-      //send audio to each of the effect channels
-      var chorusSend = synth.send("chorus", -Infinity);
-      var chebySend = synth.send("cheby", -Infinity);
-      var autowahSend = synth.send("autowah", -Infinity);
-      var reverbSend = synth.send("reverb", -Infinity);
-      //make some effects
-      var chorus = new Tone.Chorus()
-        .receive("chorus")
-        .toMaster();
-      var cheby = new Tone.Chebyshev(50)
-        .receive("cheby")
-        .toMaster();
-      var reverb = new Tone.Freeverb(0.8, 4000)
-        .receive("reverb")
-        .toMaster();
-
-    </script>
+    <script src="bundle.js"></script>
   </body>
 </html>

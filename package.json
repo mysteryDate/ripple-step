@@ -5,7 +5,8 @@
   "main": "index.js",
   "dependencies": {
     "three": "^0.89.0",
-    "tone": "^0.11.11"
+    "tone": "^0.11.11",
+    "webpack": "^3.10.0"
   },
   "devDependencies": {},
   "scripts": {
