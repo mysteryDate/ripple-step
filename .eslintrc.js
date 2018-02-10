@@ -4,6 +4,7 @@ module.exports = {
     es6: true,
   },
   globals: {
+    "require": false,
     // "THREE": false, // not allowed to overwrite this
     // "nativePostMessage": true, // allow overwriting
   },

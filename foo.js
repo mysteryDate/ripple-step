@@ -1,8 +1,9 @@
-import THREE from "./node_modules/three/build/three";
+// import THREE = require("THREE");
+
 export default function bar() {
   console.log("Hello there fine sir");
   var a = 2;
-  var m = new THREE.MeshBasicMaterial();
+  // var m = new THREE.MeshBasicMaterial();
   console.log(a);
-  console.log(m);
+  // console.log(m);
 }

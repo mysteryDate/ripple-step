@@ -1,9 +1,8 @@
-import THREE from "./node_modules/three/build/three";
+// import THREE from "./node_modules/three";
 import bar from "./foo";
-// const THREE = require("three");
-bar();
 
-// var THREE = THREELib(); // return THREE JS
+const THREE = require("three");
+bar();
 
 var m = new THREE.MeshBasicMaterial();
 window.m = m;

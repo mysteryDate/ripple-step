@@ -10,6 +10,7 @@ module.exports = {
       },
     ],
   },
+  target: "web",
   output: {
     filename: "bundle.js",
   },
