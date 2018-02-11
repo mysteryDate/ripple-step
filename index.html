@@ -29,32 +29,49 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 container.appendChild(renderer.domElement);
 var scene = new THREE.Scene();
-var camera = new THREE.OrthographicCamera(-window.innerWidth, window.innerWidth, window.innerHeight, -window.innerHeight, 0.1, 100);
-camera.position.set(0.5, 0.5, 50);
+var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidth/2, window.innerHeight/2, -window.innerHeight/2, 0.1, 100);
+camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
-
+var BASE_COLOR = new THREE.Color(0x54576b);
+var ACTIVE_COLOR = new THREE.Color(0x4655b7);
 var NUM_STEPS = 16;
-var KEY_SIZE = 100;
+var KEY_SIZE = 50;
 var SPACING = KEY_SIZE/10;
 var keyGeom = new THREE.PlaneBufferGeometry(KEY_SIZE, KEY_SIZE);
 var keyGroup = new THREE.Group();
-for (var i = 0; i < NUM_STEPS; i++) {
-  for (var j = 0; j < NUM_STEPS; j++) {
-    var mat = new THREE.MeshBasicMaterial({color: new THREE.Color(Math.random(), Math.random(), Math.random())});
+var i;
+var j;
+for (i = 0; i < NUM_STEPS; i++) {
+  for (j = 0; j < NUM_STEPS; j++) {
+    var mat = new THREE.MeshBasicMaterial({color: BASE_COLOR});
     var mesh = new THREE.Mesh(keyGeom, mat);
     keyGroup.add(mesh);
     mesh.position.set(i, j, 0);
     mesh.position.multiplyScalar(KEY_SIZE + SPACING);
-    console.log(mesh.position);
+    mesh.position.add(new THREE.Vector3(KEY_SIZE/2, KEY_SIZE/2, 0)); // So the origin is the lower left
   }
 }
 scene.add(keyGroup);
 
+// Click handler
+var raycaster = new THREE.Raycaster();
+function onDocumentClick(event) {
+  var mouse = new THREE.Vector2();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  var clickedKeys = raycaster.intersectObjects(keyGroup.children);
+  for (i = 0; i < clickedKeys.length; i++) {
+    clickedKeys[i].object.material.color = ACTIVE_COLOR;
+  }
+}
+document.addEventListener("click", onDocumentClick, false);
+
 function update() {
   renderer.render(scene, camera);
+  requestAnimationFrame(update);
 }
-requestAnimationFrame(update);
-// var keys = [];
+update();
 </script>
 </body>
 </html>
