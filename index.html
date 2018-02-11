@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script> -->
   <script src="./three.js"></script>
+  <script src="./node_modules/tone/build/Tone.js"></script>
   <!-- <script src="./bundle.js"></script> -->
   <style media="screen">
     body {
@@ -49,9 +50,15 @@ for (i = 0; i < NUM_STEPS; i++) {
     mesh.position.set(i, j, 0);
     mesh.position.multiplyScalar(KEY_SIZE + SPACING);
     mesh.position.add(new THREE.Vector3(KEY_SIZE/2, KEY_SIZE/2, 0)); // So the origin is the lower left
+    mesh.note = j;
   }
 }
 scene.add(keyGroup);
+
+// SYNTH
+var NOTES = ["C", "D", "E", "G", "A"];
+// create a synth and connect it to the master output (your speakers)
+var synth = new Tone.Synth().toMaster();
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -60,12 +67,17 @@ function onDocumentClick(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-  var clickedKeys = raycaster.intersectObjects(keyGroup.children);
-  for (i = 0; i < clickedKeys.length; i++) {
-    clickedKeys[i].object.material.color = ACTIVE_COLOR;
+  var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
+  if (clickedKey !== undefined) {
+    clickedKey.object.material.color = ACTIVE_COLOR;
+    var note = NOTES[clickedKey.object.note % NOTES.length];
+    var ocatve = Math.floor(clickedKey.object.note / NOTES.length) + 3;
+    // Duration of an 8th note
+    synth.triggerAttackRelease(note + ocatve, "8n");
   }
 }
 document.addEventListener("click", onDocumentClick, false);
+
 
 function update() {
   renderer.render(scene, camera);
