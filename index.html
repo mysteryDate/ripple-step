@@ -83,7 +83,7 @@ scene.add(keyGroup);
 // SYNTH
 var NOTES = ["C", "D", "E", "G", "A"];
 // create a synth and connect it to the master output (your speakers)
-var synth = new Tone.Synth().toMaster();
+var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
 
 // Click handler
 var raycaster = new THREE.Raycaster();
