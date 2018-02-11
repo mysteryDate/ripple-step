@@ -66,7 +66,7 @@ function makeKeyShader() {
       uniform float u_rowActive;
       void main() {
         vec3 col = mix(u_baseColor, u_activeColor, u_armed);
-        col = mix(col, 1.5 * col, u_rowActive);
+        col = mix(col, 2.0 * col, u_rowActive * u_armed);
         gl_FragColor = vec4(col, 1.0);
       }
     `,
