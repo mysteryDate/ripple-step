@@ -18,13 +18,39 @@
 <script type="text/javascript">
 
 var BASE_COLOR = new THREE.Color(0x54576b);
-var ACTIVE_COLOR = new THREE.Color(0x5455b7);
+var SCALES = {
+  "I": {
+    "notes": ["C", "D", "E", "G", "A"],
+    "color": new THREE.Color(0xbf4944),
+  },
+  "IV": {
+    "notes": ["C", "D", "F", "G", "A"],
+    "color": new THREE.Color(0xc3c045),
+  },
+  "V": {
+    "notes": ["B", "D", "F", "G", "A"],
+    "color": new THREE.Color(0xc08032),
+  },
+  "ii": {
+    "notes": ["B", "D", "E", "F", "A"],
+    "color": new THREE.Color(0x39ba2f),
+  },
+  "vi": {
+    "notes": ["B", "C", "E", "F", "A"],
+    "color": new THREE.Color(0x5455b7),
+  },
+  "iii": {
+    "notes": ["B", "C", "E", "F", "G"],
+    "color": new THREE.Color(0x8a49bd),
+  },
+};
+var currentNotes = SCALES.I.notes;
 
 function makeKeyShader() {
   return new THREE.ShaderMaterial({
     uniforms: {
       u_baseColor: {value: BASE_COLOR},
-      u_activeColor: {value: ACTIVE_COLOR},
+      u_activeColor: {value: SCALES.I.color},
       u_armed: {value: 0},
       u_rowActive: {value: 0},
     },
@@ -75,20 +101,24 @@ for (i = 0; i < NUM_STEPS; i++) {
   }
 }
 var keyGroupBB = new THREE.Box3().setFromObject(keyGroup);
+keyGroup.children[0].material.uniforms.u_armed.value = true;
 keyGroup.position.sub(keyGroupBB.getCenter());
 keyGroup.position.add(camera.position);
 keyGroup.position.z = 0;
 scene.add(keyGroup);
 
+var scaleChooser = new THREE.Group();
+Object.keys(SCALES).forEach(function(scale, index) {
+  var pickerKey = new THREE.Mesh(keyGeom, new THREE.MeshBasicMaterial({color: SCALES[scale].color}));
+  scaleChooser.add(pickerKey);
+  pickerKey.position.set(index * (KEY_SIZE + SPACING), 0, 0);
+  pickerKey.position.x -= 2.5 * (KEY_SIZE + SPACING); // Center it
+  pickerKey.scaleName = scale;
+});
+scaleChooser.position.x = window.innerWidth/2;
+scene.add(scaleChooser);
+
 // SYNTH
-var NOTES = {
-  "I": ["C", "D", "E", "G", "A"],
-  "ii": ["B", "D", "E", "F", "A"],
-  "iii": ["B", "C", "E", "F", "G"],
-  "IV": ["C", "D", "F", "G", "A"],
-  "V": ["B", "D", "F", "G", "A"],
-  "vi": ["B", "C", "E", "F", "A"],
-};
 // create a synth and connect it to the master output (your speakers)
 var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
 
@@ -100,26 +130,38 @@ function onDocumentMouseMove(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-  var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
-  if (clickedKey !== undefined && event.buttons === 1 && recentTrigger !== clickedKey.object) {
-    var clickedMesh = clickedKey.object;
-    clickedMesh.material.color = ACTIVE_COLOR;
-    clickedMesh.material.uniforms.u_armed.value = !clickedMesh.material.uniforms.u_armed.value;
-    recentTrigger = clickedMesh;
+  if (event.buttons === 1) {
+    var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
+    if (clickedKey !== undefined && recentTrigger !== clickedKey.object) {
+      var clickedMesh = clickedKey.object;
+      clickedMesh.material.uniforms.u_armed.value = !clickedMesh.material.uniforms.u_armed.value;
+      recentTrigger = clickedMesh;
+    }
+    var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
+    if (clickedScale !== undefined) {
+      currentNotes = SCALES[clickedScale.object.scaleName].notes;
+      var currentColor = SCALES[clickedScale.object.scaleName].color;
+      keyGroup.children.forEach(function(key) {
+        key.material.uniforms.u_activeColor.value = currentColor;
+      });
+    }
   }
 }
 function onDocumentMouseDown(event) {
   onDocumentMouseMove(event);
 }
+function onDocumentMouseUp(event) {
+  recentTrigger = null;
+}
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
+document.addEventListener("mouseup", onDocumentMouseUp, false);
 
 var TEMPO = 120;
 var STEP_VALUE = 1/8;
 var previousPosition = 0;
 var triggerNotes = false;
-var currentNotes = NOTES.I;
-var swing = 0.5;
+var swing = 0.0;
 function update() {
   var beats = performance.now() / 1000 / 60 * TEMPO;
   var position = beats * (1/4 / STEP_VALUE);
