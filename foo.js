@@ -1,9 +1,11 @@
-// import THREE = require("THREE");
+const THREE = require("three");
 
-export default function bar() {
+function bar() {
   console.log("Hello there fine sir");
   var a = 2;
-  // var m = new THREE.MeshBasicMaterial();
+  var m = new THREE.MeshBasicMaterial();
   console.log(a);
-  // console.log(m);
+  console.log(m);
 }
+
+export default bar;

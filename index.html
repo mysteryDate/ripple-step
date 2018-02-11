@@ -1,11 +1,60 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
+<head>
+  <meta charset="utf-8">
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/87/three.min.js"></script> -->
+  <script src="./three.js"></script>
+  <!-- <script src="./bundle.js"></script> -->
+  <style media="screen">
+    body {
+      margin: 0px;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <!-- <script src="bundle.js"></script> -->
+<script type="text/javascript">
 
-    <link rel="stylesheet" type="text/css" href="style.css">
-  </head>
-  <body>
-    <script src="bundle.js"></script>
-  </body>
+// function Key(note, options) {
+//
+//   return {
+//     mesh: mesh,
+//   }
+// }
+
+var container = document.getElementById("container");
+var renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild(renderer.domElement);
+var scene = new THREE.Scene();
+var camera = new THREE.OrthographicCamera(-window.innerWidth, window.innerWidth, window.innerHeight, -window.innerHeight, 0.1, 100);
+camera.position.set(0.5, 0.5, 50);
+
+
+var NUM_STEPS = 16;
+var KEY_SIZE = 100;
+var SPACING = KEY_SIZE/10;
+var keyGeom = new THREE.PlaneBufferGeometry(KEY_SIZE, KEY_SIZE);
+var keyGroup = new THREE.Group();
+for (var i = 0; i < NUM_STEPS; i++) {
+  for (var j = 0; j < NUM_STEPS; j++) {
+    var mat = new THREE.MeshBasicMaterial({color: new THREE.Color(Math.random(), Math.random(), Math.random())});
+    var mesh = new THREE.Mesh(keyGeom, mat);
+    keyGroup.add(mesh);
+    mesh.position.set(i, j, 0);
+    mesh.position.multiplyScalar(KEY_SIZE + SPACING);
+    console.log(mesh.position);
+  }
+}
+scene.add(keyGroup);
+
+function update() {
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(update);
+// var keys = [];
+</script>
+</body>
 </html>
