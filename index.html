@@ -17,12 +17,35 @@
   <!-- <script src="bundle.js"></script> -->
 <script type="text/javascript">
 
-// function Key(note, options) {
-//
-//   return {
-//     mesh: mesh,
-//   }
-// }
+var BASE_COLOR = new THREE.Color(0x54576b);
+var ACTIVE_COLOR = new THREE.Color(0x5455b7);
+
+function makeKeyShader() {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      u_baseColor: {value: BASE_COLOR},
+      u_activeColor: {value: ACTIVE_COLOR},
+      u_armed: {value: 0},
+      u_rowActive: {value: 0},
+    },
+    vertexShader: `
+      void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 u_baseColor;
+      uniform vec3 u_activeColor;
+      uniform float u_armed;
+      uniform float u_rowActive;
+      void main() {
+        vec3 col = mix(u_baseColor, u_activeColor, u_armed);
+        col = mix(col, 1.5 * col, u_rowActive);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
+}
 
 var container = document.getElementById("container");
 var renderer = new THREE.WebGLRenderer({antialias: true});
@@ -33,10 +56,8 @@ var scene = new THREE.Scene();
 var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidth/2, window.innerHeight/2, -window.innerHeight/2, 0.1, 100);
 camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
-var BASE_COLOR = new THREE.Color(0x54576b);
-var ACTIVE_COLOR = new THREE.Color(0x4655b7);
 var NUM_STEPS = 16;
-var KEY_SIZE = 50;
+var KEY_SIZE = 40;
 var SPACING = KEY_SIZE/10;
 var keyGeom = new THREE.PlaneBufferGeometry(KEY_SIZE, KEY_SIZE);
 var keyGroup = new THREE.Group();
@@ -44,15 +65,19 @@ var i;
 var j;
 for (i = 0; i < NUM_STEPS; i++) {
   for (j = 0; j < NUM_STEPS; j++) {
-    var mat = new THREE.MeshBasicMaterial({color: BASE_COLOR});
-    var mesh = new THREE.Mesh(keyGeom, mat);
+    var mesh = new THREE.Mesh(keyGeom, makeKeyShader());
     keyGroup.add(mesh);
     mesh.position.set(i, j, 0);
     mesh.position.multiplyScalar(KEY_SIZE + SPACING);
     mesh.position.add(new THREE.Vector3(KEY_SIZE/2, KEY_SIZE/2, 0)); // So the origin is the lower left
     mesh.note = j;
+    mesh.row = i;
   }
 }
+var keyGroupBB = new THREE.Box3().setFromObject(keyGroup);
+keyGroup.position.sub(keyGroupBB.getCenter());
+keyGroup.position.add(camera.position);
+keyGroup.position.z = 0;
 scene.add(keyGroup);
 
 // SYNTH
@@ -69,17 +94,47 @@ function onDocumentClick(event) {
   raycaster.setFromCamera(mouse, camera);
   var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
   if (clickedKey !== undefined) {
-    clickedKey.object.material.color = ACTIVE_COLOR;
-    var note = NOTES[clickedKey.object.note % NOTES.length];
-    var ocatve = Math.floor(clickedKey.object.note / NOTES.length) + 3;
-    // Duration of an 8th note
-    synth.triggerAttackRelease(note + ocatve, "8n");
+    var clickedMesh = clickedKey.object;
+    clickedMesh.material.color = ACTIVE_COLOR;
+    // var note = NOTES[clickedMesh.note % NOTES.length];
+    // var ocatve = Math.floor(clickedMesh.note / NOTES.length) + 3;
+    // // Duration of an 8th note
+    // synth.triggerAttackRelease(note + ocatve, "8n");
+    clickedMesh.material.uniforms.u_armed.value = !clickedMesh.material.uniforms.u_armed.value;
   }
 }
 document.addEventListener("click", onDocumentClick, false);
 
-
+var TEMPO = 120;
+var STEP_VALUE = 1/8;
+var previousPosition = 0;
+var triggerNotes = false;
 function update() {
+  var beats = performance.now() / 1000 / 60 * TEMPO;
+  var position = beats * (1/4 / STEP_VALUE);
+  position = Math.floor(position % NUM_STEPS);
+
+  if (position !== previousPosition) {
+    triggerNotes = true;
+    previousPosition = position;
+  } else {
+    triggerNotes = false;
+  }
+
+  keyGroup.children.forEach(function(keyMesh) {
+    if (keyMesh.row === position) {
+      keyMesh.material.uniforms.u_rowActive.value = 1;
+      if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
+        var note = NOTES[keyMesh.note % NOTES.length];
+        var ocatve = Math.floor(keyMesh.note / NOTES.length) + 3;
+        // Duration of an 8th note
+        synth.triggerAttackRelease(note + ocatve, "8n");
+      }
+    } else {
+      keyMesh.material.uniforms.u_rowActive.value = 0;
+    }
+  });
+
   renderer.render(scene, camera);
   requestAnimationFrame(update);
 }
