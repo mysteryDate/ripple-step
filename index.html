@@ -87,23 +87,26 @@ var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
 
 // Click handler
 var raycaster = new THREE.Raycaster();
-function onDocumentClick(event) {
+var recentTrigger = null; // Hacky debouncing
+function onDocumentMouseMove(event) {
   var mouse = new THREE.Vector2();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
   var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
-  if (clickedKey !== undefined) {
+  if (clickedKey !== undefined && event.buttons === 1 && recentTrigger !== clickedKey.object) {
     var clickedMesh = clickedKey.object;
     clickedMesh.material.color = ACTIVE_COLOR;
-    // var note = NOTES[clickedMesh.note % NOTES.length];
-    // var ocatve = Math.floor(clickedMesh.note / NOTES.length) + 3;
-    // // Duration of an 8th note
-    // synth.triggerAttackRelease(note + ocatve, "8n");
     clickedMesh.material.uniforms.u_armed.value = !clickedMesh.material.uniforms.u_armed.value;
+    recentTrigger = clickedMesh;
   }
 }
-document.addEventListener("click", onDocumentClick, false);
+function onDocumentMouseDown(event) {
+  console.log(event);
+  onDocumentMouseMove(event);
+}
+document.addEventListener("mousemove", onDocumentMouseMove, false);
+document.addEventListener("mousedown", onDocumentMouseDown, false);
 
 var TEMPO = 120;
 var STEP_VALUE = 1/8;
