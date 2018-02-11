@@ -21,35 +21,41 @@ var BASE_COLOR = new THREE.Color(0x54576b);
 var SCALES = {
   "I": {
     "notes": ["C", "D", "E", "G", "A"],
+    "octaves": [0, 0, 0, 0, 0],
     "color": new THREE.Color(0xbf4944),
   },
   "IV": {
     // "notes": ["C", "D", "F", "G", "A"],
     "notes": ["F", "G", "A", "C", "D"],
+    "octaves": [0, 0, 0, 1, 1],
     "color": new THREE.Color(0xc3c045),
   },
   "V": {
     // "notes": ["B", "D", "F", "G", "A"],
     "notes": ["G", "A", "B", "D", "F"],
+    "octaves": [-1, -1, -1, 0, 0],
     "color": new THREE.Color(0xc08032),
   },
   "ii": {
     // "notes": ["B", "D", "E", "F", "A"],
     "notes": ["D", "E", "F", "A", "B"],
+    "octaves": [0, 0, 0, 0, 0],
     "color": new THREE.Color(0x6bbc5a),
   },
   "vi": {
     // "notes": ["B", "C", "E", "F", "A"],
     "notes": ["A", "B", "C", "E", "F"],
+    "octaves": [-1, -1, 0, 0, 0],
     "color": new THREE.Color(0x5455b7),
   },
   "iii": {
     // "notes": ["B", "C", "E", "F", "G"],
     "notes": ["E", "F", "G", "B", "C"],
+    "octaves": [0, 0, 0, 0, 1],
     "color": new THREE.Color(0x8a49bd),
   },
 };
-var currentNotes = SCALES.I.notes;
+var currentScale = SCALES.I;
 
 function makeKeyShader() {
   return new THREE.ShaderMaterial({
@@ -130,6 +136,7 @@ var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
 // Click handler
 var raycaster = new THREE.Raycaster();
 var recentTrigger = null; // Hacky debouncing
+var offOrOn = "on";
 function onDocumentMouseMove(event) {
   var mouse = new THREE.Vector2();
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -139,12 +146,16 @@ function onDocumentMouseMove(event) {
     var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
     if (clickedKey !== undefined && recentTrigger !== clickedKey.object) {
       var clickedMesh = clickedKey.object;
-      clickedMesh.material.uniforms.u_armed.value = !clickedMesh.material.uniforms.u_armed.value;
+      if (offOrOn === "on") {
+        clickedMesh.material.uniforms.u_armed.value = true;
+      } else {
+        clickedMesh.material.uniforms.u_armed.value = false;
+      }
       recentTrigger = clickedMesh;
     }
     var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
     if (clickedScale !== undefined) {
-      currentNotes = SCALES[clickedScale.object.scaleName].notes;
+      currentScale = SCALES[clickedScale.object.scaleName];
       var currentColor = SCALES[clickedScale.object.scaleName].color;
       keyGroup.children.forEach(function(key) {
         key.material.uniforms.u_activeColor.value = currentColor;
@@ -153,6 +164,19 @@ function onDocumentMouseMove(event) {
   }
 }
 function onDocumentMouseDown(event) {
+  var mouse = new THREE.Vector2();
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
+  if (clickedKey !== undefined) {
+    var clickedMesh = clickedKey.object;
+    if (clickedMesh.material.uniforms.u_armed.value === true) {
+      offOrOn = "off";
+    } else {
+      offOrOn = "on";
+    }
+  }
   onDocumentMouseMove(event);
 }
 function onDocumentMouseUp(event) {
@@ -186,8 +210,10 @@ function update() {
     if (keyMesh.row === position) {
       keyMesh.material.uniforms.u_rowActive.value = 1;
       if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
-        var note = currentNotes[keyMesh.note % currentNotes.length];
+        var currentNotes = currentScale.notes;
+        var note = currentNotes[(keyMesh.note) % currentNotes.length];
         var octave = Math.floor(keyMesh.note / currentNotes.length) + 3;
+        octave += currentScale.octaves[(keyMesh.note) % currentNotes.length];
         // if (note === "B") { // TODO HAAAAX
         //   octave -= 1;
         // }
