@@ -82,12 +82,12 @@ scene.add(keyGroup);
 
 // SYNTH
 var NOTES = {
-  "I"  : ["C", "D", "E", "G", "A"],
-  "ii" : ["B", "D", "E", "F", "A"],
+  "I": ["C", "D", "E", "G", "A"],
+  "ii": ["B", "D", "E", "F", "A"],
   "iii": ["B", "C", "E", "F", "G"],
-  "IV" : ["C", "D", "F", "G", "A"],
-  "V"  : ["B", "D", "F", "G", "A"],
-  "vi" : ["B", "C", "E", "F", "A"],
+  "IV": ["C", "D", "F", "G", "A"],
+  "V": ["B", "D", "F", "G", "A"],
+  "vi": ["B", "C", "E", "F", "A"],
 };
 // create a synth and connect it to the master output (your speakers)
 var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
@@ -109,7 +109,6 @@ function onDocumentMouseMove(event) {
   }
 }
 function onDocumentMouseDown(event) {
-  console.log(event);
   onDocumentMouseMove(event);
 }
 document.addEventListener("mousemove", onDocumentMouseMove, false);
@@ -120,9 +119,13 @@ var STEP_VALUE = 1/8;
 var previousPosition = 0;
 var triggerNotes = false;
 var currentNotes = NOTES.I;
+var swing = 0.5;
 function update() {
   var beats = performance.now() / 1000 / 60 * TEMPO;
   var position = beats * (1/4 / STEP_VALUE);
+  if (Math.floor(position) % 2 === 1) {
+    position += swing;
+  }
   position = Math.floor(position % NUM_STEPS);
 
   if (position !== previousPosition) {
@@ -137,9 +140,12 @@ function update() {
       keyMesh.material.uniforms.u_rowActive.value = 1;
       if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
         var note = currentNotes[keyMesh.note % currentNotes.length];
-        var ocatve = Math.floor(keyMesh.note / currentNotes.length) + 3;
+        var octave = Math.floor(keyMesh.note / currentNotes.length) + 3;
+        if (note === "B") { // TODO HAAAAX
+          octave -= 1;
+        }
         // Duration of an 8th note
-        synth.triggerAttackRelease(note + ocatve, "8n");
+        synth.triggerAttackRelease(note + octave, "8n");
       }
     } else {
       keyMesh.material.uniforms.u_rowActive.value = 0;
