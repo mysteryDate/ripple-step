@@ -81,7 +81,14 @@ keyGroup.position.z = 0;
 scene.add(keyGroup);
 
 // SYNTH
-var NOTES = ["C", "D", "E", "G", "A"];
+var NOTES = {
+  "I"  : ["C", "D", "E", "G", "A"],
+  "ii" : ["B", "D", "E", "F", "A"],
+  "iii": ["B", "C", "E", "F", "G"],
+  "IV" : ["C", "D", "F", "G", "A"],
+  "V"  : ["B", "D", "F", "G", "A"],
+  "vi" : ["B", "C", "E", "F", "A"],
+};
 // create a synth and connect it to the master output (your speakers)
 var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
 
@@ -112,6 +119,7 @@ var TEMPO = 120;
 var STEP_VALUE = 1/8;
 var previousPosition = 0;
 var triggerNotes = false;
+var currentNotes = NOTES.I;
 function update() {
   var beats = performance.now() / 1000 / 60 * TEMPO;
   var position = beats * (1/4 / STEP_VALUE);
@@ -128,8 +136,8 @@ function update() {
     if (keyMesh.row === position) {
       keyMesh.material.uniforms.u_rowActive.value = 1;
       if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
-        var note = NOTES[keyMesh.note % NOTES.length];
-        var ocatve = Math.floor(keyMesh.note / NOTES.length) + 3;
+        var note = currentNotes[keyMesh.note % currentNotes.length];
+        var ocatve = Math.floor(keyMesh.note / currentNotes.length) + 3;
         // Duration of an 8th note
         synth.triggerAttackRelease(note + ocatve, "8n");
       }
