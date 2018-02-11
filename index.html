@@ -24,23 +24,28 @@ var SCALES = {
     "color": new THREE.Color(0xbf4944),
   },
   "IV": {
-    "notes": ["C", "D", "F", "G", "A"],
+    // "notes": ["C", "D", "F", "G", "A"],
+    "notes": ["F", "G", "A", "C", "D"],
     "color": new THREE.Color(0xc3c045),
   },
   "V": {
-    "notes": ["B", "D", "F", "G", "A"],
+    // "notes": ["B", "D", "F", "G", "A"],
+    "notes": ["G", "A", "B", "D", "F"],
     "color": new THREE.Color(0xc08032),
   },
   "ii": {
-    "notes": ["B", "D", "E", "F", "A"],
-    "color": new THREE.Color(0x39ba2f),
+    // "notes": ["B", "D", "E", "F", "A"],
+    "notes": ["D", "E", "F", "A", "B"],
+    "color": new THREE.Color(0x6bbc5a),
   },
   "vi": {
-    "notes": ["B", "C", "E", "F", "A"],
+    // "notes": ["B", "C", "E", "F", "A"],
+    "notes": ["A", "B", "C", "E", "F"],
     "color": new THREE.Color(0x5455b7),
   },
   "iii": {
-    "notes": ["B", "C", "E", "F", "G"],
+    // "notes": ["B", "C", "E", "F", "G"],
+    "notes": ["E", "F", "G", "B", "C"],
     "color": new THREE.Color(0x8a49bd),
   },
 };
@@ -183,9 +188,9 @@ function update() {
       if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
         var note = currentNotes[keyMesh.note % currentNotes.length];
         var octave = Math.floor(keyMesh.note / currentNotes.length) + 3;
-        if (note === "B") { // TODO HAAAAX
-          octave -= 1;
-        }
+        // if (note === "B") { // TODO HAAAAX
+        //   octave -= 1;
+        // }
         // Duration of an 8th note
         synth.triggerAttackRelease(note + octave, "8n");
       }
