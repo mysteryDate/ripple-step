@@ -7,6 +7,7 @@ var Constants = {
   TEMPO: 120,
   STEP_VALUE: 1/8,
   SWING: 0,
+  RELATIVE: false,
 };
 
 Constants.Scales = {

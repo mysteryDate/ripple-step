@@ -133,7 +133,6 @@ document.addEventListener("mouseup", onDocumentMouseUp, false);
 
 var previousPosition = 0;
 var triggerNotes = false;
-console.log(Constants);
 function update() {
   var beats = performance.now() / 1000 / 60 * Constants.TEMPO;
   var position = beats * (1/4 / Constants.STEP_VALUE);
@@ -154,9 +153,14 @@ function update() {
       keyMesh.material.uniforms.u_rowActive.value = 1;
       if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
         var currentNotes = currentScale.notes;
+        var currentOctaves = currentScale.octaves;
+        if (Constants.RELATIVE) {
+          currentNotes = currentScale.relative_notes;
+          currentOctaves = currentScale.relative_octaves;
+        }
         var note = currentNotes[(keyMesh.note) % currentNotes.length];
         var octave = Math.floor(keyMesh.note / currentNotes.length) + 3;
-        octave += currentScale.octaves[(keyMesh.note) % currentNotes.length];
+        octave += currentOctaves[(keyMesh.note) % currentNotes.length];
         // Duration of an 8th note
         synth.triggerAttackRelease(note + octave, "8n");
       }
@@ -169,3 +173,5 @@ function update() {
   requestAnimationFrame(update);
 }
 update();
+
+window.Constants = Constants;
