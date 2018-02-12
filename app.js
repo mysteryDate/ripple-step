@@ -1,8 +1,7 @@
-const THREE = require("three"); // TODO webpack?
-// const Tone = require("tone");
-import bar from "./foo";
+import * as THREE from "./node_modules/three";
 import Tone from "./node_modules/Tone";
 
+import bar from "./foo";
 bar();
 
 var BASE_COLOR = new THREE.Color(0x54576b);
