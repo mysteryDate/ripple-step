@@ -16,8 +16,9 @@ var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidt
 camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
 var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
-toneMatrix.scale.set(window.innerWidth/2, window.innerWidth/2, 1);
-toneMatrix.position.set(window.innerWidth/2, window.innerWidth/2, 1);
+var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
+toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
 scene.add(toneMatrix);
 
 var scaleChooser = new THREE.Group();
@@ -119,7 +120,6 @@ function update() {
         var octave = Math.floor(keyMesh.row / currentNotes.length) + 3;
         octave += currentOctaves[(keyMesh.row) % currentNotes.length];
         // Duration of an 8th note
-        console.log(note, octave);
         synth.triggerAttackRelease(note + octave, "8n");
       }
     } else {
