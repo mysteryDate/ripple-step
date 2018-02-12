@@ -2,35 +2,9 @@ import * as THREE from "./node_modules/three";
 import Tone from "./node_modules/Tone";
 
 import {Constants, Scales, Controls} from "./AppData";
+import ToneMatrix from "./ToneMatrix";
 
 var currentScale = Scales.I;
-
-function makeKeyShader() {
-  return new THREE.ShaderMaterial({
-    uniforms: {
-      u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
-      u_activeColor: {value: new THREE.Color(currentScale.color)},
-      u_armed: {value: 0},
-      u_rowActive: {value: 0},
-    },
-    vertexShader: `
-      void main() {
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 u_baseColor;
-      uniform vec3 u_activeColor;
-      uniform float u_armed;
-      uniform float u_rowActive;
-      void main() {
-        vec3 col = mix(u_baseColor, u_activeColor, u_armed);
-        col = mix(col, 2.0 * col, u_rowActive * u_armed);
-        gl_FragColor = vec4(col, 1.0);
-      }
-    `,
-  });
-}
 
 var container = document.getElementById("container");
 var renderer = new THREE.WebGLRenderer({antialias: true});
@@ -41,31 +15,13 @@ var scene = new THREE.Scene();
 var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidth/2, window.innerHeight/2, -window.innerHeight/2, 0.1, 100);
 camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
-var keyGeom = new THREE.PlaneBufferGeometry(Constants.MATRIX_KEY_SIZE, Constants.MATRIX_KEY_SIZE);
-var keyGroup = new THREE.Group();
-var i;
-var j;
-for (i = 0; i < Constants.NUM_STEPS; i++) {
-  for (j = 0; j < Constants.NUM_STEPS; j++) {
-    var mesh = new THREE.Mesh(keyGeom, makeKeyShader());
-    keyGroup.add(mesh);
-    mesh.position.set(i, j, 0);
-    mesh.position.multiplyScalar(Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO));
-    mesh.position.add(new THREE.Vector3(Constants.MATRIX_KEY_SIZE/2, Constants.MATRIX_KEY_SIZE/2, 0)); // So the origin is the lower left
-    mesh.note = j;
-    mesh.row = i;
-  }
-}
-var keyGroupBB = new THREE.Box3().setFromObject(keyGroup);
-keyGroup.children[0].material.uniforms.u_armed.value = true;
-keyGroup.position.sub(keyGroupBB.getCenter());
-keyGroup.position.add(camera.position);
-keyGroup.position.z = 0;
-scene.add(keyGroup);
+var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
+toneMatrix.scale.set(window.innerWidth/2, window.innerWidth/2, 1);
+scene.add(toneMatrix);
 
 var scaleChooser = new THREE.Group();
 Object.keys(Scales).forEach(function(scale, index) {
-  var pickerKey = new THREE.Mesh(keyGeom, new THREE.MeshBasicMaterial({color: Scales[scale].color}));
+  var pickerKey = new THREE.Mesh(new THREE.PlaneBufferGeometry(10, 10), new THREE.MeshBasicMaterial({color: Scales[scale].color}));
   scaleChooser.add(pickerKey);
   pickerKey.position.set(index * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);
   pickerKey.position.x -= 2.5 * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)); // Center it
@@ -88,7 +44,7 @@ function onDocumentMouseMove(event) {
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
   if (event.buttons === 1) {
-    var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
+    var clickedKey = raycaster.intersectObjects(toneMatrix.children)[0];
     if (clickedKey !== undefined && recentTrigger !== clickedKey.object) {
       var clickedMesh = clickedKey.object;
       if (offOrOn === "on") {
@@ -102,7 +58,7 @@ function onDocumentMouseMove(event) {
     if (clickedScale !== undefined) {
       currentScale = Scales[clickedScale.object.scaleName];
       var currentColor = new THREE.Color(Scales[clickedScale.object.scaleName].color);
-      keyGroup.children.forEach(function(key) {
+      toneMatrix.children.forEach(function(key) {
         key.material.uniforms.u_activeColor.value = currentColor;
       });
     }
@@ -113,7 +69,7 @@ function onDocumentMouseDown(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-  var clickedKey = raycaster.intersectObjects(keyGroup.children)[0];
+  var clickedKey = raycaster.intersectObjects(toneMatrix.children)[0];
   if (clickedKey !== undefined) {
     var clickedMesh = clickedKey.object;
     if (clickedMesh.material.uniforms.u_armed.value === true) {
@@ -148,7 +104,7 @@ function update() {
     triggerNotes = false;
   }
 
-  keyGroup.children.forEach(function(keyMesh) {
+  toneMatrix.children.forEach(function(keyMesh) {
     if (keyMesh.row === position) {
       keyMesh.material.uniforms.u_rowActive.value = 1;
       if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
@@ -175,3 +131,4 @@ function update() {
 update();
 
 window.Constants = Constants;
+window.tm = toneMatrix;
