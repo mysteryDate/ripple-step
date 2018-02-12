@@ -1,9 +1,9 @@
 import * as THREE from "./node_modules/three";
 import Tone from "./node_modules/Tone";
 
-import Constants from "./Constants";
+import {Constants, Scales, Controls} from "./AppData";
 
-var currentScale = Constants.Scales.I;
+var currentScale = Scales.I;
 
 function makeKeyShader() {
   return new THREE.ShaderMaterial({
@@ -41,7 +41,7 @@ var scene = new THREE.Scene();
 var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidth/2, window.innerHeight/2, -window.innerHeight/2, 0.1, 100);
 camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
-var keyGeom = new THREE.PlaneBufferGeometry(Constants.KEY_SIZE, Constants.KEY_SIZE);
+var keyGeom = new THREE.PlaneBufferGeometry(Constants.MATRIX_KEY_SIZE, Constants.MATRIX_KEY_SIZE);
 var keyGroup = new THREE.Group();
 var i;
 var j;
@@ -50,8 +50,8 @@ for (i = 0; i < Constants.NUM_STEPS; i++) {
     var mesh = new THREE.Mesh(keyGeom, makeKeyShader());
     keyGroup.add(mesh);
     mesh.position.set(i, j, 0);
-    mesh.position.multiplyScalar(Constants.KEY_SIZE * (1 + Constants.SPACING_RATIO));
-    mesh.position.add(new THREE.Vector3(Constants.KEY_SIZE/2, Constants.KEY_SIZE/2, 0)); // So the origin is the lower left
+    mesh.position.multiplyScalar(Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO));
+    mesh.position.add(new THREE.Vector3(Constants.MATRIX_KEY_SIZE/2, Constants.MATRIX_KEY_SIZE/2, 0)); // So the origin is the lower left
     mesh.note = j;
     mesh.row = i;
   }
@@ -64,11 +64,11 @@ keyGroup.position.z = 0;
 scene.add(keyGroup);
 
 var scaleChooser = new THREE.Group();
-Object.keys(Constants.Scales).forEach(function(scale, index) {
-  var pickerKey = new THREE.Mesh(keyGeom, new THREE.MeshBasicMaterial({color: Constants.Scales[scale].color}));
+Object.keys(Scales).forEach(function(scale, index) {
+  var pickerKey = new THREE.Mesh(keyGeom, new THREE.MeshBasicMaterial({color: Scales[scale].color}));
   scaleChooser.add(pickerKey);
-  pickerKey.position.set(index * (Constants.KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);
-  pickerKey.position.x -= 2.5 * (Constants.KEY_SIZE * (1 + Constants.SPACING_RATIO)); // Center it
+  pickerKey.position.set(index * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);
+  pickerKey.position.x -= 2.5 * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)); // Center it
   pickerKey.scaleName = scale;
 });
 scaleChooser.position.x = window.innerWidth/2;
@@ -100,8 +100,8 @@ function onDocumentMouseMove(event) {
     }
     var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
     if (clickedScale !== undefined) {
-      currentScale = Constants.Scales[clickedScale.object.scaleName];
-      var currentColor = new THREE.Color(Constants.Scales[clickedScale.object.scaleName].color);
+      currentScale = Scales[clickedScale.object.scaleName];
+      var currentColor = new THREE.Color(Scales[clickedScale.object.scaleName].color);
       keyGroup.children.forEach(function(key) {
         key.material.uniforms.u_activeColor.value = currentColor;
       });
@@ -134,10 +134,10 @@ document.addEventListener("mouseup", onDocumentMouseUp, false);
 var previousPosition = 0;
 var triggerNotes = false;
 function update() {
-  var beats = performance.now() / 1000 / 60 * Constants.TEMPO;
+  var beats = performance.now() / 1000 / 60 * Controls.TEMPO;
   var position = beats * (1/4 / Constants.STEP_VALUE);
   if (Math.floor(position) % 2 === 1) {
-    position += Constants.SWING;
+    position += Controls.SWING;
   }
   position = Math.floor(position % Constants.NUM_STEPS);
 

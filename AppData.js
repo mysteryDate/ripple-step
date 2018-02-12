@@ -2,15 +2,17 @@ var Constants = {
   MATRIX_KEY_SIZE: 40,
   BASE_COLOR: 0x54576b,
   NUM_STEPS: 16,
-  KEY_SIZE: 40,
   SPACING_RATIO: 1/10,
-  TEMPO: 120,
   STEP_VALUE: 1/8,
-  SWING: 0,
   RELATIVE: false,
 };
 
-Constants.Scales = {
+var Controls = {
+  TEMPO: 120,
+  SWING: 0,
+};
+
+var Scales = {
   "IV": {
     "relative_notes": ["C", "D", "F", "G", "A"],
     "relative_octaves": [0, 0, 0, 0, 0],
@@ -55,4 +57,4 @@ Constants.Scales = {
   },
 };
 
-export default Constants;
+export {Constants, Scales, Controls};
