@@ -17,6 +17,7 @@ camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
 var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
 toneMatrix.scale.set(window.innerWidth/2, window.innerWidth/2, 1);
+toneMatrix.position.set(window.innerWidth/2, window.innerWidth/2, 1);
 scene.add(toneMatrix);
 
 var scaleChooser = new THREE.Group();
@@ -105,8 +106,8 @@ function update() {
   }
 
   toneMatrix.children.forEach(function(keyMesh) {
-    if (keyMesh.row === position) {
-      keyMesh.material.uniforms.u_rowActive.value = 1;
+    if (keyMesh.column === position) {
+      keyMesh.material.uniforms.u_columnActive.value = 1;
       if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
         var currentNotes = currentScale.notes;
         var currentOctaves = currentScale.octaves;
@@ -114,14 +115,15 @@ function update() {
           currentNotes = currentScale.relative_notes;
           currentOctaves = currentScale.relative_octaves;
         }
-        var note = currentNotes[(keyMesh.note) % currentNotes.length];
-        var octave = Math.floor(keyMesh.note / currentNotes.length) + 3;
-        octave += currentOctaves[(keyMesh.note) % currentNotes.length];
+        var note = currentNotes[(keyMesh.row) % currentNotes.length];
+        var octave = Math.floor(keyMesh.row / currentNotes.length) + 3;
+        octave += currentOctaves[(keyMesh.row) % currentNotes.length];
         // Duration of an 8th note
+        console.log(note, octave);
         synth.triggerAttackRelease(note + octave, "8n");
       }
     } else {
-      keyMesh.material.uniforms.u_rowActive.value = 0;
+      keyMesh.material.uniforms.u_columnActive.value = 0;
     }
   });
 
