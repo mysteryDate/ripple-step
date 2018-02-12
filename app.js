@@ -1,54 +1,15 @@
 import * as THREE from "./node_modules/three";
 import Tone from "./node_modules/Tone";
 
-import bar from "./foo";
-bar();
+import Constants from "./Constants";
 
-var BASE_COLOR = new THREE.Color(0x54576b);
-var SCALES = {
-  "I": {
-    "notes": ["C", "D", "E", "G", "A"],
-    "octaves": [0, 0, 0, 0, 0],
-    "color": new THREE.Color(0xbf4944),
-  },
-  "IV": {
-    // "notes": ["C", "D", "F", "G", "A"],
-    "notes": ["F", "G", "A", "C", "D"],
-    "octaves": [0, 0, 0, 1, 1],
-    "color": new THREE.Color(0xc3c045),
-  },
-  "V": {
-    // "notes": ["B", "D", "F", "G", "A"],
-    "notes": ["G", "A", "B", "D", "F"],
-    "octaves": [-1, -1, -1, 0, 0],
-    "color": new THREE.Color(0xc08032),
-  },
-  "ii": {
-    // "notes": ["B", "D", "E", "F", "A"],
-    "notes": ["D", "E", "F", "A", "B"],
-    "octaves": [0, 0, 0, 0, 0],
-    "color": new THREE.Color(0x6bbc5a),
-  },
-  "vi": {
-    // "notes": ["B", "C", "E", "F", "A"],
-    "notes": ["A", "B", "C", "E", "F"],
-    "octaves": [-1, -1, 0, 0, 0],
-    "color": new THREE.Color(0x5455b7),
-  },
-  "iii": {
-    // "notes": ["B", "C", "E", "F", "G"],
-    "notes": ["E", "F", "G", "B", "C"],
-    "octaves": [0, 0, 0, 0, 1],
-    "color": new THREE.Color(0x8a49bd),
-  },
-};
-var currentScale = SCALES.I;
+var currentScale = Constants.Scales.I;
 
 function makeKeyShader() {
   return new THREE.ShaderMaterial({
     uniforms: {
-      u_baseColor: {value: BASE_COLOR},
-      u_activeColor: {value: SCALES.I.color},
+      u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
+      u_activeColor: {value: new THREE.Color(currentScale.color)},
       u_armed: {value: 0},
       u_rowActive: {value: 0},
     },
@@ -80,20 +41,17 @@ var scene = new THREE.Scene();
 var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidth/2, window.innerHeight/2, -window.innerHeight/2, 0.1, 100);
 camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
-var NUM_STEPS = 16;
-var KEY_SIZE = 40;
-var SPACING = KEY_SIZE/10;
-var keyGeom = new THREE.PlaneBufferGeometry(KEY_SIZE, KEY_SIZE);
+var keyGeom = new THREE.PlaneBufferGeometry(Constants.KEY_SIZE, Constants.KEY_SIZE);
 var keyGroup = new THREE.Group();
 var i;
 var j;
-for (i = 0; i < NUM_STEPS; i++) {
-  for (j = 0; j < NUM_STEPS; j++) {
+for (i = 0; i < Constants.NUM_STEPS; i++) {
+  for (j = 0; j < Constants.NUM_STEPS; j++) {
     var mesh = new THREE.Mesh(keyGeom, makeKeyShader());
     keyGroup.add(mesh);
     mesh.position.set(i, j, 0);
-    mesh.position.multiplyScalar(KEY_SIZE + SPACING);
-    mesh.position.add(new THREE.Vector3(KEY_SIZE/2, KEY_SIZE/2, 0)); // So the origin is the lower left
+    mesh.position.multiplyScalar(Constants.KEY_SIZE * (1 + Constants.SPACING_RATIO));
+    mesh.position.add(new THREE.Vector3(Constants.KEY_SIZE/2, Constants.KEY_SIZE/2, 0)); // So the origin is the lower left
     mesh.note = j;
     mesh.row = i;
   }
@@ -106,11 +64,11 @@ keyGroup.position.z = 0;
 scene.add(keyGroup);
 
 var scaleChooser = new THREE.Group();
-Object.keys(SCALES).forEach(function(scale, index) {
-  var pickerKey = new THREE.Mesh(keyGeom, new THREE.MeshBasicMaterial({color: SCALES[scale].color}));
+Object.keys(Constants.Scales).forEach(function(scale, index) {
+  var pickerKey = new THREE.Mesh(keyGeom, new THREE.MeshBasicMaterial({color: Constants.Scales[scale].color}));
   scaleChooser.add(pickerKey);
-  pickerKey.position.set(index * (KEY_SIZE + SPACING), 0, 0);
-  pickerKey.position.x -= 2.5 * (KEY_SIZE + SPACING); // Center it
+  pickerKey.position.set(index * (Constants.KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);
+  pickerKey.position.x -= 2.5 * (Constants.KEY_SIZE * (1 + Constants.SPACING_RATIO)); // Center it
   pickerKey.scaleName = scale;
 });
 scaleChooser.position.x = window.innerWidth/2;
@@ -118,7 +76,7 @@ scene.add(scaleChooser);
 
 // SYNTH
 // create a synth and connect it to the master output (your speakers)
-var synth = new Tone.PolySynth(16, Tone.Synth).toMaster();
+var synth = new Tone.PolySynth(Constants.NUM_STEPS, Tone.Synth).toMaster();
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -142,8 +100,8 @@ function onDocumentMouseMove(event) {
     }
     var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
     if (clickedScale !== undefined) {
-      currentScale = SCALES[clickedScale.object.scaleName];
-      var currentColor = SCALES[clickedScale.object.scaleName].color;
+      currentScale = Constants.Scales[clickedScale.object.scaleName];
+      var currentColor = new THREE.Color(Constants.Scales[clickedScale.object.scaleName].color);
       keyGroup.children.forEach(function(key) {
         key.material.uniforms.u_activeColor.value = currentColor;
       });
@@ -173,18 +131,16 @@ document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
 document.addEventListener("mouseup", onDocumentMouseUp, false);
 
-var TEMPO = 120;
-var STEP_VALUE = 1/8;
 var previousPosition = 0;
 var triggerNotes = false;
-var swing = 0.0;
+console.log(Constants);
 function update() {
-  var beats = performance.now() / 1000 / 60 * TEMPO;
-  var position = beats * (1/4 / STEP_VALUE);
+  var beats = performance.now() / 1000 / 60 * Constants.TEMPO;
+  var position = beats * (1/4 / Constants.STEP_VALUE);
   if (Math.floor(position) % 2 === 1) {
-    position += swing;
+    position += Constants.SWING;
   }
-  position = Math.floor(position % NUM_STEPS);
+  position = Math.floor(position % Constants.NUM_STEPS);
 
   if (position !== previousPosition) {
     triggerNotes = true;
@@ -201,9 +157,6 @@ function update() {
         var note = currentNotes[(keyMesh.note) % currentNotes.length];
         var octave = Math.floor(keyMesh.note / currentNotes.length) + 3;
         octave += currentScale.octaves[(keyMesh.note) % currentNotes.length];
-        // if (note === "B") { // TODO HAAAAX
-        //   octave -= 1;
-        // }
         // Duration of an 8th note
         synth.triggerAttackRelease(note + octave, "8n");
       }
@@ -216,9 +169,3 @@ function update() {
   requestAnimationFrame(update);
 }
 update();
-
-// var container = document.getElementById("container");
-// var renderer = new THREE.WebGLRenderer({antialias: true});
-// renderer.setPixelRatio(window.devicePixelRatio);
-// renderer.setSize(window.innerWidth, window.innerHeight);
-// container.appendChild(renderer.domElement);
