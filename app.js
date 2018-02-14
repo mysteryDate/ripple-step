@@ -37,25 +37,13 @@ scene.add(scaleChooser);
 
 // Click handler
 var raycaster = new THREE.Raycaster();
-var recentTrigger = null; // Hacky debouncing
-var offOrOn = "on";
 function onDocumentMouseMove(event) {
-  var mouse = new THREE.Vector2();
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  if (event.buttons === 1) {
-    var clickedKey = raycaster.intersectObjects(toneMatrix.children)[0];
-    if (clickedKey !== undefined && recentTrigger !== clickedKey.object) {
-      var clickedMesh = clickedKey.object;
-      if (offOrOn === "on") {
-        clickedMesh.material.uniforms.u_armed.value = true;
-        // clic
-      } else {
-        clickedMesh.material.uniforms.u_armed.value = false;
-      }
-      recentTrigger = clickedMesh;
-    }
+  if (event.buttons === 1) { // Mouse is down
+    var mouse = new THREE.Vector2();
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    toneMatrix.touch(raycaster);
     var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
     if (clickedScale !== undefined) {
       currentScale = Scales[clickedScale.object.scaleName];
@@ -68,23 +56,11 @@ function onDocumentMouseDown(event) {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-  var clickedKey = raycaster.intersectObjects(toneMatrix.children)[0];
-  if (clickedKey !== undefined) {
-    var clickedMesh = clickedKey.object;
-    if (clickedMesh.material.uniforms.u_armed.value === true) {
-      offOrOn = "off";
-    } else {
-      offOrOn = "on";
-    }
-  }
+  toneMatrix.touchStart(raycaster);
   onDocumentMouseMove(event);
-}
-function onDocumentMouseUp(event) {
-  recentTrigger = null;
 }
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
-document.addEventListener("mouseup", onDocumentMouseUp, false);
 
 var previousPosition = 0;
 // SYNTH
@@ -126,3 +102,4 @@ function update() {
   requestAnimationFrame(update);
 }
 update();
+window.tm = toneMatrix;

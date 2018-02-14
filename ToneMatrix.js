@@ -37,11 +37,11 @@ function MatrixButton(row, column, geometry) {
 
   this.arm = function() {
     armed = true;
-    this.material.uniforms.u_active.value = true;
+    this.material.uniforms.u_armed.value = true;
   };
   this.disarm = function() {
     armed = false;
-    this.material.uniforms.u_active.value = false;
+    this.material.uniforms.u_armed.value = false;
   };
   this.isArmed = function() {
     return armed;
@@ -58,6 +58,7 @@ function ToneMatrix(width, height) {
   })();
   var buttons = [];
   var columns = [];
+
   for (var col = 0; col < width; col++) {
     columns.push([]);
     for (var row = 0; row < height; row++) {
@@ -94,7 +95,29 @@ function ToneMatrix(width, height) {
   this.setActiveColor = function(color) {
     setButtonUniform("u_activeColor", color);
   };
+
+  // Some hacky debouncing
+  this.mostRecentlyTouchedButton = null;
+  this.arming = true;
 }
 ToneMatrix.prototype = Object.create(THREE.Object3D.prototype);
+
+ToneMatrix.prototype.touch = function(raycaster) {
+  var touchedButton = raycaster.intersectObjects(this.children)[0];
+  if (touchedButton) {
+    if (this.arming === true) {
+      touchedButton.object.arm();
+    } else {
+      touchedButton.object.disarm();
+    }
+  }
+};
+ToneMatrix.prototype.touchStart = function(raycaster) {
+  var touchedButton = raycaster.intersectObjects(this.children)[0];
+  if (touchedButton) {
+    this.arming = !touchedButton.object.isArmed();
+  }
+  this.touch(raycaster);
+};
 
 export default ToneMatrix;
