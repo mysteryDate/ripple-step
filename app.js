@@ -34,9 +34,6 @@ Object.keys(Scales).forEach(function(scale, index) {
 scaleChooser.position.x = window.innerWidth/2;
 scene.add(scaleChooser);
 
-// SYNTH
-// create a synth and connect it to the master output (your speakers)
-var synth = new Tone.PolySynth(Constants.NUM_STEPS, Tone.Synth).toMaster();
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -53,6 +50,7 @@ function onDocumentMouseMove(event) {
       var clickedMesh = clickedKey.object;
       if (offOrOn === "on") {
         clickedMesh.material.uniforms.u_armed.value = true;
+        // clic
       } else {
         clickedMesh.material.uniforms.u_armed.value = false;
       }
@@ -61,10 +59,7 @@ function onDocumentMouseMove(event) {
     var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
     if (clickedScale !== undefined) {
       currentScale = Scales[clickedScale.object.scaleName];
-      var currentColor = new THREE.Color(Scales[clickedScale.object.scaleName].color);
-      toneMatrix.children.forEach(function(key) {
-        key.material.uniforms.u_activeColor.value = currentColor;
-      });
+      toneMatrix.setActiveColor(new THREE.Color(currentScale.color));
     }
   }
 }
@@ -92,7 +87,24 @@ document.addEventListener("mousedown", onDocumentMouseDown, false);
 document.addEventListener("mouseup", onDocumentMouseUp, false);
 
 var previousPosition = 0;
-var triggerNotes = false;
+// SYNTH
+// create a synth and connect it to the master output (your speakers)
+var synth = new Tone.PolySynth(Constants.NUM_STEPS, Tone.Synth).toMaster();
+
+function playRow(row) {
+  var currentNotes = currentScale.notes;
+  var currentOctaves = currentScale.octaves;
+  if (Constants.RELATIVE) {
+    currentNotes = currentScale.relative_notes;
+    currentOctaves = currentScale.relative_octaves;
+  }
+  var note = currentNotes[(row) % currentNotes.length];
+  var octave = Math.floor(row / currentNotes.length) + 3;
+  octave += currentOctaves[(row) % currentNotes.length];
+  // Duration of an 8th note
+  synth.triggerAttackRelease(note + octave, "8n");
+}
+
 function update() {
   var beats = performance.now() / 1000 / 60 * Controls.TEMPO;
   var position = beats * (1/4 / Constants.STEP_VALUE);
@@ -102,32 +114,13 @@ function update() {
   position = Math.floor(position % Constants.NUM_STEPS);
 
   if (position !== previousPosition) {
-    triggerNotes = true;
+    // triggerNotes = true;
     previousPosition = position;
-  } else {
-    triggerNotes = false;
+    var rowsToPlay = toneMatrix.activateColumn(position);
+    rowsToPlay.forEach(function(row) {
+      playRow(row);
+    });
   }
-
-  toneMatrix.children.forEach(function(keyMesh) {
-    if (keyMesh.column === position) {
-      keyMesh.material.uniforms.u_columnActive.value = 1;
-      if (triggerNotes && keyMesh.material.uniforms.u_armed.value > 0) {
-        var currentNotes = currentScale.notes;
-        var currentOctaves = currentScale.octaves;
-        if (Constants.RELATIVE) {
-          currentNotes = currentScale.relative_notes;
-          currentOctaves = currentScale.relative_octaves;
-        }
-        var note = currentNotes[(keyMesh.row) % currentNotes.length];
-        var octave = Math.floor(keyMesh.row / currentNotes.length) + 3;
-        octave += currentOctaves[(keyMesh.row) % currentNotes.length];
-        // Duration of an 8th note
-        synth.triggerAttackRelease(note + octave, "8n");
-      }
-    } else {
-      keyMesh.material.uniforms.u_columnActive.value = 0;
-    }
-  });
 
   renderer.render(scene, camera);
   requestAnimationFrame(update);

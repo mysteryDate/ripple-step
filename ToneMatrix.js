@@ -57,33 +57,39 @@ function ToneMatrix(width, height) {
     return new THREE.PlaneBufferGeometry(1/w, 1/h);
   })();
   var buttons = [];
-  var columns = Array(width).fill([]);
-  var rows = Array(height).fill([]);
-  for (var row = 0; row < width; row++) {
-    for (var col = 0; col < height; col++) {
+  var columns = [];
+  for (var col = 0; col < width; col++) {
+    columns.push([]);
+    for (var row = 0; row < height; row++) {
       var button = new MatrixButton(row, col, keyGeometry);
       button.position.set(col - width/2, row - height/2, 0).multiplyScalar(1/width, 1/height, 1);
       buttons.push(button);
       columns[col].push(button);
-      rows[row].push(button);
       this.add(button);
     }
   }
-
-  this.activateButton = function(x, y) {
-    buttons[x][y].activate();
-  };
-  this.activateColumn = function(num, value) {
-    columns[num].forEach(function(btn) {
-      btn.material.uniforms.u_columnActive.value = value;
-    });
-  };
 
   function setButtonUniform(uniform, value) {
     buttons.forEach(function(btn) {
       btn.material.uniforms[uniform].value = value;
     });
   }
+
+  this.armButton = function(x, y) {
+    buttons[x][y].arm();
+  };
+  this.activateColumn = function(num) {
+    setButtonUniform("u_columnActive", false);
+    var armedRows = [];
+    columns[num].forEach(function(btn) {
+      btn.material.uniforms.u_columnActive.value = true;
+      // if (btn.isArmed()) { // TODO
+      if (btn.material.uniforms.u_armed.value === true) {
+        armedRows.push(btn.row);
+      }
+    });
+    return armedRows;
+  };
 
   this.setActiveColor = function(color) {
     setButtonUniform("u_activeColor", color);

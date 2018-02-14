@@ -10,6 +10,8 @@ module.exports = {
       },
     ],
   },
+  devtool: "source-map",
+  debug: true,
   target: "web",
   output: {
     filename: "bundle.js",
