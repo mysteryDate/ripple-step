@@ -18,7 +18,6 @@ camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
 var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
 var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
-console.log(toneMatrixSize);
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
@@ -102,7 +101,7 @@ function makeShadowScene() {
 }
 var shadowScene = makeShadowScene();
 
-var mat;
+
 var previousPosition = 0;
 var startTime;
 function update() {
@@ -123,7 +122,7 @@ function update() {
   }
 
   renderer.render(scene, camera);
-  mat.opacity = Math.sin(performance.now() / 4000) * 0.4 + 0.4;
+  // mat.opacity = Math.sin(performance.now() / 4000) * 0.4 + 0.4;
   renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
   // renderer.render(shadowScene.scene, shadowScene.camera);
   requestAnimationFrame(update);
@@ -142,13 +141,15 @@ window.THREE = THREE;
 window.scene = scene;
 window.ss = shadowScene;
 
-var g = new THREE.PlaneBufferGeometry(1, 1);
-mat = new THREE.MeshBasicMaterial({
+var tmBB = new THREE.Box3().setFromObject(toneMatrix);
+var tmSize = tmBB.getSize();
+var g = new THREE.PlaneBufferGeometry(tmSize.x, tmSize.y);
+var mat = new THREE.MeshBasicMaterial({
   map: shadowScene.target.texture,
   transparent: true,
   opacity: 0.5,
 });
 var mesh = new THREE.Mesh(g, mat);
-mesh.scale.set(toneMatrixSize, toneMatrixSize, 1);
-mesh.position.set(window.innerWidth/2, window.innerHeight/2, 2);
+mesh.position.copy(tmBB.getCenter());
 scene.add(mesh);
+window.mesh = mesh;

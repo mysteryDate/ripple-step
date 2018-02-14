@@ -1,8 +1,7 @@
 import * as THREE from "./node_modules/three";
 import {Constants} from "./AppData";
 
-// var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
-var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x0000ff)});
+var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
 var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xffffff)});
 
 function makeKeyShader() {
@@ -37,16 +36,19 @@ function MatrixButton(row, column, geometry) {
   this.row = row;
   this.column = column;
   this.shadow = new THREE.Mesh(geometry, SHADOW_KEY_MATERIAL);
+  this.shadow.visible = false;
 
   var armed = false;
 
   this.arm = function() {
     armed = true;
     this.material.uniforms.u_armed.value = true;
+    this.shadow.visible = true;
   };
   this.disarm = function() {
     armed = false;
     this.material.uniforms.u_armed.value = false;
+    this.shadow.visible = false;
   };
   this.isArmed = function() {
     return armed;
