@@ -3,6 +3,8 @@ import Tone from "./node_modules/Tone";
 import {sample, random} from "./node_modules/underscore";
 
 import {Constants, Scales, Controls} from "./AppData";
+import {blitTexture} from "./Graphics";
+import Materials from "./Materials";
 import ToneMatrix from "./ToneMatrix";
 
 var currentScale = sample(Object.values(Scales));
@@ -101,6 +103,28 @@ function makeShadowScene() {
 }
 var shadowScene = makeShadowScene();
 
+var rippleMaterial = Materials.ripple();
+rippleMaterial.uniforms.u_sceneTex.value = shadowScene.target.texture;
+var rippleTex0 = new THREE.WebGLRenderTarget(shadowScene.target.width, shadowScene.target.height);
+var rippleTex1 = new THREE.WebGLRenderTarget(shadowScene.target.width, shadowScene.target.height);
+var rippleTex2 = new THREE.WebGLRenderTarget(shadowScene.target.width, shadowScene.target.height);
+var ripplePtr = 0;
+var rippleTargets = [rippleTex0, rippleTex1, rippleTex2];
+rippleMaterial.uniforms.u_mainTex.value = rippleTex0;
+rippleMaterial.uniforms.u_backTex.value = rippleTex1;
+
+var tmBB = new THREE.Box3().setFromObject(toneMatrix);
+var tmSize = tmBB.getSize();
+var g = new THREE.PlaneBufferGeometry(tmSize.x, tmSize.y);
+var mat = new THREE.MeshBasicMaterial({
+  blending: THREE.AdditiveBlending,
+  map: rippleTex2.texture,
+  transparent: true,
+  opacity: 1.0,
+});
+var overlayMesh = new THREE.Mesh(g, mat);
+overlayMesh.position.copy(tmBB.getCenter());
+scene.add(overlayMesh);
 
 var previousPosition = 0;
 var startTime;
@@ -124,6 +148,14 @@ function update() {
   renderer.render(scene, camera);
   // mat.opacity = Math.sin(performance.now() / 4000) * 0.4 + 0.4;
   renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
+
+  for (var i = 0; i < 3; i++) {
+    ripplePtr = (ripplePtr + 1) % 3;
+    rippleMaterial.uniforms.u_mainTex.value = rippleTargets[(ripplePtr + 2) % 3].texture;
+    rippleMaterial.uniforms.u_backTex.value = rippleTargets[(ripplePtr + 1) % 3].texture;
+    blitTexture(renderer, rippleMaterial, rippleTargets[ripplePtr]);
+  }
+  mat.map = rippleTargets[ripplePtr].texture;
   // renderer.render(shadowScene.scene, shadowScene.camera);
   requestAnimationFrame(update);
 }
@@ -140,16 +172,4 @@ window.synth = synth;
 window.THREE = THREE;
 window.scene = scene;
 window.ss = shadowScene;
-
-var tmBB = new THREE.Box3().setFromObject(toneMatrix);
-var tmSize = tmBB.getSize();
-var g = new THREE.PlaneBufferGeometry(tmSize.x, tmSize.y);
-var mat = new THREE.MeshBasicMaterial({
-  map: shadowScene.target.texture,
-  transparent: true,
-  opacity: 0.5,
-});
-var mesh = new THREE.Mesh(g, mat);
-mesh.position.copy(tmBB.getCenter());
-scene.add(mesh);
-window.mesh = mesh;
+window.mat = mat;

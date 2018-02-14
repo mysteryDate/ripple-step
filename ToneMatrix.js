@@ -1,7 +1,11 @@
 import * as THREE from "./node_modules/three";
 import {Constants} from "./AppData";
 
-var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
+var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({
+  color: new THREE.Color(0x000000),
+  transparent: true,
+  opacity: 1.0,
+});
 var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xffffff)});
 
 function makeKeyShader() {
@@ -81,8 +85,6 @@ function ToneMatrix(width, height) {
       this.shadowGroup.add(button.shadow);
     }
   }
-  console.log(columns[0][0]);
-
 
   function setButtonUniform(uniform, value) {
     buttons.forEach(function(btn) {
@@ -120,6 +122,7 @@ function ToneMatrix(width, height) {
 
   this.setActiveColor = function(color) {
     setButtonUniform("u_activeColor", color);
+    // SHADOW_KEY_PLAYING_MATERIAL.color = color;
   };
 
   // Some hacky debouncing
