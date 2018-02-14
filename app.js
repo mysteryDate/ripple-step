@@ -1,6 +1,6 @@
 import * as THREE from "./node_modules/three";
 import Tone from "./node_modules/Tone";
-import {sample} from "./node_modules/underscore";
+import {sample, random} from "./node_modules/underscore";
 
 import {Constants, Scales, Controls} from "./AppData";
 import ToneMatrix from "./ToneMatrix";
@@ -21,11 +21,12 @@ var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
 toneMatrix.setActiveColor(new THREE.Color(currentScale.color));
+toneMatrix.armButton(random(0, Constants.NUM_STEPS), random(0, Constants.NUM_STEPS));
 scene.add(toneMatrix);
 
 var scaleChooser = new THREE.Group();
 Object.keys(Scales).forEach(function(scale, index) {
-  var pickerKey = new THREE.Mesh(new THREE.PlaneBufferGeometry(10, 10), new THREE.MeshBasicMaterial({color: Scales[scale].color}));
+  var pickerKey = new THREE.Mesh(new THREE.PlaneBufferGeometry(Constants.MATRIX_KEY_SIZE, Constants.MATRIX_KEY_SIZE), new THREE.MeshBasicMaterial({color: Scales[scale].color}));
   scaleChooser.add(pickerKey);
   pickerKey.position.set(index * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);
   pickerKey.position.x -= 2.5 * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)); // Center it
@@ -33,7 +34,6 @@ Object.keys(Scales).forEach(function(scale, index) {
 });
 scaleChooser.position.x = window.innerWidth/2;
 scene.add(scaleChooser);
-
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -62,7 +62,6 @@ function onDocumentMouseDown(event) {
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
 
-var previousPosition = 0;
 // SYNTH
 // create a synth and connect it to the master output (your speakers)
 var synth = new Tone.PolySynth(Constants.NUM_STEPS, Tone.Synth).toMaster();
@@ -81,8 +80,10 @@ function playRow(row) {
   synth.triggerAttackRelease(note + octave, "8n");
 }
 
+var previousPosition = -1;
+var startTime;
 function update() {
-  var beats = performance.now() / 1000 / 60 * Controls.TEMPO;
+  var beats = (performance.now() - startTime) / 1000 / 60 * Controls.TEMPO;
   var position = beats * (1/4 / Constants.STEP_VALUE);
   if (Math.floor(position) % 2 === 1) {
     position += Controls.SWING;
@@ -90,7 +91,6 @@ function update() {
   position = Math.floor(position % Constants.NUM_STEPS);
 
   if (position !== previousPosition) {
-    // triggerNotes = true;
     previousPosition = position;
     var rowsToPlay = toneMatrix.activateColumn(position);
     rowsToPlay.forEach(function(row) {
@@ -101,5 +101,12 @@ function update() {
   renderer.render(scene, camera);
   requestAnimationFrame(update);
 }
-update();
+
+renderer.render(scene, camera);
+window.setTimeout(function() {
+  startTime = performance.now();
+  update();
+}, 100);
+
 window.tm = toneMatrix;
+window.synth = synth;

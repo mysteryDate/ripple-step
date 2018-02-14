@@ -77,7 +77,7 @@ function ToneMatrix(width, height) {
   }
 
   this.armButton = function(x, y) {
-    buttons[x][y].arm();
+    columns[x][y].arm();
   };
   this.activateColumn = function(num) {
     setButtonUniform("u_columnActive", false);
