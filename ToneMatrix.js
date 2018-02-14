@@ -58,13 +58,14 @@ function ToneMatrix(width, height) {
   })();
   var buttons = [];
   var columns = Array(width).fill([]);
+  var rows = Array(height).fill([]);
   for (var row = 0; row < width; row++) {
-    buttons.push([]);
     for (var col = 0; col < height; col++) {
       var button = new MatrixButton(row, col, keyGeometry);
       button.position.set(col - width/2, row - height/2, 0).multiplyScalar(1/width, 1/height, 1);
-      buttons[row].push(button);
+      buttons.push(button);
       columns[col].push(button);
+      rows[row].push(button);
       this.add(button);
     }
   }
@@ -74,8 +75,18 @@ function ToneMatrix(width, height) {
   };
   this.activateColumn = function(num, value) {
     columns[num].forEach(function(btn) {
-      btn.material.uniforms.u_columnActive = value;
+      btn.material.uniforms.u_columnActive.value = value;
     });
+  };
+
+  function setButtonUniform(uniform, value) {
+    buttons.forEach(function(btn) {
+      btn.material.uniforms[uniform].value = value;
+    });
+  }
+
+  this.setActiveColor = function(color) {
+    setButtonUniform("u_activeColor", color);
   };
 }
 ToneMatrix.prototype = Object.create(THREE.Object3D.prototype);
