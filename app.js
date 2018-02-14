@@ -1,9 +1,10 @@
 import * as THREE from "./node_modules/three";
 import Tone from "./node_modules/Tone";
+import {sample} from "./node_modules/underscore";
 
 import {Constants, Scales, Controls} from "./AppData";
 
-var currentScale = Scales.I;
+var currentScale = sample(Object.values(Scales));
 
 function makeKeyShader() {
   return new THREE.ShaderMaterial({
@@ -173,5 +174,3 @@ function update() {
   requestAnimationFrame(update);
 }
 update();
-
-window.Constants = Constants;
