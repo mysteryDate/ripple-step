@@ -1,10 +1,11 @@
 import * as THREE from "./node_modules/three";
 import Tone from "./node_modules/Tone";
+import {sample} from "./node_modules/underscore";
 
 import {Constants, Scales, Controls} from "./AppData";
 import ToneMatrix from "./ToneMatrix";
 
-var currentScale = Scales.I;
+var currentScale = sample(Object.values(Scales));
 
 var container = document.getElementById("container");
 var renderer = new THREE.WebGLRenderer({antialias: true});
@@ -19,6 +20,7 @@ var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
 var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
+toneMatrix.setActiveColor(new THREE.Color(currentScale.color));
 scene.add(toneMatrix);
 
 var scaleChooser = new THREE.Group();
@@ -131,6 +133,3 @@ function update() {
   requestAnimationFrame(update);
 }
 update();
-
-window.Constants = Constants;
-window.tm = toneMatrix;
