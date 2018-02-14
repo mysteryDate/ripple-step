@@ -1,8 +1,10 @@
 var Constants = {
   MATRIX_KEY_SIZE: 40,
   BASE_COLOR: 0x54576b,
-  NUM_STEPS: 16,
-  SPACING_RATIO: 1/10,
+  // NUM_STEPS: 16,
+  NUM_STEPS: 4,
+  // SPACING_RATIO: 1/10,
+  SPACING_RATIO: 1/2,
   STEP_VALUE: 1/8,
   RELATIVE: false,
 };

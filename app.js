@@ -18,10 +18,12 @@ camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
 
 var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
 var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+console.log(toneMatrixSize);
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
+toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
 toneMatrix.setActiveColor(new THREE.Color(currentScale.color));
-toneMatrix.armButton(random(0, Constants.NUM_STEPS), random(0, Constants.NUM_STEPS));
+toneMatrix.armButton(random(0, Constants.NUM_STEPS - 1), random(0, Constants.NUM_STEPS - 1));
 scene.add(toneMatrix);
 
 var scaleChooser = new THREE.Group();
@@ -80,7 +82,28 @@ function playRow(row) {
   synth.triggerAttackRelease(note + octave, "8n");
 }
 
-var previousPosition = -1;
+// For off-screen, ripple renders
+function makeShadowScene() {
+  var rippleGroup = toneMatrix.shadowGroup;
+  var subScene = new THREE.Scene();
+  subScene.add(rippleGroup);
+  var boundingBox = new THREE.Box3().setFromObject(rippleGroup);
+  var bbSize = boundingBox.getSize();
+  var subCamera = new THREE.OrthographicCamera(-bbSize.x/2, bbSize.x/2, bbSize.y/2, -bbSize.y/2, 0.1, 100);
+  var target = new THREE.WebGLRenderTarget(bbSize.x, bbSize.y);
+  subCamera.position.copy(boundingBox.getCenter());
+  subCamera.position.z = 10;
+
+  return {
+    scene: subScene,
+    camera: subCamera,
+    target: target,
+  };
+}
+var shadowScene = makeShadowScene();
+
+var mat;
+var previousPosition = 0;
 var startTime;
 function update() {
   var beats = (performance.now() - startTime) / 1000 / 60 * Controls.TEMPO;
@@ -91,6 +114,7 @@ function update() {
   position = Math.floor(position % Constants.NUM_STEPS);
 
   if (position !== previousPosition) {
+    toneMatrix.deactivateColumn(previousPosition);
     previousPosition = position;
     var rowsToPlay = toneMatrix.activateColumn(position);
     rowsToPlay.forEach(function(row) {
@@ -99,6 +123,9 @@ function update() {
   }
 
   renderer.render(scene, camera);
+  mat.opacity = Math.sin(performance.now() / 4000) * 0.4 + 0.4;
+  renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
+  // renderer.render(shadowScene.scene, shadowScene.camera);
   requestAnimationFrame(update);
 }
 
@@ -108,5 +135,20 @@ window.setTimeout(function() {
   update();
 }, 100);
 
+window.renderer = renderer;
 window.tm = toneMatrix;
 window.synth = synth;
+window.THREE = THREE;
+window.scene = scene;
+window.ss = shadowScene;
+
+var g = new THREE.PlaneBufferGeometry(1, 1);
+mat = new THREE.MeshBasicMaterial({
+  map: shadowScene.target.texture,
+  transparent: true,
+  opacity: 0.5,
+});
+var mesh = new THREE.Mesh(g, mat);
+mesh.scale.set(toneMatrixSize, toneMatrixSize, 1);
+mesh.position.set(window.innerWidth/2, window.innerHeight/2, 2);
+scene.add(mesh);
