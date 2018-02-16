@@ -156,6 +156,7 @@ function update() {
     blitTexture(renderer, rippleMaterial, rippleTargets[ripplePtr]);
   }
   mat.map = rippleTargets[ripplePtr].texture;
+  toneMatrix.setRippleTexture(rippleTargets[ripplePtr].texture);
   // renderer.render(shadowScene.scene, shadowScene.camera);
   requestAnimationFrame(update);
 }

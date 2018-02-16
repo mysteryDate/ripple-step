@@ -11,6 +11,7 @@ var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.
 function makeKeyShader() {
   return new THREE.ShaderMaterial({
     uniforms: {
+      u_rippleTex: {value: null},
       u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
       u_activeColor: {value: new THREE.Color()},
       u_armed: {value: 0},
@@ -22,13 +23,15 @@ function makeKeyShader() {
       }
     `,
     fragmentShader: `
+      uniform sampler2D u_rippleTex;
       uniform vec3 u_baseColor;
       uniform vec3 u_activeColor;
       uniform float u_armed;
       uniform float u_columnActive;
       void main() {
         vec3 col = mix(u_baseColor, u_activeColor, u_armed);
-        col = mix(col, 2.0 * col, u_columnActive * u_armed);
+        col += texture2D(u_rippleTex, gl_Position);
+        // col = mix(col, 2.0 * col, u_columnActive * u_armed);
         gl_FragColor = vec4(col, 1.0);
       }
     `,
@@ -123,6 +126,10 @@ function ToneMatrix(width, height) {
   this.setActiveColor = function(color) {
     setButtonUniform("u_activeColor", color);
     // SHADOW_KEY_PLAYING_MATERIAL.color = color;
+  };
+
+  this.setRippleTexture = function(texture) {
+    setButtonUniform("u_rippleTex", texture);
   };
 
   // Some hacky debouncing
