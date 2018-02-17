@@ -2,11 +2,11 @@ import * as THREE from "./node_modules/three";
 import {Constants} from "./AppData";
 
 var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({
-  color: new THREE.Color(0x000000),
   transparent: true,
-  opacity: 1.0,
+  opacity: 0.0,
 });
 var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xffffff)});
+var SHADOW_KEY_ARMED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
 
 function makeKeyShader() {
   return new THREE.ShaderMaterial({
@@ -30,7 +30,7 @@ function makeKeyShader() {
       uniform float u_columnActive;
       void main() {
         vec3 col = mix(u_baseColor, u_activeColor, u_armed);
-        col += texture2D(u_rippleTex, gl_Position);
+        // col += texture2D(u_rippleTex, gl_Position);
         // col = mix(col, 2.0 * col, u_columnActive * u_armed);
         gl_FragColor = vec4(col, 1.0);
       }
@@ -51,10 +51,12 @@ function MatrixButton(row, column, geometry) {
     armed = true;
     this.material.uniforms.u_armed.value = true;
     this.shadow.visible = true;
+    this.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
   };
   this.disarm = function() {
     armed = false;
     this.material.uniforms.u_armed.value = false;
+    this.shadow.material = SHADOW_KEY_MATERIAL;
     this.shadow.visible = false;
   };
   this.isArmed = function() {
@@ -118,14 +120,14 @@ function ToneMatrix(width, height) {
     columns[num].forEach(function(btn) {
       btn.material.uniforms.u_columnActive.value = false;
       if (btn.isArmed()) {
-        btn.shadow.material = SHADOW_KEY_MATERIAL;
+        btn.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
       }
     });
   };
 
-  this.setActiveColor = function(color) {
+  this.setActiveColor = function(color, rippleColor) {
     setButtonUniform("u_activeColor", color);
-    // SHADOW_KEY_PLAYING_MATERIAL.color = color;
+    SHADOW_KEY_PLAYING_MATERIAL.color = rippleColor;
   };
 
   this.setRippleTexture = function(texture) {

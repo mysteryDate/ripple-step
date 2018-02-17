@@ -23,7 +23,7 @@ var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
-toneMatrix.setActiveColor(new THREE.Color(currentScale.color));
+toneMatrix.setActiveColor(new THREE.Color(currentScale.color), new THREE.Color(currentScale.ripple_color));
 toneMatrix.armButton(random(0, Constants.NUM_STEPS - 1), random(0, Constants.NUM_STEPS - 1));
 scene.add(toneMatrix);
 
@@ -50,7 +50,7 @@ function onDocumentMouseMove(event) {
     var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
     if (clickedScale !== undefined) {
       currentScale = Scales[clickedScale.object.scaleName];
-      toneMatrix.setActiveColor(new THREE.Color(currentScale.color));
+      toneMatrix.setActiveColor(new THREE.Color(currentScale.color), new THREE.Color(currentScale.ripple_color));
     }
   }
 }
@@ -149,7 +149,7 @@ function update() {
   // mat.opacity = Math.sin(performance.now() / 4000) * 0.4 + 0.4;
   renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
 
-  for (var i = 0; i < 3; i++) {
+  for (var i = 0; i < 4; i++) {
     ripplePtr = (ripplePtr + 1) % 3;
     rippleMaterial.uniforms.u_mainTex.value = rippleTargets[(ripplePtr + 2) % 3].texture;
     rippleMaterial.uniforms.u_backTex.value = rippleTargets[(ripplePtr + 1) % 3].texture;
@@ -169,6 +169,7 @@ window.setTimeout(function() {
 
 window.renderer = renderer;
 window.tm = toneMatrix;
+window.tm.visible = false;
 window.synth = synth;
 window.THREE = THREE;
 window.scene = scene;

@@ -18,7 +18,8 @@ var Scales = {
     "relative_octaves": [0, 0, 0, 0, 0],
     "notes": ["F", "G", "A", "C", "D"],
     "octaves": [0, 0, 0, 1, 1],
-    "color": 0xbf4944,
+    "color": 0xbf4944, // Mostly red
+    "ripple_color": 0xff0000,
   },
   "I": {
     "notes": ["C", "D", "E", "G", "A"],
@@ -26,6 +27,7 @@ var Scales = {
     "relative_notes": ["C", "D", "E", "G", "A"],
     "relative_octaves": [0, 0, 0, 0, 0],
     "color": 0xc3c045,
+    "ripple_color": 0xffff00,
   },
   "V": {
     "relative_notes": ["B", "D", "F", "G", "A"],
@@ -33,6 +35,7 @@ var Scales = {
     "notes": ["G", "A", "B", "D", "F"],
     "octaves": [-1, -1, -1, 0, 0],
     "color": 0xc08032,
+    "ripple_color": 0xff00ff,
   },
   "ii": {
     "relative_notes": ["B", "D", "E", "F", "A"],
@@ -40,6 +43,7 @@ var Scales = {
     "notes": ["D", "E", "F", "A", "B"],
     "octaves": [0, 0, 0, 0, 0],
     "color": 0x6bbc5a,
+    "ripple_color": 0x00ff00,
   },
   "vi": {
     "relative_notes": ["B", "C", "E", "F", "A"],
@@ -47,6 +51,7 @@ var Scales = {
     "notes": ["A", "B", "C", "E", "F"],
     "octaves": [-1, -1, 0, 0, 0],
     "color": 0x5455b7,
+    "ripple_color": 0x0000ff,
   },
   "iii": {
     "relative_notes": ["B", "C", "E", "F", "G"],
@@ -54,6 +59,7 @@ var Scales = {
     "notes": ["E", "F", "G", "B", "C"],
     "octaves": [0, 0, 0, 0, 1],
     "color": 0x8a49bd,
+    "ripple_color": 0x00ffff,
   },
 };
 

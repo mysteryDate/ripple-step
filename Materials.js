@@ -46,12 +46,13 @@ Materials.ripple = function(options) {
         for (int i = 0; i < 4 ; i++){
           sum += texture2D(u_mainTex, v_uv + offset[i] * u_texelSize);
         }
-        //  make an average and substract the center value
+        //  make an average and subtract the center value
         sum = (sum / 2.0) - texture2D(u_backTex, v_uv);
         sum *= u_damping;
 
         vec4 sceneCol = texture2D(u_sceneTex, v_uv);
-        gl_FragColor = sum + texture2D(u_sceneTex, v_uv);
+        gl_FragColor = mix(sum, sceneCol, sceneCol.a);
+        gl_FragColor = sum + sceneCol;
       }
     `,
   });
