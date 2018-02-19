@@ -23,13 +23,16 @@ var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
-toneMatrix.setActiveColor(new THREE.Color(currentScale.color), new THREE.Color(currentScale.ripple_color));
+toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
 toneMatrix.armButton(random(0, Constants.NUM_STEPS - 1), random(0, Constants.NUM_STEPS - 1));
 scene.add(toneMatrix);
 
 var scaleChooser = new THREE.Group();
 Object.keys(Scales).forEach(function(scale, index) {
-  var pickerKey = new THREE.Mesh(new THREE.PlaneBufferGeometry(Constants.MATRIX_KEY_SIZE, Constants.MATRIX_KEY_SIZE), new THREE.MeshBasicMaterial({color: Scales[scale].color}));
+  var pickerKey = new THREE.Mesh(
+    new THREE.PlaneBufferGeometry(Constants.MATRIX_KEY_SIZE, Constants.MATRIX_KEY_SIZE),
+    new THREE.MeshBasicMaterial({color: Scales[scale].ripple_color})
+  );
   scaleChooser.add(pickerKey);
   pickerKey.position.set(index * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);
   pickerKey.position.x -= 2.5 * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)); // Center it
@@ -50,7 +53,7 @@ function onDocumentMouseMove(event) {
     var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
     if (clickedScale !== undefined) {
       currentScale = Scales[clickedScale.object.scaleName];
-      toneMatrix.setActiveColor(new THREE.Color(currentScale.color), new THREE.Color(currentScale.ripple_color));
+      toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
     }
   }
 }
@@ -175,3 +178,4 @@ window.THREE = THREE;
 window.scene = scene;
 window.ss = shadowScene;
 window.mat = mat;
+window.Tone = Tone;

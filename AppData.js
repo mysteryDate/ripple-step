@@ -35,7 +35,7 @@ var Scales = {
     "notes": ["G", "A", "B", "D", "F"],
     "octaves": [-1, -1, -1, 0, 0],
     "color": 0xc08032,
-    "ripple_color": 0xff00ff,
+    "ripple_color": 0x00ff00,
   },
   "ii": {
     "relative_notes": ["B", "D", "E", "F", "A"],
@@ -43,7 +43,7 @@ var Scales = {
     "notes": ["D", "E", "F", "A", "B"],
     "octaves": [0, 0, 0, 0, 0],
     "color": 0x6bbc5a,
-    "ripple_color": 0x00ff00,
+    "ripple_color": 0x00ffff,
   },
   "vi": {
     "relative_notes": ["B", "C", "E", "F", "A"],
@@ -59,7 +59,7 @@ var Scales = {
     "notes": ["E", "F", "G", "B", "C"],
     "octaves": [0, 0, 0, 0, 1],
     "color": 0x8a49bd,
-    "ripple_color": 0x00ffff,
+    "ripple_color": 0xff00ff,
   },
 };
 
