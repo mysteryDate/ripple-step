@@ -71,6 +71,8 @@ document.addEventListener("mousedown", onDocumentMouseDown, false);
 // SYNTH
 // create a synth and connect it to the master output (your speakers)
 var synth = new Tone.PolySynth(Constants.NUM_STEPS, Tone.Synth).toMaster();
+Tone.Master.volume.value = -24;
+// var synth = new Tone.Synth().toMaster();
 
 function playRow(row) {
   var currentNotes = currentScale.notes;
@@ -86,6 +88,8 @@ function playRow(row) {
   synth.triggerAttackRelease(note + octave, "8n");
 }
 
+// var PADDING = 1/Constants.NUM_STEPS * 2;
+var PADDING = 0;
 // For off-screen, ripple renders
 function makeShadowScene() {
   var rippleGroup = toneMatrix.shadowGroup;
@@ -93,8 +97,8 @@ function makeShadowScene() {
   subScene.add(rippleGroup);
   var boundingBox = new THREE.Box3().setFromObject(rippleGroup);
   var bbSize = boundingBox.getSize();
-  var subCamera = new THREE.OrthographicCamera(-bbSize.x/2, bbSize.x/2, bbSize.y/2, -bbSize.y/2, 0.1, 100);
-  var target = new THREE.WebGLRenderTarget(bbSize.x, bbSize.y);
+  var subCamera = new THREE.OrthographicCamera(-(1 + PADDING) * bbSize.x/2, (1 + PADDING) * bbSize.x/2, (1 + PADDING) * bbSize.y/2, -(1 + PADDING) * bbSize.y/2, 0.1, 100);
+  var target = new THREE.WebGLRenderTarget((1 + PADDING) * bbSize.x, (1 + PADDING) * bbSize.y);
   subCamera.position.copy(boundingBox.getCenter());
   subCamera.position.z = 10;
 
@@ -118,7 +122,7 @@ rippleMaterial.uniforms.u_backTex.value = rippleTex1;
 
 var tmBB = new THREE.Box3().setFromObject(toneMatrix);
 var tmSize = tmBB.getSize();
-var g = new THREE.PlaneBufferGeometry(tmSize.x, tmSize.y);
+var g = new THREE.PlaneBufferGeometry((1 + PADDING) * tmSize.x, (1 + PADDING) * tmSize.y);
 var mat = new THREE.MeshBasicMaterial({
   blending: THREE.AdditiveBlending,
   map: rippleTex2.texture,
