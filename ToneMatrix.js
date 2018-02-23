@@ -14,11 +14,14 @@ function makeKeyShader() {
       u_rippleTex: {value: null},
       u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
       u_activeColor: {value: new THREE.Color()},
+      u_relativePosition: {value: new THREE.Vector2()},
       u_armed: {value: 0},
       u_columnActive: {value: 0},
     },
     vertexShader: `
+      varying vec2 v_uv;
       void main() {
+        v_uv = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
@@ -26,12 +29,15 @@ function makeKeyShader() {
       uniform sampler2D u_rippleTex;
       uniform vec3 u_baseColor;
       uniform vec3 u_activeColor;
+      uniform vec2 u_relativePosition;
       uniform float u_armed;
       uniform float u_columnActive;
+      varying vec2 v_uv;
       void main() {
         vec3 col = mix(u_baseColor, u_activeColor, u_armed);
-        // col += texture2D(u_rippleTex, gl_Position);
         // col = mix(col, 2.0 * col, u_columnActive * u_armed);
+        col = mix(col, vec3(1.0), u_columnActive * u_armed);
+        col += texture2D(u_rippleTex, (v_uv + u_relativePosition) / 16.0).rgb;
         gl_FragColor = vec4(col, 1.0);
       }
     `,
@@ -82,6 +88,7 @@ function ToneMatrix(width, height) {
     columns.push([]);
     for (var row = 0; row < height; row++) {
       var button = new MatrixButton(row, col, keyGeometry);
+      button.material.uniforms.u_relativePosition.value = new THREE.Vector2(col, row);
       button.position.set(col - width/2, row - height/2, 0).multiplyScalar(1/width, 1/height, 1);
       button.shadow.position.copy(button.position);
       buttons.push(button);

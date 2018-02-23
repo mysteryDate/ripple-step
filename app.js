@@ -131,7 +131,7 @@ var mat = new THREE.MeshBasicMaterial({
 });
 var overlayMesh = new THREE.Mesh(g, mat);
 overlayMesh.position.copy(tmBB.getCenter());
-scene.add(overlayMesh);
+// scene.add(overlayMesh);
 
 var previousPosition = 0;
 var startTime;
@@ -176,7 +176,7 @@ window.setTimeout(function() {
 
 window.renderer = renderer;
 window.tm = toneMatrix;
-window.tm.visible = false;
+// window.tm.visible = false;
 window.synth = synth;
 window.THREE = THREE;
 window.scene = scene;
