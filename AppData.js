@@ -1,6 +1,6 @@
 var Constants = {
   MATRIX_KEY_SIZE: 40,
-  BASE_COLOR: 0x54576b,
+  BASE_COLOR: 0x4c4f62,
   NUM_STEPS: 16,
   SPACING_RATIO: 1/10,
   STEP_VALUE: 1/8,

@@ -89,7 +89,13 @@ function playRow(row) {
 }
 
 // var PADDING = 1/Constants.NUM_STEPS * 2;
-var PADDING = 0;
+var rtOptions = {
+  format: THREE.AlphaFormat,
+  // format: THREE.RGBFormat,
+  depthBuffer: false,
+  stencilBuffer: false,
+};
+var ratio = 0.4;
 // For off-screen, ripple renders
 function makeShadowScene() {
   var rippleGroup = toneMatrix.shadowGroup;
@@ -97,8 +103,8 @@ function makeShadowScene() {
   subScene.add(rippleGroup);
   var boundingBox = new THREE.Box3().setFromObject(rippleGroup);
   var bbSize = boundingBox.getSize();
-  var subCamera = new THREE.OrthographicCamera(-(1 + PADDING) * bbSize.x/2, (1 + PADDING) * bbSize.x/2, (1 + PADDING) * bbSize.y/2, -(1 + PADDING) * bbSize.y/2, 0.1, 100);
-  var target = new THREE.WebGLRenderTarget((1 + PADDING) * bbSize.x, (1 + PADDING) * bbSize.y);
+  var subCamera = new THREE.OrthographicCamera(-bbSize.x/2, bbSize.x/2, bbSize.y/2, -bbSize.y/2, 0.1, 100);
+  var target = new THREE.WebGLRenderTarget(bbSize.x, bbSize.y, rtOptions);
   subCamera.position.copy(boundingBox.getCenter());
   subCamera.position.z = 10;
 
@@ -112,10 +118,10 @@ var shadowScene = makeShadowScene();
 
 var rippleMaterial = Materials.ripple();
 rippleMaterial.uniforms.u_sceneTex.value = shadowScene.target.texture;
-var ratio = 0.2;
-var rippleTex0 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height);
-var rippleTex1 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height);
-var rippleTex2 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height);
+
+var rippleTex0 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height, rtOptions);
+var rippleTex1 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height, rtOptions);
+var rippleTex2 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height, rtOptions);
 var ripplePtr = 0;
 var rippleTargets = [rippleTex0, rippleTex1, rippleTex2];
 rippleMaterial.uniforms.u_mainTex.value = rippleTex0;
@@ -124,7 +130,7 @@ rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/(ratio * shadowS
 
 var tmBB = new THREE.Box3().setFromObject(toneMatrix);
 var tmSize = tmBB.getSize();
-var g = new THREE.PlaneBufferGeometry((1 + PADDING) * tmSize.x, (1 + PADDING) * tmSize.y);
+var g = new THREE.PlaneBufferGeometry(tmSize.x, tmSize.y);
 var mat = new THREE.MeshBasicMaterial({
   blending: THREE.AdditiveBlending,
   map: rippleTex2.texture,
