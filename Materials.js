@@ -15,7 +15,8 @@ Materials.ripple = function(options) {
       u_backTex: {value: null}, // Texture of the previous frame
       u_sceneTex: {value: null}, // New additions from the scene
       u_texelSize: {value: new THREE.Vector2(1/options.width, 1/options.height)},
-      u_damping: {value: 0.9995},
+      u_damping: {value: 0.995},
+      u_speed: {value: 1.5},
     },
     vertexShader: `
       varying vec2 v_uv;
@@ -32,6 +33,7 @@ Materials.ripple = function(options) {
       uniform sampler2D u_sceneTex;
       uniform vec2 u_texelSize;
       uniform float u_damping;
+      uniform float u_speed;
 
       vec2 offset[4];
 
@@ -44,7 +46,7 @@ Materials.ripple = function(options) {
         vec4 sum = vec4(0.0);
 
         for (int i = 0; i < 4 ; i++){
-          sum += texture2D(u_mainTex, v_uv + offset[i] * u_texelSize);
+          sum += texture2D(u_mainTex, v_uv + offset[i] * u_texelSize * u_speed);
         }
         //  make an average and subtract the center value
         sum = (sum / 2.0) - texture2D(u_backTex, v_uv);

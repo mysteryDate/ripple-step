@@ -112,13 +112,15 @@ var shadowScene = makeShadowScene();
 
 var rippleMaterial = Materials.ripple();
 rippleMaterial.uniforms.u_sceneTex.value = shadowScene.target.texture;
-var rippleTex0 = new THREE.WebGLRenderTarget(shadowScene.target.width, shadowScene.target.height);
-var rippleTex1 = new THREE.WebGLRenderTarget(shadowScene.target.width, shadowScene.target.height);
-var rippleTex2 = new THREE.WebGLRenderTarget(shadowScene.target.width, shadowScene.target.height);
+var ratio = 0.2;
+var rippleTex0 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height);
+var rippleTex1 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height);
+var rippleTex2 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height);
 var ripplePtr = 0;
 var rippleTargets = [rippleTex0, rippleTex1, rippleTex2];
 rippleMaterial.uniforms.u_mainTex.value = rippleTex0;
 rippleMaterial.uniforms.u_backTex.value = rippleTex1;
+rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/(ratio * shadowScene.target.width), 1/(ratio * shadowScene.target.height));
 
 var tmBB = new THREE.Box3().setFromObject(toneMatrix);
 var tmSize = tmBB.getSize();
@@ -156,7 +158,7 @@ function update() {
   // mat.opacity = Math.sin(performance.now() / 4000) * 0.4 + 0.4;
   renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
 
-  for (var i = 0; i < 4; i++) {
+  for (var i = 0; i < 1; i++) {
     ripplePtr = (ripplePtr + 1) % 3;
     rippleMaterial.uniforms.u_mainTex.value = rippleTargets[(ripplePtr + 2) % 3].texture;
     rippleMaterial.uniforms.u_backTex.value = rippleTargets[(ripplePtr + 1) % 3].texture;

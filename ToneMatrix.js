@@ -37,7 +37,8 @@ function makeKeyShader() {
         vec3 col = mix(u_baseColor, u_activeColor, u_armed);
         // col = mix(col, 2.0 * col, u_columnActive * u_armed);
         col = mix(col, vec3(1.0), u_columnActive * u_armed);
-        col += texture2D(u_rippleTex, (v_uv + u_relativePosition) / 16.0).rgb;
+        vec3 rippleTex = texture2D(u_rippleTex, (v_uv + u_relativePosition) / 16.0).rgb;
+        col += rippleTex * rippleTex;
         gl_FragColor = vec4(col, 1.0);
       }
     `,
