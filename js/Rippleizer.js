@@ -40,12 +40,12 @@ function Rippleizer(renderer, group) {
   var rippleTex0 = new THREE.WebGLRenderTarget(RATIO * shadowScene.target.width, RATIO * shadowScene.target.height, rtOptions);
   var rippleTex1 = new THREE.WebGLRenderTarget(RATIO * shadowScene.target.width, RATIO * shadowScene.target.height, rtOptions);
   var rippleTex2 = new THREE.WebGLRenderTarget(RATIO * shadowScene.target.width, RATIO * shadowScene.target.height, rtOptions);
-  var ripplePtr = 0;
   var rippleTargets = [rippleTex0, rippleTex1, rippleTex2];
   rippleMaterial.uniforms.u_mainTex.value = rippleTex0;
   rippleMaterial.uniforms.u_backTex.value = rippleTex1;
   rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/(RATIO * shadowScene.target.width), 1/(RATIO * shadowScene.target.height));
 
+  var ripplePtr = 0;
   function render() {
     renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
     for (var i = 0; i < 1; i++) {

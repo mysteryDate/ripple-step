@@ -1,3 +1,4 @@
 # node js packages
 node_modules/
+build/bundle.js
 bundle.js.map

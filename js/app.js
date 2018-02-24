@@ -5,7 +5,9 @@ import {sample, random} from "../node_modules/underscore";
 import {Constants, Scales, Controls} from "./AppData";
 import ToneMatrix from "./ToneMatrix";
 import Rippleizer from "./Rippleizer";
+import ScaleChooser from "./ScaleChooser";
 
+var app = {};
 var currentScale = sample(Object.values(Scales));
 
 var container = document.getElementById("container");
@@ -28,17 +30,7 @@ scene.add(toneMatrix);
 
 var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
 
-var scaleChooser = new THREE.Group();
-Object.keys(Scales).forEach(function(scale, index) {
-  var pickerKey = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(Constants.MATRIX_KEY_SIZE, Constants.MATRIX_KEY_SIZE),
-    new THREE.MeshBasicMaterial({color: Scales[scale].ripple_color})
-  );
-  scaleChooser.add(pickerKey);
-  pickerKey.position.set(index * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);
-  pickerKey.position.x -= 2.5 * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)); // Center it
-  pickerKey.scaleName = scale;
-});
+var scaleChooser = new ScaleChooser(Scales);
 scaleChooser.position.x = window.innerWidth/2;
 scene.add(scaleChooser);
 
@@ -51,11 +43,6 @@ function onDocumentMouseMove(event) {
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
-    var clickedScale = raycaster.intersectObjects(scaleChooser.children)[0];
-    if (clickedScale !== undefined) {
-      currentScale = Scales[clickedScale.object.scaleName];
-      toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
-    }
   }
 }
 function onDocumentMouseDown(event) {
@@ -64,10 +51,16 @@ function onDocumentMouseDown(event) {
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
+  scaleChooser.touchStart(raycaster);
   onDocumentMouseMove(event);
 }
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
+
+app.setScale = function(newScale) {
+  currentScale = newScale;
+  toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
+};
 
 // SYNTH
 // create a synth and connect it to the master output (your speakers)
@@ -120,6 +113,6 @@ window.setTimeout(function() {
 }, 100);
 
 // export some globals
-window.app = {
+window.app = Object.assign(app, {
   rippleizer: rippleizer,
-};
+});
