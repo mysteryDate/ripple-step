@@ -88,9 +88,8 @@ function playRow(row) {
   synth.triggerAttackRelease(note + octave, "8n");
 }
 
-// var PADDING = 1/Constants.NUM_STEPS * 2;
 var rtOptions = {
-  format: THREE.AlphaFormat,
+  // format: THREE.AlphaFormat,
   // format: THREE.RGBFormat,
   depthBuffer: false,
   stencilBuffer: false,
@@ -128,19 +127,6 @@ rippleMaterial.uniforms.u_mainTex.value = rippleTex0;
 rippleMaterial.uniforms.u_backTex.value = rippleTex1;
 rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/(ratio * shadowScene.target.width), 1/(ratio * shadowScene.target.height));
 
-var tmBB = new THREE.Box3().setFromObject(toneMatrix);
-var tmSize = tmBB.getSize();
-var g = new THREE.PlaneBufferGeometry(tmSize.x, tmSize.y);
-var mat = new THREE.MeshBasicMaterial({
-  blending: THREE.AdditiveBlending,
-  map: rippleTex2.texture,
-  transparent: true,
-  opacity: 1.0,
-});
-var overlayMesh = new THREE.Mesh(g, mat);
-overlayMesh.position.copy(tmBB.getCenter());
-// scene.add(overlayMesh);
-
 var previousPosition = 0;
 var startTime;
 function update() {
@@ -161,7 +147,6 @@ function update() {
   }
 
   renderer.render(scene, camera);
-  // mat.opacity = Math.sin(performance.now() / 4000) * 0.4 + 0.4;
   renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
 
   for (var i = 0; i < 1; i++) {
@@ -170,9 +155,7 @@ function update() {
     rippleMaterial.uniforms.u_backTex.value = rippleTargets[(ripplePtr + 1) % 3].texture;
     blitTexture(renderer, rippleMaterial, rippleTargets[ripplePtr]);
   }
-  mat.map = rippleTargets[ripplePtr].texture;
   toneMatrix.setRippleTexture(rippleTargets[ripplePtr].texture);
-  // renderer.render(shadowScene.scene, shadowScene.camera);
   requestAnimationFrame(update);
 }
 
@@ -181,13 +164,3 @@ window.setTimeout(function() {
   startTime = performance.now();
   update();
 }, 100);
-
-window.renderer = renderer;
-window.tm = toneMatrix;
-// window.tm.visible = false;
-window.synth = synth;
-window.THREE = THREE;
-window.scene = scene;
-window.ss = shadowScene;
-window.mat = mat;
-window.Tone = Tone;
