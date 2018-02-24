@@ -16,7 +16,7 @@ Materials.ripple = function(options) {
       u_sceneTex: {value: null}, // New additions from the scene
       u_texelSize: {value: new THREE.Vector2(1/options.width, 1/options.height)},
       u_damping: {value: 0.995},
-      u_speed: {value: 1.5},
+      u_speed: {value: 1.0},
     },
     vertexShader: `
       varying vec2 v_uv;

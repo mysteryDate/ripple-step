@@ -3,9 +3,8 @@ import Tone from "./node_modules/Tone";
 import {sample, random} from "./node_modules/underscore";
 
 import {Constants, Scales, Controls} from "./AppData";
-import {blitTexture} from "./Graphics";
-import Materials from "./Materials";
 import ToneMatrix from "./ToneMatrix";
+import Rippleizer from "./Rippleizer";
 
 var currentScale = sample(Object.values(Scales));
 
@@ -24,8 +23,10 @@ toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
 toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
-toneMatrix.armButton(random(0, Constants.NUM_STEPS - 1), random(0, Constants.NUM_STEPS - 1));
+toneMatrix.armButton(random(0, Constants.NUM_STEPS - 1), random(0, Constants.NUM_STEPS - 1)); // Arm random button
 scene.add(toneMatrix);
+
+var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
 
 var scaleChooser = new THREE.Group();
 Object.keys(Scales).forEach(function(scale, index) {
@@ -72,7 +73,6 @@ document.addEventListener("mousedown", onDocumentMouseDown, false);
 // create a synth and connect it to the master output (your speakers)
 var synth = new Tone.PolySynth(Constants.NUM_STEPS, Tone.Synth).toMaster();
 Tone.Master.volume.value = -24;
-// var synth = new Tone.Synth().toMaster();
 
 function playRow(row) {
   var currentNotes = currentScale.notes;
@@ -87,45 +87,6 @@ function playRow(row) {
   // Duration of an 8th note
   synth.triggerAttackRelease(note + octave, "8n");
 }
-
-var rtOptions = {
-  // format: THREE.AlphaFormat,
-  // format: THREE.RGBFormat,
-  depthBuffer: false,
-  stencilBuffer: false,
-};
-var ratio = 0.4;
-// For off-screen, ripple renders
-function makeShadowScene() {
-  var rippleGroup = toneMatrix.shadowGroup;
-  var subScene = new THREE.Scene();
-  subScene.add(rippleGroup);
-  var boundingBox = new THREE.Box3().setFromObject(rippleGroup);
-  var bbSize = boundingBox.getSize();
-  var subCamera = new THREE.OrthographicCamera(-bbSize.x/2, bbSize.x/2, bbSize.y/2, -bbSize.y/2, 0.1, 100);
-  var target = new THREE.WebGLRenderTarget(bbSize.x, bbSize.y, rtOptions);
-  subCamera.position.copy(boundingBox.getCenter());
-  subCamera.position.z = 10;
-
-  return {
-    scene: subScene,
-    camera: subCamera,
-    target: target,
-  };
-}
-var shadowScene = makeShadowScene();
-
-var rippleMaterial = Materials.ripple();
-rippleMaterial.uniforms.u_sceneTex.value = shadowScene.target.texture;
-
-var rippleTex0 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height, rtOptions);
-var rippleTex1 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height, rtOptions);
-var rippleTex2 = new THREE.WebGLRenderTarget(ratio * shadowScene.target.width, ratio * shadowScene.target.height, rtOptions);
-var ripplePtr = 0;
-var rippleTargets = [rippleTex0, rippleTex1, rippleTex2];
-rippleMaterial.uniforms.u_mainTex.value = rippleTex0;
-rippleMaterial.uniforms.u_backTex.value = rippleTex1;
-rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/(ratio * shadowScene.target.width), 1/(ratio * shadowScene.target.height));
 
 var previousPosition = 0;
 var startTime;
@@ -146,16 +107,9 @@ function update() {
     });
   }
 
+  rippleizer.render();
+  toneMatrix.setRippleTexture(rippleizer.getActiveTexture());
   renderer.render(scene, camera);
-  renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
-
-  for (var i = 0; i < 1; i++) {
-    ripplePtr = (ripplePtr + 1) % 3;
-    rippleMaterial.uniforms.u_mainTex.value = rippleTargets[(ripplePtr + 2) % 3].texture;
-    rippleMaterial.uniforms.u_backTex.value = rippleTargets[(ripplePtr + 1) % 3].texture;
-    blitTexture(renderer, rippleMaterial, rippleTargets[ripplePtr]);
-  }
-  toneMatrix.setRippleTexture(rippleTargets[ripplePtr].texture);
   requestAnimationFrame(update);
 }
 
@@ -164,3 +118,8 @@ window.setTimeout(function() {
   startTime = performance.now();
   update();
 }, 100);
+
+// export some globals
+window.app = {
+  rippleizer: rippleizer,
+};
