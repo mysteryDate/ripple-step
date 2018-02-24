@@ -10,8 +10,7 @@ module.exports = {
       },
     ],
   },
-  devtool: "source-map",
-  debug: true,
+  devtool: "cheap-module-eval-source-map",
   target: "web",
   output: {
     filename: "bundle.js",
