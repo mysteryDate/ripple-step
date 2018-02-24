@@ -1,6 +1,6 @@
 var module;
 module.exports = {
-  entry: "./app.js",
+  entry: "./js/app.js",
   module: {
     rules: [
       {
@@ -13,6 +13,6 @@ module.exports = {
   devtool: "cheap-module-eval-source-map",
   target: "web",
   output: {
-    filename: "bundle.js",
+    filename: "build/bundle.js",
   },
 };
