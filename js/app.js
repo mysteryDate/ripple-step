@@ -119,7 +119,9 @@ window.setTimeout(function() {
 
 // export some globals
 window.app = Object.assign(app, {
+  scene: scene,
   rippleizer: rippleizer,
   synth: synth,
   toneMatrix: toneMatrix,
 });
+window.THREE = THREE;

@@ -60,4 +60,36 @@ Materials.ripple = function(options) {
   });
 };
 
+Materials.indicatorLight = function() {
+  return new THREE.ShaderMaterial({
+    name: "indicator light",
+    transparent: true,
+    uniforms: {
+      u_color: {value: new THREE.Color(0xff00ff)},
+      u_brightness: {value: 1.0},
+      u_isOn: {value: 1.0},
+    },
+    vertexShader: `
+      varying vec2 v_uv;
+      void main() {
+        v_uv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec2 v_uv;
+      uniform vec3 u_color;
+      uniform float u_brightness;
+      uniform float u_isOn;
+      void main() {
+        float dist = length(v_uv - vec2(0.5));
+        float centerCircle = 1.0 - smoothstep(0.0, 0.2, dist);
+        float outerGlow = (1.0 - smoothstep(0.1, 0.5, dist)) * u_brightness;
+        float alpha = outerGlow + centerCircle * u_isOn;
+        gl_FragColor = vec4(u_color, alpha);
+      }
+    `,
+  });
+};
+
 export default Materials;
