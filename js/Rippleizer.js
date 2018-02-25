@@ -61,6 +61,7 @@ function Rippleizer(renderer, group) {
   }
 
   return {
+    damping: rippleMaterial.uniforms.u_damping,
     render: render,
     getActiveTexture: getActiveTexture,
   };
