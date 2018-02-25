@@ -5,7 +5,7 @@ module.exports = {
   },
   globals: {
     "require": false,
-    "THREE": false, // not allowed to overwrite this
+    // "THREE": false, // not allowed to overwrite this
     "Tone": false, // not allowed to overwrite this
     // "nativePostMessage": true, // allow overwriting
   },

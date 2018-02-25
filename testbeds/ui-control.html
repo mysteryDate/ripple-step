@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style media="screen">
+    body {
+      margin: 0px;
+      background-color: black;
+      overflow: hidden;
+    }
+  </style>
+  <!-- <script src="build/bundle.js"></script> -->
+  <script src="../node_modules/three/build/three.js"></script>
+</head>
+<body>
+  <div id="container"></div>
+  <script>
+    var container = document.getElementById("container");
+    var renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+    var scene = new THREE.Scene();
+    var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidth/2, window.innerHeight/2, -window.innerHeight/2, 0.1, 100);
+    camera.position.set(0, 0, 50);
+
+    function Knob() {
+      THREE.Group.call(this);
+
+      var bodyGeom = new THREE.CircleBufferGeometry(150, 100);
+      var bodyMat = new THREE.MeshBasicMaterial({color: "pink"});
+      this.body = new THREE.Mesh(bodyGeom, bodyMat);
+      this.add(this.body);
+    }
+    Knob.prototype = Object.create(THREE.Object3D.prototype);
+
+    var knob = new Knob();
+    scene.add(knob);
+
+    function update() {
+      renderer.render(scene, camera);
+      requestAnimationFrame(update);
+    }
+
+    renderer.render(scene, camera);
+    window.setTimeout(function() {
+      update();
+    }, 100);
+  </script>
+</body>
+</html>
