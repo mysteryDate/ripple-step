@@ -28,6 +28,11 @@
 
     function Knob() {
       THREE.Group.call(this);
+      var SENSITIVITY = 1; // How many degrees the knob turns per pixel
+
+      var isActive = false;
+      var touchStartRotation = 0;
+      var touchStartPos = new THREE.Vector2();
 
       RS.Textures.createTexture("sword_icon.png", "../textures/sword_icon.png");
       var tex = RS.Textures.get("sword_icon.png");
@@ -35,6 +40,26 @@
       var bodyMat = new THREE.MeshBasicMaterial({color: "pink", map: tex});
       this.body = new THREE.Mesh(bodyGeom, bodyMat);
       this.add(this.body);
+
+      this.touchStart = function(raycaster, mouse) {
+        var touch = raycaster.intersectObjects(this.children)[0];
+        if (touch) {
+          isActive = true;
+          touchStartPos = mouse;
+          touchStartRotation = this.rotation.z;
+        }
+      };
+
+      this.touchEnd = function() {
+        isActive = false;
+      };
+
+      this.touch = function(mouse) {
+        if (isActive) {
+          var touchDiff = mouse.y - touchStartPos.y;
+          this.rotation.z = touchStartRotation + SENSITIVITY * touchDiff;
+        }
+      };
     }
     Knob.prototype = Object.create(THREE.Object3D.prototype);
 
@@ -45,6 +70,29 @@
       renderer.render(scene, camera);
       requestAnimationFrame(update);
     }
+
+    var raycaster = new THREE.Raycaster();
+    function onDocumentMouseDown(event) {
+      var mouse = new THREE.Vector2();
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      knob.touchStart(raycaster, mouse);
+    }
+    function onDocumentMouseMove(event) {
+      var mouse = new THREE.Vector2();
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      // raycaster.setFromCamera(mouse, camera);
+      knob.touch(mouse);
+    }
+    function onDocumentMouseUp(event) {
+      knob.touchEnd();
+    }
+
+    document.addEventListener("mousemove", onDocumentMouseMove, false);
+    document.addEventListener("mousedown", onDocumentMouseDown, false);
+    document.addEventListener("mouseup", onDocumentMouseUp, false);
 
     renderer.render(scene, camera);
     window.setTimeout(function() {
