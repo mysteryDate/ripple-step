@@ -6,11 +6,11 @@ import ToneMatrix from "./ToneMatrix";
 import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
-import Textures from "./Textures";
+// import Textures from "./Textures";
 
-Textures.createTexture("sword_icon.png", "textures/sword_icon.png");
-var tex = Textures.get("sword_icon.png");
-console.log(tex);
+// Textures.createTexture("sword_icon.png", "textures/sword_icon.png");
+// var tex = Textures.get("sword_icon.png");
+// console.log(tex);
 
 var app = {};
 var currentScale = sample(Object.values(Scales));

@@ -11,10 +11,12 @@
   </style>
   <!-- <script src="build/bundle.js"></script> -->
   <script src="../node_modules/three/build/three.js"></script>
+  <script src="../build/testbed.bundle.js"></script>
 </head>
 <body>
   <div id="container"></div>
   <script>
+    /* global THREE, RS */
     var container = document.getElementById("container");
     var renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -27,8 +29,10 @@
     function Knob() {
       THREE.Group.call(this);
 
+      RS.Textures.createTexture("sword_icon.png", "../textures/sword_icon.png");
+      var tex = RS.Textures.get("sword_icon.png");
       var bodyGeom = new THREE.CircleBufferGeometry(150, 100);
-      var bodyMat = new THREE.MeshBasicMaterial({color: "pink"});
+      var bodyMat = new THREE.MeshBasicMaterial({color: "pink", map: tex});
       this.body = new THREE.Mesh(bodyGeom, bodyMat);
       this.add(this.body);
     }

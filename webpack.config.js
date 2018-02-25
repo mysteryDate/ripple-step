@@ -1,6 +1,9 @@
 var module;
 module.exports = {
-  entry: "./js/app.js",
+  entry: {
+    app: "./js/app.js",
+    testbed: "./js/testbedEntryPoint.js",
+  },
   module: {
     rules: [
       {
@@ -13,6 +16,7 @@ module.exports = {
   devtool: "cheap-module-eval-source-map",
   target: "web",
   output: {
-    filename: "build/bundle.js",
+    filename: "build/[name].bundle.js",
+    library: "RS",
   },
 };
