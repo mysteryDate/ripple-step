@@ -1,11 +1,11 @@
 import * as THREE from "../node_modules/three";
-import Tone from "../node_modules/Tone";
 import {sample, random} from "../node_modules/underscore";
 
 import {Constants, Scales, Controls} from "./AppData";
 import ToneMatrix from "./ToneMatrix";
 import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
+import RippleSynth from "./RippleSynth";
 
 var app = {};
 var currentScale = sample(Object.values(Scales));
@@ -25,7 +25,7 @@ toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
 toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
-toneMatrix.armButton(random(0, Constants.NUM_STEPS - 1), random(0, Constants.NUM_STEPS - 1)); // Arm random button
+toneMatrix.armButton(0, random(0, Constants.NUM_STEPS - 1)); // Arm random button
 scene.add(toneMatrix);
 
 var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
@@ -63,9 +63,8 @@ app.setScale = function(newScale) {
 };
 
 // SYNTH
-// create a synth and connect it to the master output (your speakers)
-var synth = new Tone.PolySynth(Constants.NUM_STEPS, Tone.Synth).toMaster();
-Tone.Master.volume.value = -24;
+var synth = new RippleSynth(Constants.NUM_STEPS);
+synth.setVolume(-24);
 
 function playRow(row) {
   var currentNotes = currentScale.notes;
@@ -81,7 +80,7 @@ function playRow(row) {
   synth.triggerAttackRelease(note + octave, "8n");
 }
 
-var previousPosition = 0;
+var previousPosition = Constants.NUM_STEPS - 1;
 var startTime;
 function update() {
   var beats = (performance.now() - startTime) / 1000 / 60 * Controls.TEMPO;
@@ -115,4 +114,6 @@ window.setTimeout(function() {
 // export some globals
 window.app = Object.assign(app, {
   rippleizer: rippleizer,
+  synth: synth,
+  toneMatrix: toneMatrix,
 });

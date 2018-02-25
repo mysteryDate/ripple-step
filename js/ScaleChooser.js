@@ -19,7 +19,9 @@ ScaleChooser.prototype = Object.create(THREE.Object3D.prototype);
 
 ScaleChooser.prototype.touchStart = function(raycaster) {
   var clickedScale = raycaster.intersectObjects(this.children)[0];
-  window.app.setScale(this.scales[clickedScale.object.scaleName]);
+  if (clickedScale !== undefined) {
+    window.app.setScale(this.scales[clickedScale.object.scaleName]);
+  }
 };
 
 export default ScaleChooser;
