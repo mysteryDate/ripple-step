@@ -26,9 +26,15 @@
     var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidth/2, window.innerHeight/2, -window.innerHeight/2, 0.1, 100);
     camera.position.set(0, 0, 50);
 
-    function Knob() {
+    function Knob(options) {
       THREE.Group.call(this);
-      var SENSITIVITY = 1; // How many degrees the knob turns per pixel
+      var SENSITIVITY = 0.5; // How many degrees the knob turns per pixel
+      options = options || {};
+      var minRotation = options.minRotation || 0;
+      var maxRotation = options.maxRotation || -2 * Math.PI;
+      var minValue = options.minValue || 0;
+      var maxValue = options.maxValue || 100;
+      var currentValue = options.currentValue || minValue;
 
       var isActive = false;
       var touchStartRotation = 0;
@@ -38,15 +44,28 @@
       var tex = RS.Textures.get("sword_icon.png");
       var bodyGeom = new THREE.CircleBufferGeometry(150, 100);
       var bodyMat = new THREE.MeshBasicMaterial({color: "pink", map: tex});
-      this.body = new THREE.Mesh(bodyGeom, bodyMat);
-      this.add(this.body);
+      var body = new THREE.Mesh(bodyGeom, bodyMat);
+      this.add(body);
+
+      function getRotationFromValue(value) {
+        return THREE.Math.mapLinear(value, minValue, maxValue, minRotation, maxRotation);
+      }
+      function getValueFromRotation(rotation) {
+        return THREE.Math.mapLinear(rotation, minRotation, maxRotation, minValue, maxValue);
+      }
+
+      body.rotation.z = getRotationFromValue(currentValue);
+
+      this.getValue = function() {
+        return currentValue;
+      };
 
       this.touchStart = function(raycaster, mouse) {
         var touch = raycaster.intersectObjects(this.children)[0];
         if (touch) {
           isActive = true;
           touchStartPos = mouse;
-          touchStartRotation = this.rotation.z;
+          touchStartRotation = body.rotation.z;
         }
       };
 
@@ -56,14 +75,23 @@
 
       this.touch = function(mouse) {
         if (isActive) {
-          var touchDiff = mouse.y - touchStartPos.y;
-          this.rotation.z = touchStartRotation + SENSITIVITY * touchDiff;
+          var touchDiff = touchStartPos.y - mouse.y;
+          var newRotation = touchStartRotation + THREE.Math.degToRad(SENSITIVITY * touchDiff);
+          newRotation = THREE.Math.clamp(newRotation, maxRotation, minRotation); // Because rotations are counter-clockwise
+          body.rotation.z = newRotation;
+          currentValue = getValueFromRotation(newRotation);
+          console.log(currentValue);
         }
       };
     }
     Knob.prototype = Object.create(THREE.Object3D.prototype);
 
-    var knob = new Knob();
+    var knob = new Knob({
+      minRotation: -Math.PI,
+      maxRotation: Math.PI - 2 * Math.PI / 3,
+      minValue: 0.005,
+      maxValue: 1,
+    });
     scene.add(knob);
 
     function update() {
@@ -77,14 +105,13 @@
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
-      knob.touchStart(raycaster, mouse);
+      knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
     }
     function onDocumentMouseMove(event) {
       var mouse = new THREE.Vector2();
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      // raycaster.setFromCamera(mouse, camera);
-      knob.touch(mouse);
+      knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
     }
     function onDocumentMouseUp(event) {
       knob.touchEnd();
