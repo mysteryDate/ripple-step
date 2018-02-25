@@ -54,8 +54,14 @@ function onDocumentMouseDown(event) {
   scaleChooser.touchStart(raycaster);
   onDocumentMouseMove(event);
 }
+function onDocumentKeyPress(event) {
+  if (event.key === "c") {
+    toneMatrix.clear();
+  }
+}
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
+document.addEventListener("keypress", onDocumentKeyPress, false);
 
 app.setScale = function(newScale) {
   currentScale = newScale;

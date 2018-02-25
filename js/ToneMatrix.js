@@ -164,4 +164,10 @@ ToneMatrix.prototype.touchStart = function(raycaster) {
   this.touch(raycaster);
 };
 
+ToneMatrix.prototype.clear = function() {
+  this.children.forEach(function(button) {
+    button.disarm();
+  });
+};
+
 export default ToneMatrix;
