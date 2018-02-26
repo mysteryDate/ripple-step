@@ -97,7 +97,7 @@
             light.material.uniforms.u_isOn.value = 0;
           }
           var bv = THREE.Math.smoothstep(light.angle, lightRot - 0.5, lightRot, 1.0, 0.0);
-          bv = THREE.Math.mapLinear(bv, 0.0, 1.0, 0.1, 0.3);
+          bv = THREE.Math.mapLinear(bv, 0.0, 1.0, 0.05, 0.3);
           light.material.uniforms.u_brightness.value = bv;
         });
       }
@@ -146,7 +146,6 @@
         maxRotation: 3 * Math.PI/4,
         minValue: 0.005,
         maxValue: 1,
-        numLights: 8,
       });
       group.add(knob1);
       knob1.position.x = -150;
@@ -157,6 +156,7 @@
         maxRotation: 3 * Math.PI/4,
         minValue: -10,
         maxValue: 100,
+        numLights: 20,
       });
       group.add(knob2);
       knob2.position.x = 150;
