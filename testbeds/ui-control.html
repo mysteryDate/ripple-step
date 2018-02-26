@@ -44,7 +44,7 @@
       var minValue = options.minValue || 0;
       var maxValue = options.maxValue || 100;
       var currentValue = options.currentValue || minValue;
-      var numLights = options.numLight || 16;
+      var numLights = options.numLights || 16;
 
       var isActive = false;
       var touchStartRotation = 0;
@@ -54,13 +54,15 @@
       // var tex = RS.Textures.get("sword_icon.png");
       var radius = 100;
       var bodyGeom = new THREE.CircleBufferGeometry(radius, 100);
-      var bodyMat = new THREE.MeshBasicMaterial({color: RS.Constants.BASE_COLOR});
+      // var bodyMat = new THREE.MeshBasicMaterial({color: RS.Constants.BASE_COLOR});
+      var bodyMat = new THREE.MeshBasicMaterial({color: 0x000000});
       var body = new THREE.Mesh(bodyGeom, bodyMat);
       this.add(body);
+      // body.visible = false;
 
       var nib = new THREE.Mesh(bodyGeom, new THREE.MeshBasicMaterial({color: "white"}));
       nib.scale.multiplyScalar(0.1);
-      body.add(nib);
+      // body.add(nib);
       nib.position.y += radius * 0.8;
 
       var lights = (function makeLights() {
@@ -97,7 +99,6 @@
           var bv = THREE.Math.smoothstep(light.angle, lightRot - 0.5, lightRot, 1.0, 0.0);
           bv = THREE.Math.mapLinear(bv, 0.0, 1.0, 0.1, 0.3);
           light.material.uniforms.u_brightness.value = bv;
-          console.log("hey");
         });
       }
       function getRotationFromValue(value) {
@@ -138,15 +139,54 @@
     }
     Knob.prototype = Object.create(THREE.Object3D.prototype);
 
-    var knob = new Knob({
-      minRotation: -3 * Math.PI/4,
-      maxRotation: 3 * Math.PI/4,
-      // minRotation: 0,
-      // maxRotation: Math.PI/3,
-      minValue: 0.005,
-      maxValue: 1,
-    });
-    scene.add(knob);
+    var knobs = (function makeKnobs() {
+      var group = new THREE.Group();
+      var knob1 = new Knob({
+        minRotation: -3 * Math.PI/4,
+        maxRotation: 3 * Math.PI/4,
+        minValue: 0.005,
+        maxValue: 1,
+        numLights: 8,
+      });
+      group.add(knob1);
+      knob1.position.x = -150;
+      knob1.position.y = 150;
+
+      var knob2 = new Knob({
+        minRotation: -3 * Math.PI/4,
+        maxRotation: 3 * Math.PI/4,
+        minValue: -10,
+        maxValue: 100,
+      });
+      group.add(knob2);
+      knob2.position.x = 150;
+      knob2.position.y = 150;
+
+      var knob3 = new Knob({
+        minRotation: -3 * Math.PI/4,
+        maxRotation: 3 * Math.PI/4,
+        minValue: -10,
+        maxValue: 100,
+        numLights: 50,
+      });
+      group.add(knob3);
+      knob3.position.x = -150;
+      knob3.position.y = -150;
+
+      var knob4 = new Knob({
+        minRotation: -3 * Math.PI/4,
+        maxRotation: 3 * Math.PI/4,
+        minValue: -10,
+        maxValue: 100,
+        numLights: 100,
+      });
+      group.add(knob4);
+      knob4.position.x = 150;
+      knob4.position.y = -150;
+
+      return group;
+    })();
+    scene.add(knobs);
 
     function update() {
       renderer.render(scene, camera);
@@ -159,16 +199,22 @@
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
-      knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
+      knobs.children.forEach(function(knob) {
+        knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
+      });
     }
     function onDocumentMouseMove(event) {
       var mouse = new THREE.Vector2();
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
+      knobs.children.forEach(function(knob) {
+        knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
+      });
     }
     function onDocumentMouseUp(event) {
-      knob.touchEnd();
+      knobs.children.forEach(function(knob) {
+        knob.touchEnd();
+      });
     }
 
     document.addEventListener("mousemove", onDocumentMouseMove, false);
