@@ -24,8 +24,7 @@ var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
 var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
-toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
-toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
+toneMatrix.position.set(window.innerWidth/2 - toneMatrixSize/32, window.innerHeight/2, 1);
 toneMatrix.armButton(0, random(0, Constants.NUM_STEPS - 1)); // Arm random button
 scene.add(toneMatrix);
 
@@ -35,8 +34,30 @@ var scaleChooser = new ScaleChooser(Scales);
 scaleChooser.position.x = window.innerWidth/2;
 scene.add(scaleChooser);
 
-var knob = new Knob();
-scene.add(knob);
+// SYNTH
+var synth = new RippleSynth(Constants.NUM_STEPS);
+synth.setVolume(-24);
+
+var envelopeNames = ["attack", "decay", "sustain", "release"];
+function makeKnobs() {
+  var knobs = new THREE.Group();
+  for (var i = 0; i < envelopeNames.length; i++) {
+    var knob = new Knob({
+      currentValue: synth.getEnvelope(envelopeNames[i]),
+      minValue: 0.005,
+      maxValue: 0.2,
+      size: toneMatrixSize / 16,
+      sensitivity: 2,
+      control: envelopeNames[i],
+    });
+    knobs.add(knob);
+    knob.position.set(0, window.innerHeight/2 + 2 * (i - envelopeNames.length/2) * toneMatrixSize/16, 0);
+  }
+  return knobs;
+}
+var knobs = makeKnobs();
+knobs.position.x = window.innerWidth - toneMatrixSize/16;
+scene.add(knobs);
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -48,7 +69,10 @@ function onDocumentMouseMove(event) {
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
   }
-  knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
+  knobs.children.forEach(function(knob) {
+    knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
+    synth.setEnvelope(knob.control, knob.getValue());
+  });
 }
 function onDocumentMouseDown(event) {
   var mouse = new THREE.Vector2();
@@ -57,11 +81,15 @@ function onDocumentMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
-  knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
+  knobs.children.forEach(function(knob) {
+    knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
+  });
   onDocumentMouseMove(event);
 }
 function onDocumentMouseUp(event) {
-  knob.touchEnd();
+  knobs.children.forEach(function(knob) {
+    knob.touchEnd();
+  });
 }
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
@@ -76,11 +104,10 @@ document.addEventListener("keypress", onDocumentKeyPress, false);
 app.setScale = function(newScale) {
   currentScale = newScale;
   toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
+  knobs.children.forEach(function(knob) {
+    knob.setColor(new THREE.Color(currentScale.ripple_color));
+  });
 };
-
-// SYNTH
-var synth = new RippleSynth(Constants.NUM_STEPS);
-synth.setVolume(-24);
 
 function playRow(row) {
   var currentNotes = currentScale.notes;
@@ -123,6 +150,7 @@ function update() {
 
 renderer.render(scene, camera);
 window.setTimeout(function() {
+  app.setScale(currentScale);
   startTime = performance.now();
   update();
 }, 100);
