@@ -6,6 +6,7 @@ import ToneMatrix from "./ToneMatrix";
 import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
+import Knob from "./Knob";
 
 var app = {};
 var currentScale = sample(Object.values(Scales));
@@ -34,6 +35,9 @@ var scaleChooser = new ScaleChooser(Scales);
 scaleChooser.position.x = window.innerWidth/2;
 scene.add(scaleChooser);
 
+var knob = new Knob();
+scene.add(knob);
+
 // Click handler
 var raycaster = new THREE.Raycaster();
 function onDocumentMouseMove(event) {
@@ -44,6 +48,7 @@ function onDocumentMouseMove(event) {
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
   }
+  knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
 }
 function onDocumentMouseDown(event) {
   var mouse = new THREE.Vector2();
@@ -52,7 +57,11 @@ function onDocumentMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
+  knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
   onDocumentMouseMove(event);
+}
+function onDocumentMouseUp(event) {
+  knob.touchEnd();
 }
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
@@ -61,6 +70,7 @@ function onDocumentKeyPress(event) {
 }
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
+document.addEventListener("mouseup", onDocumentMouseUp, false);
 document.addEventListener("keypress", onDocumentKeyPress, false);
 
 app.setScale = function(newScale) {
