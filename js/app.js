@@ -39,24 +39,25 @@ var synth = new RippleSynth(Constants.NUM_STEPS);
 synth.setVolume(-24);
 
 var envelopeNames = ["attack", "decay", "sustain", "release"];
+var ranges = [[0.005, 0.2], [0.005, 10.0], [0.0, 1.0], [0.0, 10.0]];
 function makeKnobs() {
   var knobs = new THREE.Group();
   for (var i = 0; i < envelopeNames.length; i++) {
     var knob = new Knob({
       currentValue: synth.getEnvelope(envelopeNames[i]),
-      minValue: 0.005,
-      maxValue: 0.2,
+      minValue: ranges[i][0],
+      maxValue: ranges[i][1],
       size: toneMatrixSize / 16,
       sensitivity: 2,
       control: envelopeNames[i],
     });
     knobs.add(knob);
-    knob.position.set(0, window.innerHeight/2 + 2 * (i - envelopeNames.length/2) * toneMatrixSize/16, 0);
+    knob.position.set(0, window.innerHeight/2 - 2 * (i - envelopeNames.length/2) * toneMatrixSize/16, 0);
   }
   return knobs;
 }
 var knobs = makeKnobs();
-knobs.position.x = window.innerWidth - toneMatrixSize/16;
+knobs.position.x = window.innerWidth - 2 * toneMatrixSize/16;
 scene.add(knobs);
 
 // Click handler
