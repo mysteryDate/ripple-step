@@ -14,55 +14,73 @@ var currentScale = sample(Object.values(Scales));
 var container = document.getElementById("container");
 var renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
+var width = window.innerWidth;
+var height = window.innerHeight;
+renderer.setSize(width, height);
 container.appendChild(renderer.domElement);
 var scene = new THREE.Scene();
-var camera = new THREE.OrthographicCamera(-window.innerWidth/2, window.innerWidth/2, window.innerHeight/2, -window.innerHeight/2, 0.1, 100);
-camera.position.set(window.innerWidth/2, window.innerHeight/2, 50);
+var camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0.1, 100);
+camera.position.set(width/2, height/2, 50);
 
 var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
-var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
+var toneMatrixSize = Math.min(width, height) * 0.8;
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
-toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
+toneMatrix.position.set(width/2, height/2, 1);
 toneMatrix.armButton(0, random(0, Constants.NUM_STEPS - 1)); // Arm random button
 scene.add(toneMatrix);
 
 var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
 
 var scaleChooser = new ScaleChooser(Scales);
-scaleChooser.position.x = window.innerWidth/2;
+scaleChooser.position.x = width/2;
 scene.add(scaleChooser);
 
 // SYNTH
 var synth = new RippleSynth(Constants.NUM_STEPS);
 synth.setVolume(-24);
 
-var envelopeNames = ["attack", "decay", "sustain", "release"];
-var ranges = [[0.005, 0.2], [0.005, 10.0], [0.0, 1.0], [0.0, 10.0]];
-var numIndicatorLights = [16, 50, 20, 100];
-var availableSpace = window.innerWidth - (window.innerWidth/2 + toneMatrixSize/2);
-var knobRadius = Math.min(availableSpace/2 * 0.7, window.innerHeight/envelopeNames.length/2 * 0.8);
+var availableSpace = width - (width/2 + toneMatrixSize/2);
+var numKnobs = Controls.Envelope.knobs.length;
+var knobRadius = Math.min(availableSpace/2 * 0.7, 0.5 * height/numKnobs * 0.8);
 function makeKnobs() {
   var knobs = new THREE.Group();
-  for (var i = 0; i < envelopeNames.length; i++) {
-    var knob = new Knob({
-      currentValue: synth.getEnvelope(envelopeNames[i]),
-      minValue: ranges[i][0],
-      maxValue: ranges[i][1],
+  for (var i = 0; i < numKnobs; i++) {
+    var knob = new Knob(Object.assign(Controls.Envelope.knobs[i], {
+      currentValue: synth.getEnvelope(Controls.Envelope.knobs[i].control),
       size: knobRadius,
       sensitivity: 2,
-      control: envelopeNames[i],
-      numLights: numIndicatorLights[i],
-    });
+    }));
     knobs.add(knob);
-    knob.position.y = knobRadius * (3 - 2 * i);
+    if (Controls.Envelope.position === "right" || Controls.Envelope.position === "left") {
+      knob.position.y = knobRadius * (3 - 2 * i); // Vertical layout
+    } else {
+      knob.position.x = knobRadius * (3 - 2 * i); // Horizontal layout
+    }
   }
   return knobs;
 }
 var knobs = makeKnobs();
-knobs.position.x = (3 * window.innerWidth + toneMatrixSize) / 4; // Halfway between edge and right side
-knobs.position.y = window.innerHeight/2;
+switch (Controls.Envelope.position) {
+  case "left":
+    knobs.position.x = (width/2 - toneMatrixSize/2) / 2;
+    knobs.position.y = height/2;
+    break;
+  case "right":
+    knobs.position.x = (3 * width + toneMatrixSize) / 4;
+    knobs.position.y = height/2;
+    break;
+  case "top":
+    knobs.position.x = width/2;
+    knobs.position.y = (3 * height + toneMatrixSize) / 4;
+    break;
+  case "bottom":
+    knobs.position.x = width/2;
+    knobs.position.y = (height/2 - toneMatrixSize/2) / 2;
+    break;
+  default:
+    throw new Error("unknown position: " + Controls.Envelope.position);
+}
 scene.add(knobs);
 
 // Click handler
@@ -70,8 +88,8 @@ var raycaster = new THREE.Raycaster();
 function onDocumentMouseMove(event) {
   if (event.buttons === 1) { // Mouse is down
     var mouse = new THREE.Vector2();
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    mouse.x = (event.clientX / width) * 2 - 1;
+    mouse.y = -(event.clientY / height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
   }
@@ -82,8 +100,8 @@ function onDocumentMouseMove(event) {
 }
 function onDocumentMouseDown(event) {
   var mouse = new THREE.Vector2();
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  mouse.x = (event.clientX / width) * 2 - 1;
+  mouse.y = -(event.clientY / height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);

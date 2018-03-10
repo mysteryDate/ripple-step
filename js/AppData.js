@@ -14,6 +14,36 @@ var Controls = {
   SWING: 0,
 };
 
+Controls.Envelope = {
+  knobs: [
+    {
+      control: "attack",
+      minValue: 0.005,
+      maxValue: 0.2,
+      numLights: 16,
+    },
+    {
+      control: "decay",
+      minValue: 0.005,
+      maxValue: 10.0,
+      numLights: 20,
+    },
+    {
+      control: "sustain",
+      minValue: 0.0,
+      maxValue: 1.0,
+      numLights: 50,
+    },
+    {
+      control: "release",
+      minValue: 0.0,
+      maxValue: 10.0,
+      numLights: 100,
+    },
+  ],
+  position: "right",
+};
+
 var Scales = {
   "IV": {
     "relative_notes": ["C", "D", "F", "G", "A"],
