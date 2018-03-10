@@ -40,7 +40,9 @@ synth.setVolume(-24);
 
 var envelopeNames = ["attack", "decay", "sustain", "release"];
 var ranges = [[0.005, 0.2], [0.005, 10.0], [0.0, 1.0], [0.0, 10.0]];
-var knobRadius = toneMatrixSize/16;
+var numIndicatorLights = [16, 50, 20, 100];
+var availableSpace = window.innerWidth - (window.innerWidth/2 + toneMatrixSize/2);
+var knobRadius = Math.min(availableSpace/2 * 0.7, window.innerHeight/envelopeNames.length/2 * 0.8);
 function makeKnobs() {
   var knobs = new THREE.Group();
   for (var i = 0; i < envelopeNames.length; i++) {
@@ -51,14 +53,15 @@ function makeKnobs() {
       size: knobRadius,
       sensitivity: 2,
       control: envelopeNames[i],
+      numLights: numIndicatorLights[i],
     });
     knobs.add(knob);
-    knob.position.y = knobRadius * (2 * i - 3);
+    knob.position.y = knobRadius * (3 - 2 * i);
   }
   return knobs;
 }
 var knobs = makeKnobs();
-knobs.position.x = (window.innerWidth + window.innerWidth/2 + toneMatrixSize/2) / 2;
+knobs.position.x = (3 * window.innerWidth + toneMatrixSize) / 4; // Halfway between edge and right side
 knobs.position.y = window.innerHeight/2;
 scene.add(knobs);
 
