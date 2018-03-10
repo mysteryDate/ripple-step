@@ -24,7 +24,7 @@ var toneMatrix = new ToneMatrix(Constants.NUM_STEPS, Constants.NUM_STEPS);
 var toneMatrixSize = Math.min(window.innerWidth, window.innerHeight) * 0.8;
 toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
 toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
-toneMatrix.position.set(window.innerWidth/2 - toneMatrixSize/32, window.innerHeight/2, 1);
+toneMatrix.position.set(window.innerWidth/2, window.innerHeight/2, 1);
 toneMatrix.armButton(0, random(0, Constants.NUM_STEPS - 1)); // Arm random button
 scene.add(toneMatrix);
 
@@ -40,6 +40,7 @@ synth.setVolume(-24);
 
 var envelopeNames = ["attack", "decay", "sustain", "release"];
 var ranges = [[0.005, 0.2], [0.005, 10.0], [0.0, 1.0], [0.0, 10.0]];
+var knobRadius = toneMatrixSize/16;
 function makeKnobs() {
   var knobs = new THREE.Group();
   for (var i = 0; i < envelopeNames.length; i++) {
@@ -47,17 +48,18 @@ function makeKnobs() {
       currentValue: synth.getEnvelope(envelopeNames[i]),
       minValue: ranges[i][0],
       maxValue: ranges[i][1],
-      size: toneMatrixSize / 16,
+      size: knobRadius,
       sensitivity: 2,
       control: envelopeNames[i],
     });
     knobs.add(knob);
-    knob.position.set(0, window.innerHeight/2 - 2 * (i - envelopeNames.length/2) * toneMatrixSize/16, 0);
+    knob.position.y = knobRadius * (2 * i - 3);
   }
   return knobs;
 }
 var knobs = makeKnobs();
-knobs.position.x = window.innerWidth - 2 * toneMatrixSize/16;
+knobs.position.x = (window.innerWidth + window.innerWidth/2 + toneMatrixSize/2) / 2;
+knobs.position.y = window.innerHeight/2;
 scene.add(knobs);
 
 // Click handler
@@ -162,5 +164,6 @@ window.app = Object.assign(app, {
   rippleizer: rippleizer,
   synth: synth,
   toneMatrix: toneMatrix,
+  knobs: knobs,
 });
 window.THREE = THREE;
