@@ -4,7 +4,6 @@ import Knob from "./Knob";
 function makeKnobs(width, height, knobOptions, getter) {
   var knobGroup = new THREE.Group();
   var numKnobs = knobOptions.length;
-  console.log(width, height);
   var layout = (width > height) ? "horizontal" : "vertical";
   var knobRadius = Math.min(width/2, height/2/numKnobs);
   if (layout === "horizontal") {

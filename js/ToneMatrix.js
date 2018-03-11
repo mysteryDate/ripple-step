@@ -143,12 +143,13 @@ function ToneMatrix(width, height) {
 
   // Some hacky debouncing
   this.arming = true;
+  this.touchActive = false;
 }
 ToneMatrix.prototype = Object.create(THREE.Object3D.prototype);
 
 ToneMatrix.prototype.touch = function(raycaster) {
   var touchedButton = raycaster.intersectObjects(this.children)[0];
-  if (touchedButton) {
+  if (touchedButton && this.touchActive) {
     if (this.arming === true) {
       touchedButton.object.arm();
     } else {
@@ -160,8 +161,12 @@ ToneMatrix.prototype.touchStart = function(raycaster) {
   var touchedButton = raycaster.intersectObjects(this.children)[0];
   if (touchedButton) {
     this.arming = !touchedButton.object.isArmed();
+    this.touchActive = true;
   }
   this.touch(raycaster);
+};
+ToneMatrix.prototype.touchEnd = function() {
+  this.touchActive = false;
 };
 
 ToneMatrix.prototype.clear = function() {

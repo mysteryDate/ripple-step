@@ -42,17 +42,13 @@ synth.setVolume(-6);
 
 // Controls for the envelope
 var controlPanelLayout = (width > height) ? "vertical" : "horizontal";
-var controlPanelWidth;
-var controlPanelHeight;
-var availableSpace;
+var availableSpace = height - (height/2 + toneMatrixSize/2);
+var controlPanelHeight = availableSpace * 0.7;
+var controlPanelWidth = width;
 if (controlPanelLayout === "vertical") {
   availableSpace = width - (width/2 + toneMatrixSize/2);
   controlPanelWidth = availableSpace * 0.7;
   controlPanelHeight = height;
-} else {
-  availableSpace = height - (height/2 + toneMatrixSize/2);
-  controlPanelHeight = availableSpace * 0.7;
-  controlPanelWidth = width;
 }
 var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
   width: controlPanelWidth,
@@ -93,6 +89,7 @@ function onDocumentMouseDown(event) {
 }
 function onDocumentMouseUp(event) {
   envelopeControl.touchEnd();
+  toneMatrix.touchEnd();
 }
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
