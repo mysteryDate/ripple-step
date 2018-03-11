@@ -41,6 +41,7 @@ Controls.Envelope = {
       numLights: 100,
     },
   ],
+  position: "right",
 };
 
 var Scales = {

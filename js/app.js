@@ -6,7 +6,7 @@ import ToneMatrix from "./ToneMatrix";
 import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
-// import ControlPanel from "./ControlPanel";
+import ControlPanel from "./ControlPanel";
 
 var app = {};
 var currentScale = sample(Object.values(Scales));
@@ -40,27 +40,32 @@ scene.add(scaleChooser);
 var synth = new RippleSynth(Constants.NUM_STEPS);
 synth.setVolume(-6);
 
-// var availableSpace = width - (width/2 + toneMatrixSize/2);
-// var numKnobs = Controls.Envelope.knobs.length;
-// var knobRadius = Math.min(availableSpace/2 * 0.7, 0.5 * height/numKnobs * 0.8);
-// var controlPanelLayout = (width > height) ? "horizontal" : "vertical";
-// var controlPanelWidth;
-// var controlPanelHeight;
-// var availableSpace;
-// if (controlPanelLayout === "horizontal") {
-//   availableSpace = width - (width/2 + toneMatrixSize/2);
-//   controlPanelWidth = availableSpace * 0.7;
-//   controlPanelHeight = height;
-// } else {
-//   availableSpace = height - (height/2 + toneMatrixSize/2);
-//   controlPanelHeight = availableSpace * 0.7;
-//   controlPanelWidth = width;
-// }
-// var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
-//   width: controlPanelWidth,
-//   height: controlPanelHeight,
-// }));
-// scene.add(envelopeControl);
+// Controls for the envelope
+var controlPanelLayout = (width > height) ? "vertical" : "horizontal";
+var controlPanelWidth;
+var controlPanelHeight;
+var availableSpace;
+if (controlPanelLayout === "vertical") {
+  availableSpace = width - (width/2 + toneMatrixSize/2);
+  controlPanelWidth = availableSpace * 0.7;
+  controlPanelHeight = height;
+} else {
+  availableSpace = height - (height/2 + toneMatrixSize/2);
+  controlPanelHeight = availableSpace * 0.7;
+  controlPanelWidth = width;
+}
+var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
+  width: controlPanelWidth,
+  height: controlPanelHeight,
+}));
+scene.add(envelopeControl);
+if (controlPanelLayout === "vertical") { // On the right side
+  envelopeControl.position.x = (3 * width + toneMatrixSize) / 4;
+  envelopeControl.position.y = height/2;
+} else { // On the top
+  envelopeControl.position.x = width/2;
+  envelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
+}
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -71,7 +76,7 @@ function onDocumentMouseMove(event) {
     mouse.y = -(event.clientY / height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
-    // envelopeControl.touch(raycaster);
+    envelopeControl.touch(raycaster);
   }
 }
 function onDocumentMouseDown(event) {
@@ -81,11 +86,11 @@ function onDocumentMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
-  // envelopeControl.touchStart(raycaster);
+  envelopeControl.touchStart(raycaster);
   onDocumentMouseMove(event);
 }
 function onDocumentMouseUp(event) {
-  // envelopeControl.touchEnd();
+  envelopeControl.touchEnd();
 }
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
@@ -100,7 +105,7 @@ document.addEventListener("keypress", onDocumentKeyPress, false);
 app.setScale = function(newScale) {
   currentScale = newScale;
   toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
-  // envelopeControl.setColor(new THREE.Color(currentScale.ripple_color));
+  envelopeControl.setColor(new THREE.Color(currentScale.ripple_color));
 };
 
 function playRow(row) {
@@ -155,6 +160,6 @@ window.app = Object.assign(app, {
   rippleizer: rippleizer,
   synth: synth,
   toneMatrix: toneMatrix,
-  // knobs: knobs,
+  ev: envelopeControl,
 });
 window.THREE = THREE;
