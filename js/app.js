@@ -6,7 +6,7 @@ import ToneMatrix from "./ToneMatrix";
 import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
-import Knob from "./Knob";
+// import ControlPanel from "./ControlPanel";
 
 var app = {};
 var currentScale = sample(Object.values(Scales));
@@ -38,50 +38,29 @@ scene.add(scaleChooser);
 
 // SYNTH
 var synth = new RippleSynth(Constants.NUM_STEPS);
-synth.setVolume(-24);
+synth.setVolume(-6);
 
-var availableSpace = width - (width/2 + toneMatrixSize/2);
-var numKnobs = Controls.Envelope.knobs.length;
-var knobRadius = Math.min(availableSpace/2 * 0.7, 0.5 * height/numKnobs * 0.8);
-function makeKnobs() {
-  var knobs = new THREE.Group();
-  for (var i = 0; i < numKnobs; i++) {
-    var knob = new Knob(Object.assign(Controls.Envelope.knobs[i], {
-      currentValue: synth.getEnvelope(Controls.Envelope.knobs[i].control),
-      size: knobRadius,
-      sensitivity: 2,
-    }));
-    knobs.add(knob);
-    if (Controls.Envelope.position === "right" || Controls.Envelope.position === "left") {
-      knob.position.y = knobRadius * (3 - 2 * i); // Vertical layout
-    } else {
-      knob.position.x = knobRadius * (3 - 2 * i); // Horizontal layout
-    }
-  }
-  return knobs;
-}
-var knobs = makeKnobs();
-switch (Controls.Envelope.position) {
-  case "left":
-    knobs.position.x = (width/2 - toneMatrixSize/2) / 2;
-    knobs.position.y = height/2;
-    break;
-  case "right":
-    knobs.position.x = (3 * width + toneMatrixSize) / 4;
-    knobs.position.y = height/2;
-    break;
-  case "top":
-    knobs.position.x = width/2;
-    knobs.position.y = (3 * height + toneMatrixSize) / 4;
-    break;
-  case "bottom":
-    knobs.position.x = width/2;
-    knobs.position.y = (height/2 - toneMatrixSize/2) / 2;
-    break;
-  default:
-    throw new Error("unknown position: " + Controls.Envelope.position);
-}
-scene.add(knobs);
+// var availableSpace = width - (width/2 + toneMatrixSize/2);
+// var numKnobs = Controls.Envelope.knobs.length;
+// var knobRadius = Math.min(availableSpace/2 * 0.7, 0.5 * height/numKnobs * 0.8);
+// var controlPanelLayout = (width > height) ? "horizontal" : "vertical";
+// var controlPanelWidth;
+// var controlPanelHeight;
+// var availableSpace;
+// if (controlPanelLayout === "horizontal") {
+//   availableSpace = width - (width/2 + toneMatrixSize/2);
+//   controlPanelWidth = availableSpace * 0.7;
+//   controlPanelHeight = height;
+// } else {
+//   availableSpace = height - (height/2 + toneMatrixSize/2);
+//   controlPanelHeight = availableSpace * 0.7;
+//   controlPanelWidth = width;
+// }
+// var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
+//   width: controlPanelWidth,
+//   height: controlPanelHeight,
+// }));
+// scene.add(envelopeControl);
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -92,11 +71,8 @@ function onDocumentMouseMove(event) {
     mouse.y = -(event.clientY / height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
+    // envelopeControl.touch(raycaster);
   }
-  knobs.children.forEach(function(knob) {
-    knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
-    synth.setEnvelope(knob.control, knob.getValue());
-  });
 }
 function onDocumentMouseDown(event) {
   var mouse = new THREE.Vector2();
@@ -105,15 +81,11 @@ function onDocumentMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
-  knobs.children.forEach(function(knob) {
-    knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
-  });
+  // envelopeControl.touchStart(raycaster);
   onDocumentMouseMove(event);
 }
 function onDocumentMouseUp(event) {
-  knobs.children.forEach(function(knob) {
-    knob.touchEnd();
-  });
+  // envelopeControl.touchEnd();
 }
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
@@ -128,9 +100,7 @@ document.addEventListener("keypress", onDocumentKeyPress, false);
 app.setScale = function(newScale) {
   currentScale = newScale;
   toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
-  knobs.children.forEach(function(knob) {
-    knob.setColor(new THREE.Color(currentScale.ripple_color));
-  });
+  // envelopeControl.setColor(new THREE.Color(currentScale.ripple_color));
 };
 
 function playRow(row) {
@@ -185,6 +155,6 @@ window.app = Object.assign(app, {
   rippleizer: rippleizer,
   synth: synth,
   toneMatrix: toneMatrix,
-  knobs: knobs,
+  // knobs: knobs,
 });
 window.THREE = THREE;
