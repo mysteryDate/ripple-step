@@ -1,7 +1,7 @@
 import * as THREE from "../node_modules/three";
 import Knob from "./Knob";
 
-function makeKnobs(width, height, knobOptions) {
+function makeKnobs(width, height, knobOptions, getter) {
   var knobGroup = new THREE.Group();
   var numKnobs = knobOptions.length;
   console.log(width, height);
@@ -12,13 +12,13 @@ function makeKnobs(width, height, knobOptions) {
   }
   for (var i = 0; i < numKnobs; i++) {
     var knob = new Knob(Object.assign(knobOptions[i], {
-      // currentValue: synth.getEnvelope(knobOptions[i].control),
+      currentValue: getter(knobOptions[i].control),
       size: knobRadius,
       sensitivity: 2,
     }));
     knobGroup.add(knob);
     if (layout === "horizontal") {
-      knob.position.x = knobRadius * (3 - 2 * i);
+      knob.position.x = knobRadius * (2 * i - 3);
     } else {
       knob.position.y = knobRadius * (3 - 2 * i);
     }
@@ -32,13 +32,13 @@ function ControlPanel(options) {
   var height = options.height || 100;
   var knobOptions = options.knobs || [];
 
-  var knobGroup = makeKnobs(width, height, knobOptions);
+  var knobGroup = makeKnobs(width, height, knobOptions, options.getter);
   this.add(knobGroup);
 
   this.touch = function(raycaster) {
     knobGroup.children.forEach(function(knob) {
       knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
-      // synth.setEnvelope(knob.control, knob.getValue());
+      options.setter(knob.control, knob.getValue());
     });
   };
 

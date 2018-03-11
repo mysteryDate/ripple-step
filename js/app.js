@@ -57,6 +57,8 @@ if (controlPanelLayout === "vertical") {
 var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
   width: controlPanelWidth,
   height: controlPanelHeight,
+  getter: synth.getEnvelope,
+  setter: synth.setEnvelope,
 }));
 scene.add(envelopeControl);
 if (controlPanelLayout === "vertical") { // On the right side

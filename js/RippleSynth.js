@@ -20,7 +20,7 @@ function RippleSynth(numVoices) {
       voice.envelope[param] = value;
     });
     envelope[param] = value;
-  };
+  }.bind(this);
 }
 RippleSynth.prototype = Object.create(Tone.PolySynth.prototype);
 
