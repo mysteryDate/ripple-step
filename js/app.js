@@ -99,9 +99,12 @@ function onDocumentMouseUp(event) {
   }
   toneMatrix.touchEnd();
 }
+var MUTED = false;
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
     toneMatrix.clear();
+  } else if (event.key === "m") {
+    MUTED = !MUTED;
   }
 }
 document.addEventListener("mousemove", onDocumentMouseMove, false);
@@ -129,8 +132,10 @@ function playRow(row) {
   var note = currentNotes[(row) % currentNotes.length];
   var octave = Math.floor(row / currentNotes.length) + 3;
   octave += currentOctaves[(row) % currentNotes.length];
-  // Duration of an 8th note
-  synth.triggerAttackRelease(note + octave, "8n");
+  if (!MUTED) {
+    // Duration of an 8th note
+    synth.triggerAttackRelease(note + octave, "8n");
+  }
 }
 
 var previousPosition = Constants.NUM_STEPS - 1;
@@ -147,11 +152,13 @@ function update() {
   if (position !== previousPosition) {
     toneMatrix.deactivateColumn(previousPosition);
     previousPosition = position;
-    var rowsToPlay = toneMatrix.activateColumn(position);
-    numNotesPlayed[position] = rowsToPlay.length;
-    rowsToPlay.forEach(function(row) {
-      playRow(row);
-    });
+    if (!MUTED) {
+      var rowsToPlay = toneMatrix.activateColumn(position);
+      numNotesPlayed[position] = rowsToPlay.length;
+      rowsToPlay.forEach(function(row) {
+        playRow(row);
+      });
+    }
   }
 
   if (!envelopeControl.visible) {
@@ -184,6 +191,8 @@ window.app = Object.assign(app, {
   synth: synth,
   toneMatrix: toneMatrix,
   ev: envelopeControl,
+  c: Controls,
 });
+console.log(window.app.c);
 window.THREE = THREE;
 console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
