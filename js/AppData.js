@@ -1,6 +1,4 @@
 var Constants = {
-  MATRIX_KEY_SIZE: 40,
-  // BASE_COLOR: 0x3a3c4c,
   BASE_COLOR: 0x1d1e26,
   SECONDARY_BASE_COLOR: 0xaaaaaa,
   NUM_STEPS: 16,
@@ -25,8 +23,8 @@ Controls.Envelope = {
     },
     {
       control: "decay",
-      minValue: 0.005,
-      maxValue: 10.0,
+      minValue: 0.0,
+      maxValue: 0.2,
       numLights: 20,
     },
     {

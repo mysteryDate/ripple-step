@@ -34,6 +34,7 @@ var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
 
 var scaleChooser = new ScaleChooser(Scales);
 scaleChooser.position.x = width/2;
+scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
 scene.add(scaleChooser);
 
 // SYNTH

@@ -5,12 +5,12 @@ function ScaleChooser(scales) {
   THREE.Group.call(this);
   Object.keys(scales).forEach(function(scale, index) {
     var pickerKey = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(Constants.MATRIX_KEY_SIZE, Constants.MATRIX_KEY_SIZE),
+      new THREE.PlaneBufferGeometry(1, 1),
       new THREE.MeshBasicMaterial({color: scales[scale].color})
     );
     this.add(pickerKey);
-    pickerKey.position.set(index * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);
-    pickerKey.position.x -= 2.5 * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)); // Center it
+    pickerKey.position.set(index * ((1 + Constants.SPACING_RATIO)), 0, 0);
+    pickerKey.position.x -= (Object.keys(scales).length/2 - 0.5) * (1 + Constants.SPACING_RATIO); // Center it
     pickerKey.scaleName = scale;
   }.bind(this));
   this.scales = scales;
