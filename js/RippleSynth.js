@@ -20,12 +20,12 @@ function RippleSynth(numVoices) {
       voice.envelope[param] = value;
     });
     envelope[param] = value;
-  };
+  }.bind(this);
 }
 RippleSynth.prototype = Object.create(Tone.PolySynth.prototype);
 
-RippleSynth.prototype.setVolume = function(v) {
-  Tone.Master.volume.value = v;
+RippleSynth.prototype.setVolume = function(newVolume) {
+  Tone.Master.volume.value = newVolume;
 };
 
 export default RippleSynth;

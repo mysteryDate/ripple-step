@@ -6,7 +6,7 @@ function ScaleChooser(scales) {
   Object.keys(scales).forEach(function(scale, index) {
     var pickerKey = new THREE.Mesh(
       new THREE.PlaneBufferGeometry(Constants.MATRIX_KEY_SIZE, Constants.MATRIX_KEY_SIZE),
-      new THREE.MeshBasicMaterial({color: scales[scale].ripple_color})
+      new THREE.MeshBasicMaterial({color: scales[scale].color})
     );
     this.add(pickerKey);
     pickerKey.position.set(index * (Constants.MATRIX_KEY_SIZE * (1 + Constants.SPACING_RATIO)), 0, 0);

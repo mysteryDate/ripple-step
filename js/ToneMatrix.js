@@ -57,7 +57,7 @@ function MatrixButton(row, column, geometry) {
     armed = true;
     this.material.uniforms.u_armed.value = true;
     this.shadow.visible = true;
-    this.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
+    this.shadow.material = SHADOW_KEY_MATERIAL;
   };
   this.disarm = function() {
     armed = false;
@@ -111,7 +111,6 @@ function ToneMatrix(width, height) {
     return columns[x][y];
   };
   this.activateColumn = function(num) {
-    // setButtonUniform("u_columnActive", false);
     var armedRows = [];
     columns[num].forEach(function(btn) {
       btn.material.uniforms.u_columnActive.value = true;
@@ -132,9 +131,9 @@ function ToneMatrix(width, height) {
     });
   };
 
-  this.setActiveColor = function(color, rippleColor) {
-    setButtonUniform("u_activeColor", color);
-    SHADOW_KEY_PLAYING_MATERIAL.color = rippleColor;
+  this.setActiveColor = function({buttonColor, shadowColor}) {
+    setButtonUniform("u_activeColor", buttonColor);
+    SHADOW_KEY_PLAYING_MATERIAL.color = shadowColor;
   };
 
   this.setRippleTexture = function(texture) {
@@ -143,12 +142,13 @@ function ToneMatrix(width, height) {
 
   // Some hacky debouncing
   this.arming = true;
+  this.touchActive = false;
 }
 ToneMatrix.prototype = Object.create(THREE.Object3D.prototype);
 
 ToneMatrix.prototype.touch = function(raycaster) {
   var touchedButton = raycaster.intersectObjects(this.children)[0];
-  if (touchedButton) {
+  if (touchedButton && this.touchActive) {
     if (this.arming === true) {
       touchedButton.object.arm();
     } else {
@@ -160,8 +160,12 @@ ToneMatrix.prototype.touchStart = function(raycaster) {
   var touchedButton = raycaster.intersectObjects(this.children)[0];
   if (touchedButton) {
     this.arming = !touchedButton.object.isArmed();
+    this.touchActive = true;
   }
   this.touch(raycaster);
+};
+ToneMatrix.prototype.touchEnd = function() {
+  this.touchActive = false;
 };
 
 ToneMatrix.prototype.clear = function() {
