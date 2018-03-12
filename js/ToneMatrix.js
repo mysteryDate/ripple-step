@@ -57,7 +57,7 @@ function MatrixButton(row, column, geometry) {
     armed = true;
     this.material.uniforms.u_armed.value = true;
     this.shadow.visible = true;
-    this.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
+    this.shadow.material = SHADOW_KEY_MATERIAL;
   };
   this.disarm = function() {
     armed = false;
@@ -131,9 +131,9 @@ function ToneMatrix(width, height) {
     });
   };
 
-  this.setActiveColor = function(color, rippleColor) {
-    setButtonUniform("u_activeColor", color);
-    SHADOW_KEY_PLAYING_MATERIAL.color = rippleColor;
+  this.setActiveColor = function({buttonColor, shadowColor}) {
+    setButtonUniform("u_activeColor", buttonColor);
+    SHADOW_KEY_PLAYING_MATERIAL.color = shadowColor;
   };
 
   this.setRippleTexture = function(texture) {

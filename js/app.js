@@ -110,8 +110,11 @@ document.addEventListener("keypress", onDocumentKeyPress, false);
 
 app.setScale = function(newScale) {
   currentScale = newScale;
-  toneMatrix.setActiveColor(new THREE.Color(currentScale.ripple_color), new THREE.Color(currentScale.ripple_color));
-  envelopeControl.setColor(new THREE.Color(currentScale.ripple_color));
+  toneMatrix.setActiveColor({
+    buttonColor: new THREE.Color(currentScale.color),
+    shadowColor: new THREE.Color(currentScale.ripple_color),
+  });
+  envelopeControl.setColor(new THREE.Color(currentScale.color));
 };
 
 

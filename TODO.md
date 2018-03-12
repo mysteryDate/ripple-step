@@ -1,5 +1,6 @@
 - [ ] Don't allow vertical drags (creating cluster chords)
 - [ ] Mute (darken buttons)
 - [ ] Mobile compatibility
-- [ ] Colors
+- [ ] Colors (even luminance for ripple colors)
 - [ ] Grid as single mesh/shader
+- [ ] Filter w/controls
