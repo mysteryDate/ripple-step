@@ -34,14 +34,15 @@ function ControlPanel(options) {
   var knobGroup = makeKnobs(width, height, knobOptions, options.getter);
   this.add(knobGroup);
 
-  this.touch = function(raycaster) {
+  this.touch = function(raycaster, event) {
+    // console.log(event);
     knobGroup.children.forEach(function(knob) {
       knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
       options.setter(knob.control, knob.getValue());
     });
   };
 
-  this.touchStart = function(raycaster) {
+  this.touchStart = function(raycaster, event) {
     knobGroup.children.forEach(function(knob) {
       knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
     });

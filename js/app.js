@@ -69,14 +69,14 @@ envelopeControl.visible = false;
 // Click handler
 var raycaster = new THREE.Raycaster();
 function onDocumentMouseMove(event) {
-  if (event.buttons === 1) { // Mouse is down
+  if (event.which === 1) { // Mouse is down
     var mouse = new THREE.Vector2();
     mouse.x = (event.clientX / width) * 2 - 1;
     mouse.y = -(event.clientY / height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
     if (envelopeControl.visible) {
-      envelopeControl.touch(raycaster);
+      envelopeControl.touch(raycaster, event);
     }
   }
 }
@@ -88,7 +88,7 @@ function onDocumentMouseDown(event) {
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
   if (envelopeControl.visible) {
-    envelopeControl.touchStart(raycaster);
+    envelopeControl.touchStart(raycaster, event);
   }
   onDocumentMouseMove(event);
 }
@@ -155,7 +155,7 @@ function update() {
     for (let i = 0; i < numNotesPlayed.length; i++) {
       sum += numNotesPlayed[i];
     }
-    if (sum > 8) {
+    if (sum > Controls.NUM_NOTES_BEFORE_ENVELOPE_DISPLAY) {
       envelopeControl.visible = true;
     }
   }
@@ -182,3 +182,4 @@ window.app = Object.assign(app, {
   ev: envelopeControl,
 });
 window.THREE = THREE;
+console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));

@@ -1,0 +1,5 @@
+- [ ] Don't allow vertical drags (creating cluster chords)
+- [ ] Mute (darken buttons)
+- [ ] Mobile compatibility
+- [ ] Colors
+- [ ] Grid as single mesh/shader

@@ -12,6 +12,7 @@ var Constants = {
 var Controls = {
   TEMPO: 120,
   SWING: 0,
+  NUM_NOTES_BEFORE_ENVELOPE_DISPLAY: 8,
 };
 
 Controls.Envelope = {
