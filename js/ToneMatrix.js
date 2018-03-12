@@ -111,7 +111,6 @@ function ToneMatrix(width, height) {
     return columns[x][y];
   };
   this.activateColumn = function(num) {
-    // setButtonUniform("u_columnActive", false);
     var armedRows = [];
     columns[num].forEach(function(btn) {
       btn.material.uniforms.u_columnActive.value = true;

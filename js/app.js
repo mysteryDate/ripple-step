@@ -64,6 +64,7 @@ if (controlPanelLayout === "vertical") { // On the right side
   envelopeControl.position.x = width/2;
   envelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
 }
+envelopeControl.visible = false;
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -74,7 +75,9 @@ function onDocumentMouseMove(event) {
     mouse.y = -(event.clientY / height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
-    envelopeControl.touch(raycaster);
+    if (envelopeControl.visible) {
+      envelopeControl.touch(raycaster);
+    }
   }
 }
 function onDocumentMouseDown(event) {
@@ -84,11 +87,15 @@ function onDocumentMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
-  envelopeControl.touchStart(raycaster);
+  if (envelopeControl.visible) {
+    envelopeControl.touchStart(raycaster);
+  }
   onDocumentMouseMove(event);
 }
 function onDocumentMouseUp(event) {
-  envelopeControl.touchEnd();
+  if (envelopeControl.visible) {
+    envelopeControl.touchEnd();
+  }
   toneMatrix.touchEnd();
 }
 function onDocumentKeyPress(event) {
@@ -107,6 +114,7 @@ app.setScale = function(newScale) {
   envelopeControl.setColor(new THREE.Color(currentScale.ripple_color));
 };
 
+
 function playRow(row) {
   var currentNotes = currentScale.notes;
   var currentOctaves = currentScale.octaves;
@@ -123,6 +131,7 @@ function playRow(row) {
 
 var previousPosition = Constants.NUM_STEPS - 1;
 var startTime;
+var numNotesPlayed = new Array(Constants.NUM_STEPS).fill(0); // Hacky activity monitor
 function update() {
   var beats = (performance.now() - startTime) / 1000 / 60 * Controls.TEMPO;
   var position = beats * (1/4 / Constants.STEP_VALUE);
@@ -135,9 +144,20 @@ function update() {
     toneMatrix.deactivateColumn(previousPosition);
     previousPosition = position;
     var rowsToPlay = toneMatrix.activateColumn(position);
+    numNotesPlayed[position] = rowsToPlay.length;
     rowsToPlay.forEach(function(row) {
       playRow(row);
     });
+  }
+
+  if (!envelopeControl.visible) {
+    var sum = 0;
+    for (let i = 0; i < numNotesPlayed.length; i++) {
+      sum += numNotesPlayed[i];
+    }
+    if (sum > 8) {
+      envelopeControl.visible = true;
+    }
   }
 
   rippleizer.render();
