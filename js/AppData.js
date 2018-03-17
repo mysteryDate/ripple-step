@@ -5,6 +5,7 @@ var Constants = {
   SPACING_RATIO: 1/10,
   STEP_VALUE: 1/8,
   RELATIVE: false,
+  MUTE_COLOR_VALUE: 0.8,
 };
 
 var Controls = {

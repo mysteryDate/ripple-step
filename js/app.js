@@ -105,6 +105,10 @@ function onDocumentKeyPress(event) {
     toneMatrix.clear();
   } else if (event.key === "m") {
     MUTED = !MUTED;
+    toneMatrix.mute(MUTED);
+    envelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
+      THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
+    ));
   }
 }
 document.addEventListener("mousemove", onDocumentMouseMove, false);
@@ -132,10 +136,8 @@ function playRow(row) {
   var note = currentNotes[(row) % currentNotes.length];
   var octave = Math.floor(row / currentNotes.length) + 3;
   octave += currentOctaves[(row) % currentNotes.length];
-  if (!MUTED) {
-    // Duration of an 8th note
-    synth.triggerAttackRelease(note + octave, "8n");
-  }
+  // Duration of an 8th note
+  synth.triggerAttackRelease(note + octave, "8n");
 }
 
 var previousPosition = Constants.NUM_STEPS - 1;
@@ -152,8 +154,8 @@ function update() {
   if (position !== previousPosition) {
     toneMatrix.deactivateColumn(previousPosition);
     previousPosition = position;
+    var rowsToPlay = toneMatrix.activateColumn(position, MUTED);
     if (!MUTED) {
-      var rowsToPlay = toneMatrix.activateColumn(position);
       numNotesPlayed[position] = rowsToPlay.length;
       rowsToPlay.forEach(function(row) {
         playRow(row);
