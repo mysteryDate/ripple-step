@@ -5,13 +5,13 @@ var Constants = {
   SPACING_RATIO: 1/10,
   STEP_VALUE: 1/8,
   RELATIVE: false,
-  MUTE_COLOR_VALUE: 0.8,
+  MUTE_COLOR_VALUE: 0.7,
 };
 
 var Controls = {
   TEMPO: 120,
   SWING: 0,
-  NUM_NOTES_BEFORE_ENVELOPE_DISPLAY: 8,
+  NUM_NOTES_BEFORE_ENVELOPE_DISPLAY: 3,
 };
 
 Controls.Envelope = {
@@ -24,7 +24,7 @@ Controls.Envelope = {
     },
     {
       control: "decay",
-      minValue: 0.0,
+      minValue: 0.005,
       maxValue: 0.2,
       numLights: 20,
     },
@@ -36,8 +36,8 @@ Controls.Envelope = {
     },
     {
       control: "release",
-      minValue: 0.0,
-      maxValue: 10.0,
+      minValue: 0.005,
+      maxValue: 20.0,
       numLights: 100,
     },
   ],
