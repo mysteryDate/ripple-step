@@ -2,6 +2,9 @@ import Tone from "../node_modules/Tone";
 
 function RippleSynth(numVoices) {
   Tone.PolySynth.call(this, numVoices, Tone.Synth);
+  this.voices.forEach(function(voice) {
+    voice.oscillator.type = "triangle";
+  });
   this.toMaster();
 
   var envelope = {

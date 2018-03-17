@@ -195,6 +195,5 @@ window.app = Object.assign(app, {
   ev: envelopeControl,
   c: Controls,
 });
-console.log(window.app.c);
 window.THREE = THREE;
-console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+// console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
