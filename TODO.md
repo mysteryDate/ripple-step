@@ -4,3 +4,4 @@
 - [ ] Colors (even luminance for ripple colors)
 - [ ] Grid as single mesh/shader
 - [ ] Filter w/controls
+- [ ] Maybe I want the harmony to be modal? (https://www.youtube.com/watch?v=JkAl3It8sEQ)
