@@ -1,7 +1,7 @@
 import Tone from "../node_modules/Tone";
 
 function RippleSynth(numVoices) {
-  Tone.PolySynth.call(this, numVoices, Tone.Synth);
+  Tone.PolySynth.call(this, numVoices, Tone.MonoSynth);
   this.voices.forEach(function(voice) {
     voice.oscillator.type = "triangle";
   });
@@ -23,6 +23,24 @@ function RippleSynth(numVoices) {
       voice.envelope[param] = value;
     });
     envelope[param] = value;
+  }.bind(this);
+
+  var filterEnvelope = {
+    attack: this.voices[0].filterEnvelope.attack,
+    decay: this.voices[0].filterEnvelope.decay,
+    sustain: this.voices[0].filterEnvelope.sustain,
+    release: this.voices[0].filterEnvelope.release,
+  };
+
+  this.getFilterEnvelope = function(param) {
+    return filterEnvelope[param];
+  };
+
+  this.setFilterEnvelope = function(param, value) {
+    this.voices.forEach(function(voice) {
+      voice.filterEnvelope[param] = value;
+    });
+    filterEnvelope[param] = value;
   }.bind(this);
 }
 RippleSynth.prototype = Object.create(Tone.PolySynth.prototype);
