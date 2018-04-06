@@ -39,6 +39,7 @@ scene.add(scaleChooser);
 
 // SYNTH
 var synth = new RippleSynth(Constants.NUM_STEPS);
+// var synth = new RippleSynth(1);
 synth.setVolume(-6);
 
 // Controls for the envelope
@@ -83,6 +84,22 @@ if (controlPanelLayout === "vertical") { // On the left side
 }
 filterEnvelopeControl.visible = false;
 
+var filterControl = new ControlPanel(Object.assign(Controls.Filter, {
+  width: controlPanelWidth,
+  height: controlPanelHeight,
+  getter: synth.getFilter,
+  setter: synth.setFilter,
+}));
+scene.add(filterControl);
+if (controlPanelLayout === "vertical") { // On the left side
+  filterControl.position.x = (width - toneMatrixSize) / 4;
+  filterControl.position.y = height/2;
+} else { // On the top
+  filterControl.position.x = width/2;
+  filterControl.position.y = (3 * height + toneMatrixSize) / 4;
+}
+filterControl.visible = false;
+
 // Click handler
 var raycaster = new THREE.Raycaster();
 function onDocumentMouseMove(event) {
@@ -95,6 +112,7 @@ function onDocumentMouseMove(event) {
     if (envelopeControl.visible) {
       envelopeControl.touch(raycaster, event);
       filterEnvelopeControl.touch(raycaster, event);
+      filterControl.touch(raycaster, event);
     }
   }
 }
@@ -108,6 +126,7 @@ function onDocumentMouseDown(event) {
   if (envelopeControl.visible) {
     envelopeControl.touchStart(raycaster, event);
     filterEnvelopeControl.touchStart(raycaster, event);
+    filterControl.touchStart(raycaster, event);
   }
   onDocumentMouseMove(event);
 }
@@ -115,6 +134,7 @@ function onDocumentMouseUp(event) {
   if (envelopeControl.visible) {
     envelopeControl.touchEnd();
     filterEnvelopeControl.touchEnd();
+    filterControl.touchEnd();
   }
   toneMatrix.touchEnd();
 }
@@ -129,6 +149,9 @@ function onDocumentKeyPress(event) {
       THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
     ));
     filterEnvelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
+      THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
+    ));
+    filterControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
       THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
     ));
   }
@@ -146,6 +169,7 @@ app.setScale = function(newScale) {
   });
   envelopeControl.setColor(new THREE.Color(currentScale.color));
   filterEnvelopeControl.setColor(new THREE.Color(currentScale.color));
+  filterControl.setColor(new THREE.Color(currentScale.color));
 };
 
 
@@ -193,7 +217,8 @@ function update() {
     }
     if (sum > Controls.NUM_NOTES_BEFORE_ENVELOPE_DISPLAY) {
       envelopeControl.visible = true;
-      filterEnvelopeControl.visible = true;
+      // filterEnvelopeControl.visible = true;
+      filterControl.visible = true;
     }
   }
 

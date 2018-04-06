@@ -14,6 +14,22 @@ function RippleSynth(numVoices) {
     release: this.voices[0].envelope.release,
   };
 
+  var filter = {
+    frequency: this.voices[0].filter.frequency.input.value,
+    Q: this.voices[0].filter.Q.input.value,
+  };
+
+  this.getFilter = function(param) {
+    return filter[param];
+  };
+
+  this.setFilter = function(param, value) {
+    this.voices.forEach(function(voice) {
+      voice.filter[param].input.value = value;
+    });
+    filter[param] = value;
+  }.bind(this);
+
   this.getEnvelope = function(param) {
     return envelope[param];
   };

@@ -72,6 +72,23 @@ Controls.FilterEnvelope = {
   ],
 };
 
+Controls.Filter = {
+  knobs: [
+    {
+      control: "Q",
+      minValue: 0,
+      maxValue: 10,
+      numLights: 16,
+    },
+    {
+      control: "frequency",
+      minValue: 0,
+      maxValue: 20000,
+      numLights: 20,
+    },
+  ],
+};
+
 var Scales = {
   "IV": {
     "relative_notes": ["C", "D", "F", "G", "A"],
