@@ -8,6 +8,8 @@ import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
 import ControlPanel from "./ControlPanel";
 
+import Tone from "../node_modules/Tone";
+
 var app = {};
 var currentScale = sample(Object.values(Scales));
 
@@ -38,8 +40,8 @@ scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Consta
 scene.add(scaleChooser);
 
 // SYNTH
-var synth = new RippleSynth(Constants.NUM_STEPS);
-// var synth = new RippleSynth(1);
+// var synth = new RippleSynth(Constants.NUM_STEPS);
+var synth = new RippleSynth(1);
 synth.setVolume(-6);
 
 // Controls for the envelope
@@ -68,21 +70,21 @@ if (controlPanelLayout === "vertical") { // On the right side
 }
 envelopeControl.visible = false;
 
-var filterEnvelopeControl = new ControlPanel(Object.assign(Controls.FilterEnvelope, {
-  width: controlPanelWidth,
-  height: controlPanelHeight,
-  getter: synth.getFilterEnvelope,
-  setter: synth.setFilterEnvelope,
-}));
-scene.add(filterEnvelopeControl);
-if (controlPanelLayout === "vertical") { // On the left side
-  filterEnvelopeControl.position.x = (width - toneMatrixSize) / 4;
-  filterEnvelopeControl.position.y = height/2;
-} else { // On the top
-  filterEnvelopeControl.position.x = width/2;
-  filterEnvelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
-}
-filterEnvelopeControl.visible = false;
+// var filterEnvelopeControl = new ControlPanel(Object.assign(Controls.FilterEnvelope, {
+//   width: controlPanelWidth,
+//   height: controlPanelHeight,
+//   getter: synth.getFilterEnvelope,
+//   setter: synth.setFilterEnvelope,
+// }));
+// scene.add(filterEnvelopeControl);
+// if (controlPanelLayout === "vertical") { // On the right side
+//   filterEnvelopeControl.position.x = (3 * width + toneMatrixSize) / 4;
+//   filterEnvelopeControl.position.y = height/2;
+// } else { // On the top
+//   filterEnvelopeControl.position.x = width/2;
+//   filterEnvelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
+// }
+// filterEnvelopeControl.visible = false;
 
 var filterControl = new ControlPanel(Object.assign(Controls.Filter, {
   width: controlPanelWidth,
@@ -109,9 +111,9 @@ function onDocumentMouseMove(event) {
     mouse.y = -(event.clientY / height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
-    if (envelopeControl.visible) {
-      envelopeControl.touch(raycaster, event);
-      filterEnvelopeControl.touch(raycaster, event);
+    if (filterControl.visible) {
+      // envelopeControl.touch(raycaster, event);
+      // filterEnvelopeControl.touch(raycaster, event);
       filterControl.touch(raycaster, event);
     }
   }
@@ -123,17 +125,17 @@ function onDocumentMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
-  if (envelopeControl.visible) {
-    envelopeControl.touchStart(raycaster, event);
-    filterEnvelopeControl.touchStart(raycaster, event);
+  if (filterControl.visible) {
+    // envelopeControl.touchStart(raycaster, event);
+    // filterEnvelopeControl.touchStart(raycaster, event);
     filterControl.touchStart(raycaster, event);
   }
   onDocumentMouseMove(event);
 }
 function onDocumentMouseUp(event) {
-  if (envelopeControl.visible) {
-    envelopeControl.touchEnd();
-    filterEnvelopeControl.touchEnd();
+  if (filterControl.visible) {
+    // envelopeControl.touchEnd();
+    // filterEnvelopeControl.touchEnd();
     filterControl.touchEnd();
   }
   toneMatrix.touchEnd();
@@ -148,9 +150,9 @@ function onDocumentKeyPress(event) {
     envelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
       THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
     ));
-    filterEnvelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
-      THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
-    ));
+    // filterEnvelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
+    //   THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
+    // ));
     filterControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
       THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
     ));
@@ -168,7 +170,7 @@ app.setScale = function(newScale) {
     shadowColor: new THREE.Color(currentScale.ripple_color),
   });
   envelopeControl.setColor(new THREE.Color(currentScale.color));
-  filterEnvelopeControl.setColor(new THREE.Color(currentScale.color));
+  // filterEnvelopeControl.setColor(new THREE.Color(currentScale.color));
   filterControl.setColor(new THREE.Color(currentScale.color));
 };
 
@@ -210,13 +212,13 @@ function update() {
     }
   }
 
-  if (!envelopeControl.visible) {
+  if (!filterControl.visible) {
     var sum = 0;
     for (let i = 0; i < numNotesPlayed.length; i++) {
       sum += numNotesPlayed[i];
     }
     if (sum > Controls.NUM_NOTES_BEFORE_ENVELOPE_DISPLAY) {
-      envelopeControl.visible = true;
+      // envelopeControl.visible = true;
       // filterEnvelopeControl.visible = true;
       filterControl.visible = true;
     }
@@ -237,12 +239,8 @@ window.setTimeout(function() {
 
 // export some globals
 window.app = Object.assign(app, {
-  scene: scene,
-  rippleizer: rippleizer,
   synth: synth,
-  toneMatrix: toneMatrix,
-  ev: envelopeControl,
-  c: Controls,
+  Tone: Tone,
 });
 window.THREE = THREE;
 // console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));

@@ -77,13 +77,13 @@ Controls.Filter = {
     {
       control: "Q",
       minValue: 0,
-      maxValue: 10,
+      maxValue: 100,
       numLights: 16,
     },
     {
       control: "frequency",
       minValue: 0,
-      maxValue: 20000,
+      maxValue: 5000,
       numLights: 20,
     },
   ],
