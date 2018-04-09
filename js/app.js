@@ -40,8 +40,8 @@ scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Consta
 scene.add(scaleChooser);
 
 // SYNTH
-// var synth = new RippleSynth(Constants.NUM_STEPS);
-var synth = new RippleSynth(1);
+var synth = new RippleSynth(Constants.NUM_STEPS);
+// var synth = new RippleSynth(1);
 synth.setVolume(-6);
 
 // Controls for the envelope

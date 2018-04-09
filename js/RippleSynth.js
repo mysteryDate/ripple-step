@@ -5,6 +5,8 @@ function RippleSynth(numVoices) {
   this.voices.forEach(function(voice) {
     voice.oscillator.type = "triangle";
     voice.filter = new Tone.Filter(200, "lowpass");
+    voice.oscillator.disconnect(voice.envelope);
+    voice.oscillator.chain(voice.filter, voice.envelope);
   });
   this.toMaster();
 

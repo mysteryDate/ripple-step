@@ -77,7 +77,7 @@ Controls.Filter = {
     {
       control: "Q",
       minValue: 0,
-      maxValue: 100,
+      maxValue: 50,
       numLights: 16,
     },
     {
