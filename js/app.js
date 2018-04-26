@@ -243,4 +243,4 @@ window.app = Object.assign(app, {
   Tone: Tone,
 });
 window.THREE = THREE;
-// console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
