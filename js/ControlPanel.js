@@ -1,6 +1,8 @@
 import * as THREE from "../node_modules/three";
 import Knob from "./Knob";
 
+var KNOB_SPACING = 0.1;
+
 function makeKnobs(width, height, knobOptions, getter) {
   var knobGroup = new THREE.Group();
   var numKnobs = knobOptions.length;
@@ -17,10 +19,10 @@ function makeKnobs(width, height, knobOptions, getter) {
     }));
     knobGroup.add(knob);
     if (layout === "horizontal") {
-      var panelWidth = knobRadius * numKnobs;
+      var panelWidth = knobRadius * numKnobs * (1 + KNOB_SPACING);
       knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2, panelWidth/2);
     } else {
-      var panelHeight = knobRadius * numKnobs;
+      var panelHeight = knobRadius * numKnobs * (1 + KNOB_SPACING);
       knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelHeight/2, panelHeight/2);
     }
   }
