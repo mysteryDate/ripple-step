@@ -11,7 +11,7 @@ function makeKnobs(width, height, knobOptions, getter) {
   }
   for (var i = 0; i < numKnobs; i++) {
     var knob = new Knob(Object.assign(knobOptions[i], {
-      currentValue: getter(knobOptions[i].control),
+      currentValue: knobOptions[i].initialValue || getter(knobOptions[i].control),
       size: knobRadius,
       sensitivity: 2,
     }));

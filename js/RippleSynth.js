@@ -4,7 +4,7 @@ function RippleSynth(numVoices) {
   Tone.PolySynth.call(this, numVoices, Tone.Synth);
   this.voices.forEach(function(voice) {
     voice.oscillator.type = "triangle";
-    voice.filter = new Tone.Filter(200, "lowpass");
+    voice.filter = new Tone.Filter(2000, "lowpass", -24);
     voice.oscillator.disconnect(voice.envelope);
     voice.oscillator.chain(voice.filter, voice.envelope);
   });
@@ -31,7 +31,6 @@ function RippleSynth(numVoices) {
       voice.filter[param].input.value = value;
     });
     filter[param] = value;
-    console.log(param, value);
   }.bind(this);
 
   this.getEnvelope = function(param) {

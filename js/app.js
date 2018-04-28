@@ -54,21 +54,21 @@ if (controlPanelLayout === "vertical") {
   controlPanelWidth = availableSpace * 0.7;
   controlPanelHeight = height;
 }
-var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
-  width: controlPanelWidth,
-  height: controlPanelHeight,
-  getter: synth.getEnvelope,
-  setter: synth.setEnvelope,
-}));
-scene.add(envelopeControl);
-if (controlPanelLayout === "vertical") { // On the right side
-  envelopeControl.position.x = (3 * width + toneMatrixSize) / 4;
-  envelopeControl.position.y = height/2;
-} else { // On the top
-  envelopeControl.position.x = width/2;
-  envelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
-}
-envelopeControl.visible = false;
+// var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
+//   width: controlPanelWidth,
+//   height: controlPanelHeight,
+//   getter: synth.getEnvelope,
+//   setter: synth.setEnvelope,
+// }));
+// scene.add(envelopeControl);
+// if (controlPanelLayout === "vertical") { // On the right side
+//   envelopeControl.position.x = (3 * width + toneMatrixSize) / 4;
+//   envelopeControl.position.y = height/2;
+// } else { // On the top
+//   envelopeControl.position.x = width/2;
+//   envelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
+// }
+// envelopeControl.visible = false;
 
 // var filterEnvelopeControl = new ControlPanel(Object.assign(Controls.FilterEnvelope, {
 //   width: controlPanelWidth,
@@ -93,8 +93,8 @@ var filterControl = new ControlPanel(Object.assign(Controls.Filter, {
   setter: synth.setFilter,
 }));
 scene.add(filterControl);
-if (controlPanelLayout === "vertical") { // On the left side
-  filterControl.position.x = (width - toneMatrixSize) / 4;
+if (controlPanelLayout === "vertical") { // On the right side
+  filterControl.position.x = (3 * width + toneMatrixSize) / 4;
   filterControl.position.y = height/2;
 } else { // On the top
   filterControl.position.x = width/2;
@@ -147,9 +147,9 @@ function onDocumentKeyPress(event) {
   } else if (event.key === "m") {
     MUTED = !MUTED;
     toneMatrix.mute(MUTED);
-    envelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
-      THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
-    ));
+    // envelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
+    //   THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
+    // ));
     // filterEnvelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
     //   THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
     // ));
@@ -169,7 +169,7 @@ app.setScale = function(newScale) {
     buttonColor: new THREE.Color(currentScale.color),
     shadowColor: new THREE.Color(currentScale.ripple_color),
   });
-  envelopeControl.setColor(new THREE.Color(currentScale.color));
+  // envelopeControl.setColor(new THREE.Color(currentScale.color));
   // filterEnvelopeControl.setColor(new THREE.Color(currentScale.color));
   filterControl.setColor(new THREE.Color(currentScale.color));
 };
@@ -243,4 +243,4 @@ window.app = Object.assign(app, {
   Tone: Tone,
 });
 window.THREE = THREE;
-console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+// console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));

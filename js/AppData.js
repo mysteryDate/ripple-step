@@ -75,16 +75,17 @@ Controls.FilterEnvelope = {
 Controls.Filter = {
   knobs: [
     {
-      control: "Q",
-      minValue: 0,
-      maxValue: 20,
-      numLights: 16,
-    },
-    {
       control: "frequency",
       minValue: 0,
       maxValue: 5000,
       numLights: 20,
+    },
+    {
+      control: "Q",
+      minValue: 0,
+      maxValue: 20,
+      numLights: 16,
+      initialValue: 5,
     },
   ],
 };
