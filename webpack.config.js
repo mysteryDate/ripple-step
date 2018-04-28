@@ -11,6 +11,9 @@ module.exports = {
     app: "./js/app.js",
     testbed: "./js/testbedEntryPoint.js",
   },
+  // performance: {
+  //   hints: "warning",
+  // },
   module: {
     rules: [
       {
@@ -20,6 +23,7 @@ module.exports = {
       },
     ],
   },
+  stats: {maxModules: Infinity, exclude: undefined},
   devtool: "cheap-module-eval-source-map",
   target: "web",
   output: {
