@@ -11,7 +11,7 @@ var Constants = {
 var Controls = {
   TEMPO: 120,
   SWING: 0,
-  NUM_NOTES_BEFORE_ENVELOPE_DISPLAY: 3,
+  NUM_NOTES_BEFORE_ENVELOPE_DISPLAY: 0,
 };
 
 Controls.Envelope = {
@@ -78,7 +78,7 @@ Controls.Filter = {
       control: "frequency",
       minValue: 0,
       maxValue: 5000,
-      numLights: 20,
+      numLights: 100,
     },
     {
       control: "Q",

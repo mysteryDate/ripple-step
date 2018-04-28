@@ -17,9 +17,11 @@ function makeKnobs(width, height, knobOptions, getter) {
     }));
     knobGroup.add(knob);
     if (layout === "horizontal") {
-      knob.position.x = knobRadius * (2 * i - 3);
+      var panelWidth = knobRadius * numKnobs;
+      knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2, panelWidth/2);
     } else {
-      knob.position.y = knobRadius * (3 - 2 * i);
+      var panelHeight = knobRadius * numKnobs;
+      knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelHeight/2, panelHeight/2);
     }
   }
   return knobGroup;
@@ -35,7 +37,6 @@ function ControlPanel(options) {
   this.add(knobGroup);
 
   this.touch = function(raycaster, event) {
-    // console.log(event);
     knobGroup.children.forEach(function(knob) {
       knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
       options.setter(knob.control, knob.getValue());
