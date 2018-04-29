@@ -1,25 +1,31 @@
 import * as THREE from "../node_modules/three";
 import Knob from "./Knob";
 
-function makeKnobs(width, height, knobOptions, getter) {
+var KNOB_SPACING = 0.1;
+
+function makeKnobs(width, height, knobOptions, getter, setter) {
   var knobGroup = new THREE.Group();
   var numKnobs = knobOptions.length;
   var layout = (width > height) ? "horizontal" : "vertical";
-  var knobRadius = Math.min(width/2, height/2/numKnobs);
+  var knobRadius = Math.min(width/4, height/2/numKnobs);
   if (layout === "horizontal") {
-    knobRadius = Math.min(width/2/numKnobs, height/2);
+    knobRadius = Math.min(width/2/numKnobs, height/4);
   }
   for (var i = 0; i < numKnobs; i++) {
     var knob = new Knob(Object.assign(knobOptions[i], {
-      currentValue: getter(knobOptions[i].control),
+      currentValue: knobOptions[i].initialValue || getter(knobOptions[i].control),
       size: knobRadius,
       sensitivity: 2,
     }));
     knobGroup.add(knob);
-    if (layout === "horizontal") {
-      knob.position.x = knobRadius * (2 * i - 3);
-    } else {
-      knob.position.y = knobRadius * (3 - 2 * i);
+    if (numKnobs > 1) {
+      if (layout === "horizontal") {
+        var panelWidth = 2 * knobRadius * numKnobs * (1 + KNOB_SPACING);
+        knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2 + knobRadius, panelWidth/2 - knobRadius);
+      } else {
+        var panelHeight = 2 * knobRadius * numKnobs * (1 + KNOB_SPACING);
+        knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, panelHeight/2 - knobRadius, -panelHeight/2 + knobRadius);
+      }
     }
   }
   return knobGroup;
@@ -35,7 +41,6 @@ function ControlPanel(options) {
   this.add(knobGroup);
 
   this.touch = function(raycaster, event) {
-    // console.log(event);
     knobGroup.children.forEach(function(knob) {
       knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
       options.setter(knob.control, knob.getValue());

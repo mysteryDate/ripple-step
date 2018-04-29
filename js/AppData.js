@@ -1,47 +1,60 @@
 var Constants = {
-  MATRIX_KEY_SIZE: 40,
-  // BASE_COLOR: 0x3a3c4c,
   BASE_COLOR: 0x1d1e26,
   SECONDARY_BASE_COLOR: 0xaaaaaa,
   NUM_STEPS: 16,
   SPACING_RATIO: 1/10,
   STEP_VALUE: 1/8,
   RELATIVE: false,
+  MUTE_COLOR_VALUE: 0.7,
 };
 
 var Controls = {
   TEMPO: 120,
   SWING: 0,
-  NUM_NOTES_BEFORE_ENVELOPE_DISPLAY: 8,
+  NUM_NOTES_BEFORE_ENVELOPE_DISPLAY: 0,
 };
 
 Controls.Envelope = {
-  knobs: [
-    {
-      control: "attack",
-      minValue: 0.005,
-      maxValue: 0.2,
-      numLights: 16,
-    },
-    {
-      control: "decay",
-      minValue: 0.005,
-      maxValue: 10.0,
-      numLights: 20,
-    },
-    {
-      control: "sustain",
-      minValue: 0.0,
-      maxValue: 1.0,
-      numLights: 50,
-    },
-    {
-      control: "release",
-      minValue: 0.0,
-      maxValue: 10.0,
-      numLights: 100,
-    },
-  ],
+  attack: {
+    control: "attack",
+    minValue: 0.005,
+    maxValue: 0.2,
+    numLights: 16,
+  },
+  decay: {
+    control: "decay",
+    minValue: 0.005,
+    maxValue: 0.2,
+    numLights: 20,
+  },
+  sustain: {
+    control: "sustain",
+    minValue: 0.0,
+    maxValue: 1.0,
+    numLights: 50,
+  },
+  release: {
+    control: "release",
+    minValue: 0.005,
+    maxValue: 20.0,
+    numLights: 100,
+  },
+};
+
+Controls.Filter = {
+  frequency: {
+    control: "frequency",
+    minValue: 0,
+    maxValue: 5000,
+    numLights: 50,
+  },
+  resonance: {
+    control: "Q",
+    minValue: 0,
+    maxValue: 20,
+    numLights: 16,
+    initialValue: 5,
+  },
 };
 
 var Scales = {

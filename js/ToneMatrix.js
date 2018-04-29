@@ -6,6 +6,7 @@ var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({
   opacity: 0.0,
 });
 var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xffffff)});
+var SHADOW_KEY_PLAYING_MUTED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xcccccc)});
 var SHADOW_KEY_ARMED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
 
 function makeKeyShader() {
@@ -16,6 +17,7 @@ function makeKeyShader() {
       u_activeColor: {value: new THREE.Color()},
       u_relativePosition: {value: new THREE.Vector2()},
       u_armed: {value: 0},
+      u_muted: {value: 0},
       u_columnActive: {value: 0},
     },
     vertexShader: `
@@ -31,10 +33,15 @@ function makeKeyShader() {
       uniform vec3 u_activeColor;
       uniform vec2 u_relativePosition;
       uniform float u_armed;
+      uniform float u_muted;
       uniform float u_columnActive;
       varying vec2 v_uv;
+
+      #define MUTE_COLOR_VALUE ${Constants.MUTE_COLOR_VALUE.toFixed(3)}
       void main() {
-        vec3 col = mix(u_baseColor, u_activeColor, u_armed);
+        vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
+        col = mix(u_baseColor, col, u_armed);
+        vec3 playingColor = 2.0 * col * mix(1.0, MUTE_COLOR_VALUE, u_muted);
         col = mix(col, vec3(1.0), u_columnActive * u_armed);
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + u_relativePosition) / 16.0).rgb;
         col += rippleTex * rippleTex;
@@ -110,13 +117,17 @@ function ToneMatrix(width, height) {
   this.getButton = function(x, y) {
     return columns[x][y];
   };
-  this.activateColumn = function(num) {
+  this.activateColumn = function(num, isMuted) {
     var armedRows = [];
     columns[num].forEach(function(btn) {
       btn.material.uniforms.u_columnActive.value = true;
       if (btn.isArmed()) {
         armedRows.push(btn.row);
-        btn.shadow.material = SHADOW_KEY_PLAYING_MATERIAL;
+        if (!isMuted) {
+          btn.shadow.material = SHADOW_KEY_PLAYING_MATERIAL;
+        } else {
+          btn.shadow.material = SHADOW_KEY_PLAYING_MUTED_MATERIAL;
+        }
       }
     });
     return armedRows;
@@ -134,6 +145,11 @@ function ToneMatrix(width, height) {
   this.setActiveColor = function({buttonColor, shadowColor}) {
     setButtonUniform("u_activeColor", buttonColor);
     SHADOW_KEY_PLAYING_MATERIAL.color = shadowColor;
+    SHADOW_KEY_PLAYING_MUTED_MATERIAL.color = shadowColor.clone().multiplyScalar(0.02);
+  };
+
+  this.mute = function(value) {
+    setButtonUniform("u_muted", value);
   };
 
   this.setRippleTexture = function(texture) {

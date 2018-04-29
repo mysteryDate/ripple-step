@@ -2,24 +2,36 @@ import Tone from "../node_modules/Tone";
 
 function RippleSynth(numVoices) {
   Tone.PolySynth.call(this, numVoices, Tone.Synth);
+  this.voices.forEach(function(voice) {
+    voice.oscillator.type = "triangle";
+    voice.filter = new Tone.Filter(2000, "lowpass", -24);
+    voice.oscillator.disconnect(voice.envelope);
+    voice.oscillator.chain(voice.filter, voice.envelope);
+  });
   this.toMaster();
 
-  var envelope = {
-    attack: this.voices[0].envelope.attack,
-    decay: this.voices[0].envelope.decay,
-    sustain: this.voices[0].envelope.sustain,
-    release: this.voices[0].envelope.release,
+  var controls = {
+    attack: {group: "envelope", value: this.voices[0].envelope.attack},
+    decay: {group: "envelope", value: this.voices[0].envelope.decay},
+    sustain: {group: "envelope", value: this.voices[0].envelope.sustain},
+    release: {group: "envelope", value: this.voices[0].envelope.release},
+    frequency: {group: "filter", value: this.voices[0].filter.frequency.input.value},
+    Q: {group: "filter", value: this.voices[0].filter.Q.input.value},
   };
 
-  this.getEnvelope = function(param) {
-    return envelope[param];
+  this.getControl = function(param) {
+    return controls[param].value;
   };
 
-  this.setEnvelope = function(param, value) {
+  this.setControl = function(param, value) {
     this.voices.forEach(function(voice) {
-      voice.envelope[param] = value;
+      if (voice[controls[param].group][param].input !== undefined) {
+        voice[controls[param].group][param].input.value = value;
+      } else {
+        voice[controls[param].group][param] = value;
+      }
     });
-    envelope[param] = value;
+    controls[param].value = value;
   }.bind(this);
 }
 RippleSynth.prototype = Object.create(Tone.PolySynth.prototype);

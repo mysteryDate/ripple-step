@@ -8,8 +8,16 @@ import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
 import ControlPanel from "./ControlPanel";
 
+import Tone from "../node_modules/Tone";
+
 var app = {};
 var currentScale = sample(Object.values(Scales));
+
+var KNOBS = [
+  Controls.Filter.frequency,
+  Controls.Envelope.attack,
+  Controls.Envelope.release,
+];
 
 var container = document.getElementById("container");
 var renderer = new THREE.WebGLRenderer({antialias: true});
@@ -34,6 +42,7 @@ var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
 
 var scaleChooser = new ScaleChooser(Scales);
 scaleChooser.position.x = width/2;
+scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
 scene.add(scaleChooser);
 
 // SYNTH
@@ -50,21 +59,23 @@ if (controlPanelLayout === "vertical") {
   controlPanelWidth = availableSpace * 0.7;
   controlPanelHeight = height;
 }
-var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
+
+var knobPanel = new ControlPanel({
+  knobs: KNOBS,
   width: controlPanelWidth,
   height: controlPanelHeight,
-  getter: synth.getEnvelope,
-  setter: synth.setEnvelope,
-}));
-scene.add(envelopeControl);
+  getter: synth.getControl,
+  setter: synth.setControl,
+});
+scene.add(knobPanel);
 if (controlPanelLayout === "vertical") { // On the right side
-  envelopeControl.position.x = (3 * width + toneMatrixSize) / 4;
-  envelopeControl.position.y = height/2;
+  knobPanel.position.x = (3 * width + toneMatrixSize) / 4;
+  knobPanel.position.y = height/2;
 } else { // On the top
-  envelopeControl.position.x = width/2;
-  envelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
+  knobPanel.position.x = width/2;
+  knobPanel.position.y = (3 * height + toneMatrixSize) / 4;
 }
-envelopeControl.visible = false;
+knobPanel.visible = false;
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -75,8 +86,8 @@ function onDocumentMouseMove(event) {
     mouse.y = -(event.clientY / height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
-    if (envelopeControl.visible) {
-      envelopeControl.touch(raycaster, event);
+    if (knobPanel.visible) {
+      knobPanel.touch(raycaster, event);
     }
   }
 }
@@ -87,20 +98,27 @@ function onDocumentMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
-  if (envelopeControl.visible) {
-    envelopeControl.touchStart(raycaster, event);
+  if (knobPanel.visible) {
+    knobPanel.touchStart(raycaster, event);
   }
   onDocumentMouseMove(event);
 }
 function onDocumentMouseUp(event) {
-  if (envelopeControl.visible) {
-    envelopeControl.touchEnd();
+  if (knobPanel.visible) {
+    knobPanel.touchEnd();
   }
   toneMatrix.touchEnd();
 }
+var MUTED = false;
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
     toneMatrix.clear();
+  } else if (event.key === "m") {
+    MUTED = !MUTED;
+    toneMatrix.mute(MUTED);
+    knobPanel.setColor(new THREE.Color(currentScale.color).multiplyScalar(
+      THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
+    ));
   }
 }
 document.addEventListener("mousemove", onDocumentMouseMove, false);
@@ -114,7 +132,7 @@ app.setScale = function(newScale) {
     buttonColor: new THREE.Color(currentScale.color),
     shadowColor: new THREE.Color(currentScale.ripple_color),
   });
-  envelopeControl.setColor(new THREE.Color(currentScale.color));
+  knobPanel.setColor(new THREE.Color(currentScale.color));
 };
 
 
@@ -146,20 +164,22 @@ function update() {
   if (position !== previousPosition) {
     toneMatrix.deactivateColumn(previousPosition);
     previousPosition = position;
-    var rowsToPlay = toneMatrix.activateColumn(position);
-    numNotesPlayed[position] = rowsToPlay.length;
-    rowsToPlay.forEach(function(row) {
-      playRow(row);
-    });
+    var rowsToPlay = toneMatrix.activateColumn(position, MUTED);
+    if (!MUTED) {
+      numNotesPlayed[position] = rowsToPlay.length;
+      rowsToPlay.forEach(function(row) {
+        playRow(row);
+      });
+    }
   }
 
-  if (!envelopeControl.visible) {
+  if (!knobPanel.visible) {
     var sum = 0;
     for (let i = 0; i < numNotesPlayed.length; i++) {
       sum += numNotesPlayed[i];
     }
     if (sum > Controls.NUM_NOTES_BEFORE_ENVELOPE_DISPLAY) {
-      envelopeControl.visible = true;
+      knobPanel.visible = true;
     }
   }
 
@@ -178,11 +198,9 @@ window.setTimeout(function() {
 
 // export some globals
 window.app = Object.assign(app, {
-  scene: scene,
-  rippleizer: rippleizer,
   synth: synth,
-  toneMatrix: toneMatrix,
-  ev: envelopeControl,
+  Tone: Tone,
+  knobPanel: knobPanel,
 });
 window.THREE = THREE;
-console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+// console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
