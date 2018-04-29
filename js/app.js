@@ -47,7 +47,6 @@ scene.add(scaleChooser);
 
 // SYNTH
 var synth = new RippleSynth(Constants.NUM_STEPS);
-// var synth = new RippleSynth(1);
 synth.setVolume(-6);
 
 // Controls for the envelope
@@ -201,6 +200,7 @@ window.setTimeout(function() {
 window.app = Object.assign(app, {
   synth: synth,
   Tone: Tone,
+  knobPanel: knobPanel,
 });
 window.THREE = THREE;
 // console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));

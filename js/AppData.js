@@ -41,39 +41,12 @@ Controls.Envelope = {
   },
 };
 
-Controls.FilterEnvelope = {
-  attack: {
-    control: "attack",
-    minValue: 0.005,
-    maxValue: 0.2,
-    numLights: 16,
-  },
-  decay: {
-    control: "decay",
-    minValue: 0.005,
-    maxValue: 0.2,
-    numLights: 20,
-  },
-  sustain: {
-    control: "sustain",
-    minValue: 0.0,
-    maxValue: 1.0,
-    numLights: 50,
-  },
-  release: {
-    control: "release",
-    minValue: 0.005,
-    maxValue: 20.0,
-    numLights: 100,
-  },
-};
-
 Controls.Filter = {
   frequency: {
     control: "frequency",
     minValue: 0,
     maxValue: 5000,
-    numLights: 100,
+    numLights: 50,
   },
   resonance: {
     control: "Q",

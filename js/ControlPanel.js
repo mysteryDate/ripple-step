@@ -18,12 +18,14 @@ function makeKnobs(width, height, knobOptions, getter, setter) {
       sensitivity: 2,
     }));
     knobGroup.add(knob);
-    if (layout === "horizontal") {
-      var panelWidth = knobRadius * numKnobs * (1 + KNOB_SPACING);
-      knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2, panelWidth/2);
-    } else {
-      var panelHeight = knobRadius * numKnobs * (1 + KNOB_SPACING);
-      knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelHeight/2, panelHeight/2);
+    if (numKnobs > 1) {
+      if (layout === "horizontal") {
+        var panelWidth = 2 * knobRadius * numKnobs * (1 + KNOB_SPACING);
+        knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2 + knobRadius, panelWidth/2 - knobRadius);
+      } else {
+        var panelHeight = 2 * knobRadius * numKnobs * (1 + KNOB_SPACING);
+        knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelHeight/2 + knobRadius, panelHeight/2 - knobRadius);
+      }
     }
   }
   return knobGroup;
