@@ -16,7 +16,6 @@ function makeKnobs(width, height, knobOptions, getter, setter) {
       currentValue: knobOptions[i].initialValue || getter(knobOptions[i].control),
       size: knobRadius,
       sensitivity: 2,
-      setter: knobOptions.setter,
     }));
     knobGroup.add(knob);
     if (layout === "horizontal") {
@@ -42,7 +41,7 @@ function ControlPanel(options) {
   this.touch = function(raycaster, event) {
     knobGroup.children.forEach(function(knob) {
       knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
-      knob.setter(knob.control, knob.getValue());
+      options.setter(knob.control, knob.getValue());
     });
   };
 

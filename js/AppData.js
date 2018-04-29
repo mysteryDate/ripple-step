@@ -39,8 +39,6 @@ Controls.Envelope = {
     maxValue: 20.0,
     numLights: 100,
   },
-  setter: "setEnvelope",
-  getter: "getEnvelope",
 };
 
 Controls.FilterEnvelope = {
@@ -84,8 +82,6 @@ Controls.Filter = {
     numLights: 16,
     initialValue: 5,
   },
-  setter: "setFilter",
-  getter: "getFilter",
 };
 
 var Scales = {

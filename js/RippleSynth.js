@@ -10,58 +10,29 @@ function RippleSynth(numVoices) {
   });
   this.toMaster();
 
-  var envelope = {
-    attack: this.voices[0].envelope.attack,
-    decay: this.voices[0].envelope.decay,
-    sustain: this.voices[0].envelope.sustain,
-    release: this.voices[0].envelope.release,
+  var controls = {
+    attack: {group: "envelope", value: this.voices[0].envelope.attack},
+    decay: {group: "envelope", value: this.voices[0].envelope.decay},
+    sustain: {group: "envelope", value: this.voices[0].envelope.sustain},
+    release: {group: "envelope", value: this.voices[0].envelope.release},
+    frequency: {group: "filter", value: this.voices[0].filter.frequency.input.value},
+    Q: {group: "filter", value: this.voices[0].filter.Q.input.value},
   };
 
-  var filter = {
-    frequency: this.voices[0].filter.frequency.input.value,
-    Q: this.voices[0].filter.Q.input.value,
+  this.getControl = function(param) {
+    return controls[param].value;
   };
 
-  this.getFilter = function(param) {
-    return filter[param];
-  };
-
-  this.setFilter = function(param, value) {
+  this.setControl = function(param, value) {
     this.voices.forEach(function(voice) {
-      voice.filter[param].input.value = value;
+      if (voice[controls[param].group][param].input !== undefined) {
+        voice[controls[param].group][param].input.value = value;
+      } else {
+        voice[controls[param].group][param] = value;
+      }
     });
-    filter[param] = value;
+    controls[param].value = value;
   }.bind(this);
-
-  this.getEnvelope = function(param) {
-    return envelope[param];
-  };
-
-  this.setEnvelope = function(param, value) {
-    this.voices.forEach(function(voice) {
-      voice.envelope[param] = value;
-    });
-    envelope[param] = value;
-  }.bind(this);
-
-  // var filterEnvelope = {
-  //   attack: this.voices[0].filterEnvelope.attack,
-  //   decay: this.voices[0].filterEnvelope.decay,
-  //   sustain: this.voices[0].filterEnvelope.sustain,
-  //   release: this.voices[0].filterEnvelope.release,
-  // };
-  //
-  // this.getFilterEnvelope = function(param) {
-  //   return filterEnvelope[param];
-  // };
-  //
-  // this.setFilterEnvelope = function(param, value) {
-  //   this.voices.forEach(function(voice) {
-  //     voice.filterEnvelope[param] = value;
-  //   });
-  //   console.log(filterEnvelope);
-  //   filterEnvelope[param] = value;
-  // }.bind(this);
 }
 RippleSynth.prototype = Object.create(Tone.PolySynth.prototype);
 

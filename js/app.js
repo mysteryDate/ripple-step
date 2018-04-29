@@ -16,6 +16,7 @@ var currentScale = sample(Object.values(Scales));
 var KNOBS = [
   Controls.Filter.frequency,
   Controls.Envelope.attack,
+  Controls.Envelope.release,
 ];
 
 var container = document.getElementById("container");
@@ -64,8 +65,8 @@ var knobPanel = new ControlPanel({
   knobs: KNOBS,
   width: controlPanelWidth,
   height: controlPanelHeight,
-  getter: synth.getFilter,
-  // setter: synth.setFilter,
+  getter: synth.getControl,
+  setter: synth.setControl,
 });
 scene.add(knobPanel);
 if (controlPanelLayout === "vertical") { // On the right side
