@@ -7,9 +7,9 @@ function makeKnobs(width, height, knobOptions, getter, setter) {
   var knobGroup = new THREE.Group();
   var numKnobs = knobOptions.length;
   var layout = (width > height) ? "horizontal" : "vertical";
-  var knobRadius = Math.min(width/2, height/2/numKnobs);
+  var knobRadius = Math.min(width/4, height/2/numKnobs);
   if (layout === "horizontal") {
-    knobRadius = Math.min(width/2/numKnobs, height/2);
+    knobRadius = Math.min(width/2/numKnobs, height/4);
   }
   for (var i = 0; i < numKnobs; i++) {
     var knob = new Knob(Object.assign(knobOptions[i], {
@@ -24,7 +24,7 @@ function makeKnobs(width, height, knobOptions, getter, setter) {
         knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2 + knobRadius, panelWidth/2 - knobRadius);
       } else {
         var panelHeight = 2 * knobRadius * numKnobs * (1 + KNOB_SPACING);
-        knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelHeight/2 + knobRadius, panelHeight/2 - knobRadius);
+        knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, panelHeight/2 - knobRadius, -panelHeight/2 + knobRadius);
       }
     }
   }
