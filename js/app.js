@@ -13,6 +13,11 @@ import Tone from "../node_modules/Tone";
 var app = {};
 var currentScale = sample(Object.values(Scales));
 
+var KNOBS = [
+  Controls.Filter.frequency,
+  Controls.Envelope.attack,
+];
+
 var container = document.getElementById("container");
 var renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -54,53 +59,23 @@ if (controlPanelLayout === "vertical") {
   controlPanelWidth = availableSpace * 0.7;
   controlPanelHeight = height;
 }
-// var envelopeControl = new ControlPanel(Object.assign(Controls.Envelope, {
-//   width: controlPanelWidth,
-//   height: controlPanelHeight,
-//   getter: synth.getEnvelope,
-//   setter: synth.setEnvelope,
-// }));
-// scene.add(envelopeControl);
-// if (controlPanelLayout === "vertical") { // On the right side
-//   envelopeControl.position.x = (3 * width + toneMatrixSize) / 4;
-//   envelopeControl.position.y = height/2;
-// } else { // On the top
-//   envelopeControl.position.x = width/2;
-//   envelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
-// }
-// envelopeControl.visible = false;
 
-// var filterEnvelopeControl = new ControlPanel(Object.assign(Controls.FilterEnvelope, {
-//   width: controlPanelWidth,
-//   height: controlPanelHeight,
-//   getter: synth.getFilterEnvelope,
-//   setter: synth.setFilterEnvelope,
-// }));
-// scene.add(filterEnvelopeControl);
-// if (controlPanelLayout === "vertical") { // On the right side
-//   filterEnvelopeControl.position.x = (3 * width + toneMatrixSize) / 4;
-//   filterEnvelopeControl.position.y = height/2;
-// } else { // On the top
-//   filterEnvelopeControl.position.x = width/2;
-//   filterEnvelopeControl.position.y = (3 * height + toneMatrixSize) / 4;
-// }
-// filterEnvelopeControl.visible = false;
-
-var filterControl = new ControlPanel(Object.assign(Controls.Filter, {
+var knobPanel = new ControlPanel({
+  knobs: KNOBS,
   width: controlPanelWidth,
   height: controlPanelHeight,
   getter: synth.getFilter,
-  setter: synth.setFilter,
-}));
-scene.add(filterControl);
+  // setter: synth.setFilter,
+});
+scene.add(knobPanel);
 if (controlPanelLayout === "vertical") { // On the right side
-  filterControl.position.x = (3 * width + toneMatrixSize) / 4;
-  filterControl.position.y = height/2;
+  knobPanel.position.x = (3 * width + toneMatrixSize) / 4;
+  knobPanel.position.y = height/2;
 } else { // On the top
-  filterControl.position.x = width/2;
-  filterControl.position.y = (3 * height + toneMatrixSize) / 4;
+  knobPanel.position.x = width/2;
+  knobPanel.position.y = (3 * height + toneMatrixSize) / 4;
 }
-filterControl.visible = false;
+knobPanel.visible = false;
 
 // Click handler
 var raycaster = new THREE.Raycaster();
@@ -111,10 +86,8 @@ function onDocumentMouseMove(event) {
     mouse.y = -(event.clientY / height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
     toneMatrix.touch(raycaster);
-    if (filterControl.visible) {
-      // envelopeControl.touch(raycaster, event);
-      // filterEnvelopeControl.touch(raycaster, event);
-      filterControl.touch(raycaster, event);
+    if (knobPanel.visible) {
+      knobPanel.touch(raycaster, event);
     }
   }
 }
@@ -125,18 +98,14 @@ function onDocumentMouseDown(event) {
   raycaster.setFromCamera(mouse, camera);
   toneMatrix.touchStart(raycaster);
   scaleChooser.touchStart(raycaster);
-  if (filterControl.visible) {
-    // envelopeControl.touchStart(raycaster, event);
-    // filterEnvelopeControl.touchStart(raycaster, event);
-    filterControl.touchStart(raycaster, event);
+  if (knobPanel.visible) {
+    knobPanel.touchStart(raycaster, event);
   }
   onDocumentMouseMove(event);
 }
 function onDocumentMouseUp(event) {
-  if (filterControl.visible) {
-    // envelopeControl.touchEnd();
-    // filterEnvelopeControl.touchEnd();
-    filterControl.touchEnd();
+  if (knobPanel.visible) {
+    knobPanel.touchEnd();
   }
   toneMatrix.touchEnd();
 }
@@ -147,13 +116,7 @@ function onDocumentKeyPress(event) {
   } else if (event.key === "m") {
     MUTED = !MUTED;
     toneMatrix.mute(MUTED);
-    // envelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
-    //   THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
-    // ));
-    // filterEnvelopeControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
-    //   THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
-    // ));
-    filterControl.setColor(new THREE.Color(currentScale.color).multiplyScalar(
+    knobPanel.setColor(new THREE.Color(currentScale.color).multiplyScalar(
       THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
     ));
   }
@@ -169,9 +132,7 @@ app.setScale = function(newScale) {
     buttonColor: new THREE.Color(currentScale.color),
     shadowColor: new THREE.Color(currentScale.ripple_color),
   });
-  // envelopeControl.setColor(new THREE.Color(currentScale.color));
-  // filterEnvelopeControl.setColor(new THREE.Color(currentScale.color));
-  filterControl.setColor(new THREE.Color(currentScale.color));
+  knobPanel.setColor(new THREE.Color(currentScale.color));
 };
 
 
@@ -212,15 +173,13 @@ function update() {
     }
   }
 
-  if (!filterControl.visible) {
+  if (!knobPanel.visible) {
     var sum = 0;
     for (let i = 0; i < numNotesPlayed.length; i++) {
       sum += numNotesPlayed[i];
     }
     if (sum > Controls.NUM_NOTES_BEFORE_ENVELOPE_DISPLAY) {
-      // envelopeControl.visible = true;
-      // filterEnvelopeControl.visible = true;
-      filterControl.visible = true;
+      knobPanel.visible = true;
     }
   }
 

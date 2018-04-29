@@ -3,7 +3,7 @@ import Knob from "./Knob";
 
 var KNOB_SPACING = 0.1;
 
-function makeKnobs(width, height, knobOptions, getter) {
+function makeKnobs(width, height, knobOptions, getter, setter) {
   var knobGroup = new THREE.Group();
   var numKnobs = knobOptions.length;
   var layout = (width > height) ? "horizontal" : "vertical";
@@ -16,6 +16,7 @@ function makeKnobs(width, height, knobOptions, getter) {
       currentValue: knobOptions[i].initialValue || getter(knobOptions[i].control),
       size: knobRadius,
       sensitivity: 2,
+      setter: knobOptions.setter,
     }));
     knobGroup.add(knob);
     if (layout === "horizontal") {
@@ -41,7 +42,7 @@ function ControlPanel(options) {
   this.touch = function(raycaster, event) {
     knobGroup.children.forEach(function(knob) {
       knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
-      options.setter(knob.control, knob.getValue());
+      knob.setter(knob.control, knob.getValue());
     });
   };
 
