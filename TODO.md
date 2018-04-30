@@ -1,4 +1,4 @@
-- [X] Don't allow vertical drags (creating cluster chords)
+- [ ] Don't allow vertical drags (creating cluster chords)
 - [X] Mute (darken buttons)
 - [ ] Mobile compatibility
 - [ ] Colors (even luminance for ripple colors)
@@ -6,3 +6,4 @@
 - [X] Filter w/controls
 - [ ] Maybe I want the harmony to be modal? (https://www.youtube.com/watch?v=JkAl3It8sEQ)
 - [ ] Good inspo: https://musiclab.chromeexperiments.com/Rhythm/
+- [ ] Save/export/record

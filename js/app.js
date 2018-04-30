@@ -185,6 +185,22 @@ function update() {
     }
   }
 
+  rippleizer.damping.value = (function getRelease() {
+    var release = synth.getControl("release");
+    var minRelease = Controls.Envelope.release.minValue;
+    var maxRelease = Controls.Envelope.release.maxValue;
+    var dampingValue;
+    var firstStop = 0.05;
+    if (release < THREE.Math.lerp(minRelease, maxRelease, firstStop)) {
+      dampingValue = THREE.Math.mapLinear(release, minRelease, THREE.Math.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
+    } else if (release === Controls.Envelope.release.maxValue) {
+      dampingValue = 1;
+    } else {
+      dampingValue = THREE.Math.mapLinear(release, THREE.Math.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.999);
+    }
+    return dampingValue;
+  })();
+
   if (!knobPanel.visible) {
     var sum = 0;
     for (let i = 0; i < numNotesPlayed.length; i++) {
@@ -212,8 +228,9 @@ window.setTimeout(function() {
 // export some globals
 window.app = Object.assign(app, {
   synth: synth,
-  Tone: Tone,
+  rippleizer: rippleizer,
   knobPanel: knobPanel,
 });
+window.Tone = Tone;
 window.THREE = THREE;
 // console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));

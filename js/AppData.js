@@ -61,13 +61,13 @@ Controls.Filter = {
 
 Controls.Knobs = [
   Controls.Filter.frequency,
-  // Controls.Filter.resonance,
+  Controls.Filter.resonance,
   Controls.Envelope.attack,
   Controls.Envelope.release,
   {
     control: "swing",
     minValue: 0,
-    maxValue: 1,
+    maxValue: 0.5,
     numLights: 10,
   },
 ];
