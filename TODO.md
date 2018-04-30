@@ -1,8 +1,8 @@
-- [ ] Don't allow vertical drags (creating cluster chords)
-- [ ] Mute (darken buttons)
+- [X] Don't allow vertical drags (creating cluster chords)
+- [X] Mute (darken buttons)
 - [ ] Mobile compatibility
 - [ ] Colors (even luminance for ripple colors)
 - [ ] Grid as single mesh/shader
-- [ ] Filter w/controls
+- [X] Filter w/controls
 - [ ] Maybe I want the harmony to be modal? (https://www.youtube.com/watch?v=JkAl3It8sEQ)
 - [ ] Good inspo: https://musiclab.chromeexperiments.com/Rhythm/

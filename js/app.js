@@ -13,13 +13,6 @@ import Tone from "../node_modules/Tone";
 var app = {};
 var currentScale = sample(Object.values(Scales));
 
-var KNOBS = [
-  Controls.Filter.frequency,
-  Controls.Filter.resonance,
-  Controls.Envelope.attack,
-  Controls.Envelope.release,
-];
-
 var container = document.getElementById("container");
 var renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -51,31 +44,12 @@ var synth = new RippleSynth(Constants.NUM_STEPS);
 synth.setVolume(-6);
 
 // Controls for the envelope
-var controlPanelLayout = (width > height) ? "vertical" : "horizontal";
-var availableSpace = height - (height/2 + toneMatrixSize/2);
-var controlPanelHeight = availableSpace * 0.7;
-var controlPanelWidth = width;
-if (controlPanelLayout === "vertical") {
-  availableSpace = width - (width/2 + toneMatrixSize/2);
-  controlPanelWidth = availableSpace * 0.7;
-  controlPanelHeight = height;
-}
-
 var knobPanel = new ControlPanel({
-  knobs: KNOBS,
-  width: controlPanelWidth,
-  height: controlPanelHeight,
+  knobs: Controls.Knobs,
   getter: synth.getControl,
   setter: synth.setControl,
 });
 scene.add(knobPanel);
-if (controlPanelLayout === "vertical") { // On the right side
-  knobPanel.position.x = (3 * width + toneMatrixSize) / 4;
-  knobPanel.position.y = height/2;
-} else { // On the top
-  knobPanel.position.x = width/2;
-  knobPanel.position.y = (3 * height + toneMatrixSize) / 4;
-}
 knobPanel.visible = false;
 
 // Click handler
@@ -140,10 +114,10 @@ function windowResize(event) {
   scaleChooser.position.x = width/2;
   scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
 
-  controlPanelLayout = (width > height) ? "vertical" : "horizontal";
-  availableSpace = height - (height/2 + toneMatrixSize/2);
-  controlPanelHeight = availableSpace * 0.7;
-  controlPanelWidth = width;
+  var controlPanelLayout = (width > height) ? "vertical" : "horizontal";
+  var availableSpace = height - (height/2 + toneMatrixSize/2);
+  var controlPanelHeight = availableSpace * 0.7;
+  var controlPanelWidth = width;
   if (controlPanelLayout === "vertical") {
     availableSpace = width - (width/2 + toneMatrixSize/2);
     controlPanelWidth = availableSpace * 0.7;
@@ -174,7 +148,6 @@ app.setScale = function(newScale) {
   knobPanel.setColor(new THREE.Color(currentScale.color));
 };
 
-
 function playRow(row) {
   var currentNotes = currentScale.notes;
   var currentOctaves = currentScale.octaves;
@@ -196,7 +169,7 @@ function update() {
   var beats = (performance.now() - startTime) / 1000 / 60 * Controls.TEMPO;
   var position = beats * (1/4 / Constants.STEP_VALUE);
   if (Math.floor(position) % 2 === 1) {
-    position += Controls.SWING;
+    position += synth.getControl("swing");
   }
   position = Math.floor(position % Constants.NUM_STEPS);
 
@@ -217,7 +190,7 @@ function update() {
     for (let i = 0; i < numNotesPlayed.length; i++) {
       sum += numNotesPlayed[i];
     }
-    if (sum > Controls.NUM_NOTES_BEFORE_ENVELOPE_DISPLAY) {
+    if (sum > Controls.NUM_NOTES_BEFORE_KNOBS_DISPLAY) {
       knobPanel.visible = true;
     }
   }
@@ -228,6 +201,7 @@ function update() {
   requestAnimationFrame(update);
 }
 
+window.onresize();
 renderer.render(scene, camera);
 window.setTimeout(function() {
   app.setScale(currentScale);

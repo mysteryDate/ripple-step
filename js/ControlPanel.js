@@ -23,7 +23,7 @@ function sizeAndPositionKnobs(knobGroup, width, height) {
   });
 }
 
-function makeKnobs(width, height, knobOptions, getter, setter) {
+function makeKnobs(knobOptions, getter, setter) {
   var knobGroup = new THREE.Group();
   var numKnobs = knobOptions.length;
   for (var i = 0; i < numKnobs; i++) {
@@ -33,17 +33,14 @@ function makeKnobs(width, height, knobOptions, getter, setter) {
     }));
     knobGroup.add(knob);
   }
-  sizeAndPositionKnobs(knobGroup, width, height);
   return knobGroup;
 }
 
 function ControlPanel(options) {
   THREE.Group.call(this);
-  var width = options.width || 100;
-  var height = options.height || 100;
   var knobOptions = options.knobs || [];
 
-  var knobGroup = makeKnobs(width, height, knobOptions, options.getter);
+  var knobGroup = makeKnobs(knobOptions, options.getter);
   this.add(knobGroup);
 
   this.touch = function(raycaster, event) {
@@ -71,8 +68,8 @@ function ControlPanel(options) {
     });
   };
 
-  this.resize = function(newWidth, newHeight) {
-    sizeAndPositionKnobs(knobGroup, newWidth, newHeight);
+  this.resize = function(width, height) {
+    sizeAndPositionKnobs(knobGroup, width, height);
   };
 }
 ControlPanel.prototype = Object.create(THREE.Object3D.prototype);

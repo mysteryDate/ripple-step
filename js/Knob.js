@@ -104,10 +104,12 @@ function Knob(options) {
     isActive = false;
   };
 
+  var touchDiff = new THREE.Vector2();
   this.touch = function(mouse) {
     if (isActive) {
-      var touchDiff = Math.max(mouse.y - touchStartPos.y, mouse.x - touchStartPos.x);
-      var newRotation = touchStartRotation + THREE.Math.degToRad(sensitivity * touchDiff);
+      touchDiff.subVectors(mouse, touchStartPos);
+      var touchStrength = touchDiff.x + touchDiff.y;
+      var newRotation = touchStartRotation + THREE.Math.degToRad(sensitivity * touchStrength);
       newRotation = THREE.Math.clamp(newRotation, minRotation, maxRotation);
       setRotation(newRotation);
       currentValue = getValueFromRotation(newRotation);

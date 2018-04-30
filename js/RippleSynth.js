@@ -17,6 +17,7 @@ function RippleSynth(numVoices) {
     release: {group: "envelope", value: this.voices[0].envelope.release},
     frequency: {group: "filter", value: this.voices[0].filter.frequency.input.value},
     Q: {group: "filter", value: this.voices[0].filter.Q.input.value},
+    swing: {value: 0},
   };
 
   this.getControl = function(param) {
@@ -25,10 +26,14 @@ function RippleSynth(numVoices) {
 
   this.setControl = function(param, value) {
     this.voices.forEach(function(voice) {
-      if (voice[controls[param].group][param].input !== undefined) {
-        voice[controls[param].group][param].input.value = value;
+      if (controls[param].group !== undefined) {
+        if (voice[controls[param].group][param].input !== undefined) {
+          voice[controls[param].group][param].input.value = value;
+        } else {
+          voice[controls[param].group][param] = value;
+        }
       } else {
-        voice[controls[param].group][param] = value;
+        controls[param].value = value;
       }
     });
     controls[param].value = value;

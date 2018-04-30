@@ -12,7 +12,8 @@ var Constants = {
 var Controls = {
   TEMPO: 120,
   SWING: 0,
-  NUM_NOTES_BEFORE_ENVELOPE_DISPLAY: 0,
+  // NUM_NOTES_BEFORE_KNOBS_DISPLAY: 3,
+  NUM_NOTES_BEFORE_KNOBS_DISPLAY: 0,
 };
 
 Controls.Envelope = {
@@ -57,6 +58,19 @@ Controls.Filter = {
     initialValue: 5,
   },
 };
+
+Controls.Knobs = [
+  Controls.Filter.frequency,
+  // Controls.Filter.resonance,
+  Controls.Envelope.attack,
+  Controls.Envelope.release,
+  {
+    control: "swing",
+    minValue: 0,
+    maxValue: 1,
+    numLights: 10,
+  },
+];
 
 var Scales = {
   "IV": {
