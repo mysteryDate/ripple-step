@@ -106,7 +106,7 @@ function Knob(options) {
 
   this.touch = function(mouse) {
     if (isActive) {
-      var touchDiff = mouse.y - touchStartPos.y;
+      var touchDiff = Math.max(mouse.y - touchStartPos.y, mouse.x - touchStartPos.x);
       var newRotation = touchStartRotation + THREE.Math.degToRad(sensitivity * touchDiff);
       newRotation = THREE.Math.clamp(newRotation, minRotation, maxRotation);
       setRotation(newRotation);
