@@ -26,7 +26,7 @@ function Knob(options) {
   var maxValue = options.maxValue || 100;
   var currentValue = options.currentValue || minValue;
   var numLights = options.numLights || 16;
-  var size = options.size || 145;
+  var size = 1;
   this.control = options.control;
 
   var isActive = false;

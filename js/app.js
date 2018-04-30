@@ -15,6 +15,7 @@ var currentScale = sample(Object.values(Scales));
 
 var KNOBS = [
   Controls.Filter.frequency,
+  Controls.Filter.resonance,
   Controls.Envelope.attack,
   Controls.Envelope.release,
 ];
@@ -121,10 +122,49 @@ function onDocumentKeyPress(event) {
     ));
   }
 }
+
+function windowResize(event) {
+  console.log(window.innerWidth, window.innerHeight);
+  width = window.innerWidth;
+  height = window.innerHeight;
+  renderer.setSize(width, height);
+  container.appendChild(renderer.domElement);
+  camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0.1, 100);
+  camera.position.set(width/2, height/2, 50);
+
+  toneMatrixSize = Math.min(width, height) * 0.8;
+  toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
+  toneMatrix.position.set(width/2, height/2, 1);
+  toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
+  rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
+
+  scaleChooser.position.x = width/2;
+  scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
+
+  controlPanelLayout = (width > height) ? "vertical" : "horizontal";
+  availableSpace = height - (height/2 + toneMatrixSize/2);
+  controlPanelHeight = availableSpace * 0.7;
+  controlPanelWidth = width;
+  if (controlPanelLayout === "vertical") {
+    availableSpace = width - (width/2 + toneMatrixSize/2);
+    controlPanelWidth = availableSpace * 0.7;
+    controlPanelHeight = height;
+  }
+
+  knobPanel.resize(controlPanelWidth, controlPanelHeight);
+  if (controlPanelLayout === "vertical") { // On the right side
+    knobPanel.position.x = (3 * width + toneMatrixSize) / 4;
+    knobPanel.position.y = height/2;
+  } else { // On the top
+    knobPanel.position.x = width/2;
+    knobPanel.position.y = (3 * height + toneMatrixSize) / 4;
+  }
+}
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
 document.addEventListener("mouseup", onDocumentMouseUp, false);
 document.addEventListener("keypress", onDocumentKeyPress, false);
+window.onresize = windowResize;
 
 app.setScale = function(newScale) {
   currentScale = newScale;
