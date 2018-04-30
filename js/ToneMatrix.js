@@ -37,6 +37,15 @@ function makeKeyShader() {
       uniform float u_columnActive;
       varying vec2 v_uv;
 
+      float rectangleSDF(vec2 st, vec2 s) {
+        st = st * 2.0 - 1.0;
+        return max(abs(st.x/s.x), abs(st.y/s.y));
+      }
+
+      float rectangleSDF(vec2 st) { // For squares
+        return rectangleSDF(st, vec2(1.0));
+      }
+
       #define MUTE_COLOR_VALUE ${Constants.MUTE_COLOR_VALUE.toFixed(3)}
       void main() {
         vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
@@ -45,6 +54,9 @@ function makeKeyShader() {
         col = mix(col, vec3(1.0), u_columnActive * u_armed);
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + u_relativePosition) / 16.0).rgb;
         col += rippleTex * rippleTex;
+
+        float rect = rectangleSDF(v_uv);
+        col *= 1.0 - step(1.0 - ${Constants.SPACING_RATIO.toFixed(3)}, rect);
         gl_FragColor = vec4(col, 1.0);
       }
     `,
@@ -78,11 +90,11 @@ function MatrixButton(row, column, geometry) {
 }
 MatrixButton.prototype = Object.create(THREE.Mesh.prototype);
 
-function ToneMatrix(width, height) {
+function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   THREE.Group.call(this);
   var keyGeometry = (function makeKeyGeometry() {
-    var w = width + (width - 1) * Constants.SPACING_RATIO;
-    var h = height + (height - 1) * Constants.SPACING_RATIO;
+    var w = numHorizontalSteps;
+    var h = numVerticalSteps;
     var g = new THREE.PlaneBufferGeometry(1/w, 1/h);
     g.translate(0.5/w, 0.5/h, 0);
     return g;
@@ -91,12 +103,12 @@ function ToneMatrix(width, height) {
   var columns = [];
 
   this.shadowGroup = new THREE.Group();
-  for (var col = 0; col < width; col++) {
+  for (var col = 0; col < numHorizontalSteps; col++) {
     columns.push([]);
-    for (var row = 0; row < height; row++) {
+    for (var row = 0; row < numVerticalSteps; row++) {
       var button = new MatrixButton(row, col, keyGeometry);
       button.material.uniforms.u_relativePosition.value = new THREE.Vector2(col, row);
-      button.position.set(col - width/2, row - height/2, 0).multiplyScalar(1/width, 1/height, 1);
+      button.position.set(col - numHorizontalSteps/2, row - numVerticalSteps/2, 0).multiplyScalar(1/numHorizontalSteps, 1/numVerticalSteps, 1);
       button.shadow.position.copy(button.position);
       buttons.push(button);
       columns[col].push(button);
