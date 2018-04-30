@@ -6,6 +6,7 @@ var Constants = {
   STEP_VALUE: 1/8,
   RELATIVE: false,
   MUTE_COLOR_VALUE: 0.7,
+  MAX_KNOB_RADIUS: 70,
 };
 
 var Controls = {

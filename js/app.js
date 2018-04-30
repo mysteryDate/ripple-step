@@ -124,7 +124,6 @@ function onDocumentKeyPress(event) {
 }
 
 function windowResize(event) {
-  console.log(window.innerWidth, window.innerHeight);
   width = window.innerWidth;
   height = window.innerHeight;
   renderer.setSize(width, height);
