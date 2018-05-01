@@ -27,7 +27,7 @@ module.exports = {
   devtool: "cheap-module-eval-source-map",
   target: "web",
   output: {
-    filename: "build/[name].bundle.js",
+    filename: "[name].bundle.js",
     library: "RS",
   },
 };
