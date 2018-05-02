@@ -5,45 +5,45 @@ import {blitTexture} from "./Graphics";
 // TODO refactor me
 
 var rtOptions = {
-  // format: THREE.AlphaFormat,
-  // format: THREE.RGBFormat,
   depthBuffer: false,
   stencilBuffer: false,
 };
-var RATIO = 0.4; // TODO
-var renderTextureSize = 256; // TODO
+var RENDER_TEXTURE_RESOLUTION = 256; // TODO
 // For off-screen, ripple renders
-function makeShadowScene(renderer, group) {
+function makeShadowScene(group) {
   var shadowGroup = group; // TODO, find a way to clone this, law of demeter and all
-  var subScene = new THREE.Scene();
-  subScene.add(shadowGroup);
+  var scene = new THREE.Scene();
+  scene.add(shadowGroup);
   var boundingBox = new THREE.Box3().setFromObject(shadowGroup);
   var bbSize = boundingBox.getSize();
-  var subCamera = new THREE.OrthographicCamera(-bbSize.x/2, bbSize.x/2, bbSize.y/2, -bbSize.y/2, 0.1, 100);
-  var target = new THREE.WebGLRenderTarget(renderTextureSize, renderTextureSize, rtOptions);
-  subCamera.position.copy(boundingBox.getCenter());
-  subCamera.position.z = 10;
+  var camera = new THREE.OrthographicCamera(-bbSize.x/2, bbSize.x/2, bbSize.y/2, -bbSize.y/2, 0.1, 100);
+  var target = new THREE.WebGLRenderTarget(RENDER_TEXTURE_RESOLUTION, RENDER_TEXTURE_RESOLUTION, rtOptions);
+  camera.position.copy(boundingBox.getCenter());
+  camera.position.z = 10;
 
-  return {
-    scene: subScene,
-    camera: subCamera,
-    target: target,
+  scene.texture = target.texture;
+  scene.render = function(renderer) {
+    renderer.render(scene, camera, target);
   };
+
+  return scene;
 }
 
 
+var RATIO = 0.4; // TODO
 function Rippleizer(renderer, group) {
   var rippleMaterial = Materials.ripple();
-  var shadowScene = makeShadowScene(renderer, group);
-  rippleMaterial.uniforms.u_sceneTex.value = shadowScene.target.texture;
+  var shadowScene = makeShadowScene(group);
+  rippleMaterial.uniforms.u_sceneTex.value = shadowScene.texture;
 
-  var mainTarget = new THREE.WebGLRenderTarget(RATIO * shadowScene.target.width, RATIO * shadowScene.target.height, rtOptions);
+  var subTextureResolution = RATIO * RENDER_TEXTURE_RESOLUTION;
+  var mainTarget = new THREE.WebGLRenderTarget(subTextureResolution, subTextureResolution, rtOptions);
   var backTarget = mainTarget.clone();
   var finalTarget = mainTarget.clone();
-  rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/(RATIO * shadowScene.target.width), 1/(RATIO * shadowScene.target.height));
+  rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/subTextureResolution, 1/subTextureResolution);
 
   function render() {
-    renderer.render(shadowScene.scene, shadowScene.camera, shadowScene.target);
+    shadowScene.render(renderer);
     rippleMaterial.uniforms.u_mainTex.value = mainTarget.texture;
     rippleMaterial.uniforms.u_backTex.value = backTarget.texture;
     blitTexture(renderer, rippleMaterial, finalTarget);
