@@ -7,3 +7,5 @@
 - [ ] Maybe I want the harmony to be modal? (https://www.youtube.com/watch?v=JkAl3It8sEQ)
 - [ ] Good inspo: https://musiclab.chromeexperiments.com/Rhythm/
 - [ ] Save/export/record
+- [ ] Full screen?
+- [ ] Resolution bounds on rippling
