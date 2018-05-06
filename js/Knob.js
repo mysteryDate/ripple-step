@@ -26,14 +26,13 @@ function Knob(options) {
   var maxValue = options.maxValue || 100;
   var currentValue = options.currentValue || minValue;
   var numLights = options.numLights || 16;
-  var size = 1;
   this.control = options.control;
 
   var isActive = false;
   var touchStartRotation = 0;
   var touchStartPos = new THREE.Vector2();
 
-  var radius = size / (INDICATOR_LIGHT_DISTANCE_RATIO + INDICATOR_LIGHT_SIZE_RATIO);
+  var radius = 1 / (INDICATOR_LIGHT_DISTANCE_RATIO + INDICATOR_LIGHT_SIZE_RATIO);
   var bodyGeom = new THREE.CircleBufferGeometry(radius, NUM_CIRCLE_SEGMENTS);
   var bodyMat = new THREE.MeshBasicMaterial({color: Constants.BASE_COLOR});
   var body = new THREE.Mesh(bodyGeom, bodyMat);

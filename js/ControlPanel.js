@@ -31,6 +31,7 @@ function makeKnobs(knobOptions, getter, setter) {
       currentValue: knobOptions[i].initialValue || getter(knobOptions[i].control),
       sensitivity: 2,
     }));
+    setter(knob.control, knob.getValue());
     knobGroup.add(knob);
   }
   return knobGroup;
@@ -40,7 +41,7 @@ function ControlPanel(options) {
   THREE.Group.call(this);
   var knobOptions = options.knobs || [];
 
-  var knobGroup = makeKnobs(knobOptions, options.getter);
+  var knobGroup = makeKnobs(knobOptions, options.getter, options.setter);
   this.add(knobGroup);
 
   this.touch = function(raycaster, event) {

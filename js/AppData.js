@@ -37,9 +37,10 @@ Controls.Envelope = {
   },
   release: {
     control: "release",
-    minValue: 0.005,
-    maxValue: 20.0,
+    minValue: 0.001,
+    maxValue: 100.0,
     numLights: 100,
+    initialValue: 100,
   },
 };
 
