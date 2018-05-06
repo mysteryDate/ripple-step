@@ -28,6 +28,7 @@ function makeKeyShader() {
       }
     `,
     fragmentShader: `
+      #define NUM_STEPS ${(Constants.NUM_STEPS).toFixed(3)}
       uniform sampler2D u_rippleTex;
       uniform vec3 u_baseColor;
       uniform vec3 u_activeColor;
@@ -52,7 +53,7 @@ function makeKeyShader() {
         col = mix(u_baseColor, col, u_armed);
         vec3 playingColor = 2.0 * col * mix(1.0, MUTE_COLOR_VALUE, u_muted);
         col = mix(col, vec3(1.0), u_columnActive * u_armed);
-        vec3 rippleTex = texture2D(u_rippleTex, (v_uv + u_relativePosition) / 16.0).rgb;
+        vec3 rippleTex = texture2D(u_rippleTex, (v_uv + u_relativePosition) / NUM_STEPS).rgb;
         col += rippleTex * rippleTex;
 
         float rect = rectangleSDF(v_uv);

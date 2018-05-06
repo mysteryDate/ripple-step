@@ -8,4 +8,6 @@
 - [ ] Good inspo: https://musiclab.chromeexperiments.com/Rhythm/
 - [ ] Save/export/record
 - [ ] Full screen?
-- [ ] Resolution bounds on rippling
+- [ ] Tie sustain to release (0 release = 0 sustain, 1 release = 0.5 ish sustain)
+- [ ] Spacebar pause
+- [X] Resolution bounds on rippling
