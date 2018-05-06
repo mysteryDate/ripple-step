@@ -67,6 +67,7 @@ function onDocumentMouseMove(event) {
   }
 }
 function onDocumentMouseDown(event) {
+  Tone.context.resume();
   var mouse = new THREE.Vector2();
   mouse.x = (event.clientX / width) * 2 - 1;
   mouse.y = -(event.clientY / height) * 2 + 1;
