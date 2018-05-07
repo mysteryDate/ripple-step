@@ -11,3 +11,4 @@
 - [ ] Tie sustain to release (0 release = 0 sustain, 1 release = 0.5 ish sustain)
 - [ ] Spacebar pause
 - [X] Resolution bounds on rippling
+- [ ] Scale chooser sizing different

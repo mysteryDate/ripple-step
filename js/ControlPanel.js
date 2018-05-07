@@ -13,12 +13,14 @@ function sizeAndPositionKnobs(knobGroup, width, height) {
   knobGroup.children.forEach(function(knob, i) {
     knob.position.set(0, 0, 0);
     knob.scale.set(knobRadius, knobRadius, 1);
-    if (layout === "horizontal") {
-      var panelWidth = 2 * knobRadius * numKnobs;
-      knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2 + knobRadius, panelWidth/2 - knobRadius);
-    } else {
-      var panelHeight = 2 * knobRadius * numKnobs;
-      knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, panelHeight/2 - knobRadius, -panelHeight/2 + knobRadius);
+    if (numKnobs > 1) {
+      if (layout === "horizontal") {
+        var panelWidth = 2 * knobRadius * numKnobs;
+        knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2 + knobRadius, panelWidth/2 - knobRadius);
+      } else {
+        var panelHeight = 2 * knobRadius * numKnobs;
+        knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, panelHeight/2 - knobRadius, -panelHeight/2 + knobRadius);
+      }
     }
   });
 }
