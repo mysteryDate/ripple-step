@@ -158,9 +158,10 @@ function playRow(row) {
   }
   var note = currentNotes[(row) % currentNotes.length];
   var octave = Math.floor(row / currentNotes.length) + 3;
+  // var octave = Math.floor(row / currentNotes.length);
   octave += currentOctaves[(row) % currentNotes.length];
   // Duration of an 8th note
-  synth.triggerAttackRelease(note + octave, "8n");
+  synth.triggerAttackRelease(note + octave, "16n");
 }
 
 var previousPosition = Constants.NUM_STEPS - 1;

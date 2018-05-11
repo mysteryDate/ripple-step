@@ -38,9 +38,9 @@ Controls.Envelope = {
   release: {
     control: "release",
     minValue: 0.001,
-    maxValue: 100.0,
+    maxValue: 20,
     numLights: 100,
-    initialValue: 100,
+    initialValue: 20,
   },
 };
 
@@ -64,6 +64,8 @@ Controls.Knobs = [
   Controls.Filter.frequency,
   Controls.Filter.resonance,
   Controls.Envelope.attack,
+  // Controls.Envelope.decay,
+  // Controls.Envelope.sustain,
   Controls.Envelope.release,
   {
     control: "swing",
