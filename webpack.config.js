@@ -8,7 +8,7 @@ var isProduction = parseBoolean(process.env.PRODUCTION);
 module.exports = {
   mode: isProduction ? "production" : "development",
   entry: {
-    app: "./js/app.js",
+    app: "./js/mainEntryPoint.js",
     testbed: "./js/testbedEntryPoint.js",
   },
   // performance: {
