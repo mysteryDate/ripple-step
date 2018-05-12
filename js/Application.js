@@ -40,7 +40,7 @@ function Application(selector, width, height, options) {
   scene.add(scaleChooser);
 
   // SYNTH
-  var synth = new RippleSynth(Constants.NUM_STEPS);
+  var synth = new RippleSynth(Constants.NUM_STEPS, {});
   synth.setVolume(-6);
 
   // Controls for the envelope
@@ -75,11 +75,12 @@ function Application(selector, width, height, options) {
 }
 
 Application.prototype.setScale = function(newScale) {
-  this.currentScale = newScale;
+  this.currentScale = newScale; // TODO does this need to be stored?
   this.toneMatrix.setActiveColor({
     buttonColor: new THREE.Color(this.currentScale.color),
     shadowColor: new THREE.Color(this.currentScale.ripple_color),
   });
+  this.synth.scale = this.currentScale;
   this.knobPanel.setColor(new THREE.Color(this.currentScale.color));
 };
 
@@ -142,6 +143,18 @@ Application.prototype.touchEnd = function() {
     this.knobPanel.touchEnd();
   }
   this.toneMatrix.touchEnd();
+};
+
+Application.prototype.clear = function() {
+  this.toneMatrix.clear();
+};
+
+Application.prototype.toggleMute = function() {
+  this.muted = !this.muted;
+  this.toneMatrix.mute(this.muted);
+  this.knobPanel.setColor(new THREE.Color(this.currentScale.color).multiplyScalar(
+    THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, this.muted)
+  )); // TODO set damping
 };
 
 export default Application;

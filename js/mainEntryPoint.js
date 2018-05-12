@@ -1,16 +1,15 @@
 import * as THREE from "../node_modules/three";
+import Tone from "../node_modules/Tone";
 
 import Application from "./Application";
 import {Constants, Controls} from "./AppData";
-
-import Tone from "../node_modules/Tone";
 
 window.app = new Application("#app", window.innerWidth, window.innerHeight, {
   numSteps: Constants.NUM_STEPS,
   numNotes: Constants.NUM_STEPS,
 });
 
-// Click handler
+// HANDLERS
 function onDocumentMouseMove(event) {
   if (event.which === 1) { // Mouse is down
     var mouse = new THREE.Vector2();
@@ -31,16 +30,11 @@ function onDocumentMouseUp(event) {
 }
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
-    window.app.toneMatrix.clear();
+    window.app.clear();
   } else if (event.key === "m") {
-    window.app.muted = !window.app.muted;
-    window.app.toneMatrix.mute(window.app.muted);
-    window.app.knobPanel.setColor(new THREE.Color(window.app.currentScale.color).multiplyScalar(
-      THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, window.app.muted)
-    ));
+    window.app.toggleMute();
   }
 }
-
 function windowResize(event) {
   window.app.resize(window.innerWidth, window.innerHeight);
 }
@@ -49,21 +43,6 @@ document.addEventListener("mousedown", onDocumentMouseDown, false);
 document.addEventListener("mouseup", onDocumentMouseUp, false);
 document.addEventListener("keypress", onDocumentKeyPress, false);
 window.onresize = windowResize;
-
-function playRow(row) {
-  var currentNotes = window.app.currentScale.notes;
-  var currentOctaves = window.app.currentScale.octaves;
-  if (Constants.RELATIVE) {
-    currentNotes = window.app.currentScale.relative_notes;
-    currentOctaves = window.app.currentScale.relative_octaves;
-  }
-  var note = currentNotes[(row) % currentNotes.length];
-  var octave = Math.floor(row / currentNotes.length) + 3;
-  // var octave = Math.floor(row / currentNotes.length);
-  octave += currentOctaves[(row) % currentNotes.length];
-  // Duration of an 8th note
-  window.app.synth.triggerAttackRelease(note + octave, "16n");
-}
 
 var previousPosition = Constants.NUM_STEPS - 1;
 var startTime;
@@ -83,11 +62,12 @@ function update() {
     if (!window.app.muted) {
       numNotesPlayed[position] = rowsToPlay.length;
       rowsToPlay.forEach(function(row) {
-        playRow(row);
+        window.app.synth.playRow(row);
       });
     }
   }
 
+  // TODO, this is hideous
   window.app.rippleizer.damping.value = (function getRelease() {
     var release = window.app.synth.getControl("release");
     var minRelease = Controls.Envelope.release.minValue;
