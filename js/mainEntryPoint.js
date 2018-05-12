@@ -2,7 +2,6 @@ import * as THREE from "../node_modules/three";
 
 import Application from "./Application";
 import {Constants, Controls} from "./AppData";
-import Rippleizer from "./Rippleizer";
 
 import Tone from "../node_modules/Tone";
 
@@ -11,104 +10,45 @@ window.app = new Application("#app", window.innerWidth, window.innerHeight, {
   numNotes: Constants.NUM_STEPS,
 });
 
-// Application.prototype.setup = function() {
-// }
-
 // Click handler
-var raycaster = new THREE.Raycaster();
 function onDocumentMouseMove(event) {
   if (event.which === 1) { // Mouse is down
     var mouse = new THREE.Vector2();
     mouse.x = (event.clientX / window.app.width) * 2 - 1;
     mouse.y = -(event.clientY / window.app.height) * 2 + 1;
-    raycaster.setFromCamera(mouse, window.app.camera);
-    window.app.toneMatrix.touch(raycaster);
-    if (window.app.knobPanel.visible) {
-      window.app.knobPanel.touch(raycaster, event);
-    }
+    window.app.touch(mouse);
   }
 }
 function onDocumentMouseDown(event) {
-  Tone.context.resume();
+  Tone.context.resume(); // TODO
   var mouse = new THREE.Vector2();
   mouse.x = (event.clientX / window.app.width) * 2 - 1;
   mouse.y = -(event.clientY / window.app.height) * 2 + 1;
-  raycaster.setFromCamera(mouse, window.app.camera);
-  window.app.toneMatrix.touchStart(raycaster);
-  window.app.scaleChooser.touchStart(raycaster);
-  if (window.app.knobPanel.visible) {
-    window.app.knobPanel.touchStart(raycaster, event);
-  }
-  onDocumentMouseMove(event);
+  window.app.touchStart(mouse);
 }
 function onDocumentMouseUp(event) {
-  if (window.app.knobPanel.visible) {
-    window.app.knobPanel.touchEnd();
-  }
-  window.app.toneMatrix.touchEnd();
+  window.app.touchEnd();
 }
-var MUTED = false;
 function onDocumentKeyPress(event) {
   if (event.key === "c") {
     window.app.toneMatrix.clear();
   } else if (event.key === "m") {
-    MUTED = !MUTED;
-    window.app.toneMatrix.mute(MUTED);
+    window.app.muted = !window.app.muted;
+    window.app.toneMatrix.mute(window.app.muted);
     window.app.knobPanel.setColor(new THREE.Color(window.app.currentScale.color).multiplyScalar(
-      THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, MUTED)
+      THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, window.app.muted)
     ));
   }
 }
 
 function windowResize(event) {
-  window.app.width = window.innerWidth;
-  window.app.height = window.innerHeight;
-  window.app.renderer.setSize(window.app.width, window.app.height);
-  window.app.camera = new THREE.OrthographicCamera(-window.app.width/2, window.app.width/2, window.app.height/2, -window.app.height/2, 0.1, 100);
-  window.app.camera.position.set(window.app.width/2, window.app.height/2, 50);
-
-  var toneMatrixSize = Math.min(window.app.width, window.app.height) * 0.8;
-  window.app.toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
-  window.app.toneMatrix.position.set(window.app.width/2, window.app.height/2, 1);
-  window.app.toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
-  window.app.rippleizer = new Rippleizer(window.app.renderer, window.app.toneMatrix.shadowGroup);
-
-  window.app.scaleChooser.position.x = window.app.width/2;
-  window.app.scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
-
-  var controlPanelLayout = (window.app.width > window.app.height) ? "vertical" : "horizontal";
-  var availableSpace = window.app.height - (window.app.height/2 + toneMatrixSize/2);
-  var controlPanelHeight = availableSpace * 0.7;
-  var controlPanelWidth = window.app.width;
-  if (controlPanelLayout === "vertical") {
-    availableSpace = window.app.width - (window.app.width/2 + toneMatrixSize/2);
-    controlPanelWidth = availableSpace * 0.7;
-    controlPanelHeight = window.app.height;
-  }
-
-  window.app.knobPanel.resize(controlPanelWidth, controlPanelHeight);
-  if (controlPanelLayout === "vertical") { // On the right side
-    window.app.knobPanel.position.x = (3 * window.app.width + toneMatrixSize) / 4;
-    window.app.knobPanel.position.y = window.app.height/2;
-  } else { // On the top
-    window.app.knobPanel.position.x = window.app.width/2;
-    window.app.knobPanel.position.y = (3 * window.app.height + toneMatrixSize) / 4;
-  }
+  window.app.resize(window.innerWidth, window.innerHeight);
 }
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
 document.addEventListener("mouseup", onDocumentMouseUp, false);
 document.addEventListener("keypress", onDocumentKeyPress, false);
 window.onresize = windowResize;
-
-var setScale = function(newScale) {
-  window.app.currentScale = newScale;
-  window.app.toneMatrix.setActiveColor({
-    buttonColor: new THREE.Color(window.app.currentScale.color),
-    shadowColor: new THREE.Color(window.app.currentScale.ripple_color),
-  });
-  window.app.knobPanel.setColor(new THREE.Color(window.app.currentScale.color));
-};
 
 function playRow(row) {
   var currentNotes = window.app.currentScale.notes;
@@ -139,8 +79,8 @@ function update() {
   if (position !== previousPosition) {
     window.app.toneMatrix.deactivateColumn(previousPosition);
     previousPosition = position;
-    var rowsToPlay = window.app.toneMatrix.activateColumn(position, MUTED);
-    if (!MUTED) {
+    var rowsToPlay = window.app.toneMatrix.activateColumn(position, window.app.muted);
+    if (!window.app.muted) {
       numNotesPlayed[position] = rowsToPlay.length;
       rowsToPlay.forEach(function(row) {
         playRow(row);
@@ -183,10 +123,10 @@ function update() {
 window.onresize();
 window.app.renderer.render(window.app.scene, window.app.camera);
 window.setTimeout(function() {
-  setScale(window.app.currentScale);
+  window.app.setScale(window.app.currentScale);
   startTime = performance.now();
   update();
-}, 100);
+}, 0);
 
 // export some globals
 window.Tone = Tone;
