@@ -7,6 +7,7 @@ import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
 import ControlPanel from "./ControlPanel";
+import Transport from "./Transport";
 
 function makeToneMatrix(width, height, numSteps, numNotes) {
   var toneMatrix = new ToneMatrix(numSteps, numNotes);
@@ -50,12 +51,15 @@ function Application(selector, width, height, options) {
     setter: synth.setControl,
   });
   scene.add(knobPanel);
-  knobPanel.visible = false;
+  // knobPanel.visible = false; TODO
+
+  var transport = new Transport();
 
   var raycaster = new THREE.Raycaster();
 
   var paused = false;
   var muted = false;
+  var startTime = null;
 
   Object.assign(this, {
     scaleChooser: scaleChooser,
@@ -63,6 +67,8 @@ function Application(selector, width, height, options) {
     rippleizer: rippleizer,
     toneMatrix: toneMatrix,
     raycaster: raycaster,
+    transport: transport,
+    startTime: startTime,
     knobPanel: knobPanel,
     renderer: renderer,
     height: height,
@@ -73,6 +79,12 @@ function Application(selector, width, height, options) {
     synth: synth,
   });
 }
+
+Application.prototype.render = function() {
+  this.rippleizer.render();
+  this.toneMatrix.setRippleTexture(this.rippleizer.getActiveTexture());
+  this.renderer.render(this.scene, this.camera);
+};
 
 Application.prototype.setScale = function(newScale) {
   this.currentScale = newScale; // TODO does this need to be stored?
@@ -155,6 +167,15 @@ Application.prototype.toggleMute = function() {
   this.knobPanel.setColor(new THREE.Color(this.currentScale.color).multiplyScalar(
     THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, this.muted)
   )); // TODO set damping
+};
+
+Application.prototype.start = function() {
+  this.startTime = performance.now();
+};
+
+Application.prototype.update = function() {
+  var timeSinceStart = performance.now() - this.startTime;
+  this.transport.update(timeSinceStart);
 };
 
 export default Application;

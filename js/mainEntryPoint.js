@@ -44,28 +44,8 @@ document.addEventListener("mouseup", onDocumentMouseUp, false);
 document.addEventListener("keypress", onDocumentKeyPress, false);
 window.onresize = windowResize;
 
-var previousPosition = Constants.NUM_STEPS - 1;
-var startTime;
-var numNotesPlayed = new Array(Constants.NUM_STEPS).fill(0); // Hacky activity monitor
 function update() {
-  var beats = (performance.now() - startTime) / 1000 / 60 * Controls.TEMPO;
-  var position = beats * (1/4 / Constants.STEP_VALUE);
-  if (Math.floor(position) % 2 === 1) {
-    position += window.app.synth.getControl("swing");
-  }
-  position = Math.floor(position % Constants.NUM_STEPS);
-
-  if (position !== previousPosition) {
-    window.app.toneMatrix.deactivateColumn(previousPosition);
-    previousPosition = position;
-    var rowsToPlay = window.app.toneMatrix.activateColumn(position, window.app.muted);
-    if (!window.app.muted) {
-      numNotesPlayed[position] = rowsToPlay.length;
-      rowsToPlay.forEach(function(row) {
-        window.app.synth.playRow(row);
-      });
-    }
-  }
+  window.app.update();
 
   // TODO, this is hideous
   window.app.rippleizer.damping.value = (function getRelease() {
@@ -84,27 +64,25 @@ function update() {
     return dampingValue;
   })();
 
-  if (!window.app.knobPanel.visible) {
-    var sum = 0;
-    for (let i = 0; i < numNotesPlayed.length; i++) {
-      sum += numNotesPlayed[i];
-    }
-    if (sum > Controls.NUM_NOTES_BEFORE_KNOBS_DISPLAY) {
-      window.app.knobPanel.visible = true;
-    }
-  }
+  // TODO
+  // if (!window.app.knobPanel.visible) {
+  //   var sum = 0;
+  //   for (let i = 0; i < numNotesPlayed.length; i++) {
+  //     sum += numNotesPlayed[i];
+  //   }
+  //   if (sum > Controls.NUM_NOTES_BEFORE_KNOBS_DISPLAY) {
+  //     window.app.knobPanel.visible = true;
+  //   }
+  // }
 
-  window.app.rippleizer.render();
-  window.app.toneMatrix.setRippleTexture(window.app.rippleizer.getActiveTexture());
-  window.app.renderer.render(window.app.scene, window.app.camera);
+  window.app.render();
   requestAnimationFrame(update);
 }
 
 window.onresize();
-window.app.renderer.render(window.app.scene, window.app.camera);
+window.app.render();
 window.setTimeout(function() {
   window.app.setScale(window.app.currentScale);
-  startTime = performance.now();
   update();
 }, 0);
 
