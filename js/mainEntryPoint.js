@@ -8,13 +8,14 @@ window.app = new Application("#app", window.innerWidth, window.innerHeight, {
   numSteps: Constants.NUM_STEPS,
   numNotes: Constants.NUM_STEPS,
 });
+var isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
 // HANDLERS
 function touchMove(event) {
   event.preventDefault();
-  if (event.which === 1) { // Mouse is down
+  if (event.which === 1 || isMobile) { // Mouse is down
+    window.app.touch(event);
   }
-  window.app.touch(event);
 }
 function touchStart(event) {
   Tone.context.resume(); // TODO
@@ -63,4 +64,3 @@ window.setTimeout(function() {
 // export some globals
 window.Tone = Tone;
 // window.THREE = THREE;
-// console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
