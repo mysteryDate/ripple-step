@@ -3,14 +3,50 @@
 <head>
   <meta charset="utf-8">
   <style media="screen">
-    body, canvas {
+    body {
       margin: 0px;
       background-color: black;
       overflow: hidden;
     }
+    @font-face {
+      font-family: bebas;
+      src: url(BebasNeue-Regular.ttf);
+    }
+    #coverScreen {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(to bottom right, #ff0018, #ff00ff);
+      opacity: 0.5;
+    }
+    #interactionGate {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+    }
+    h1 {
+      font-family: bebas;
+      position: absolute;
+      margin: 0 auto;
+      text-align: center;
+      width: 100%;
+      color: white;
+      font-size: 150px;
+    }
+    #soundOn {
+      top: 25%;
+    }
+    #play {
+      bottom: 25%;
+    }
   </style>
 </head>
 <body>
+  <div id="interactionGate">
+    <div id="coverScreen"></div>
+    <h1 id="soundOn">SOUND ON!</h1>
+    <h1 id="play">▶︎</h1>
+  </div>
   <canvas id="app"></canvas>
   <script src="dist/app.bundle.js"></script>
 </body>

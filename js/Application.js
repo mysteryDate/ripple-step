@@ -21,9 +21,10 @@ function makeToneMatrix(width, height, numSteps, numNotes) {
 
 function Application(selector, width, height, options) {
   var canvas = document.querySelector(selector);
+  var downsample = (options.isMobile === true) ? 4 : 1;
   // this.inputHandler = new InputHandler(this.canvas);
   var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
-  // renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setPixelRatio(window.devicePixelRatio/downsample);
   renderer.setSize(width, height);
   var scene = new THREE.Scene();
   var camera = new THREE.OrthographicCamera();
@@ -65,6 +66,7 @@ function Application(selector, width, height, options) {
     currentScale: currentScale,
     rippleizer: rippleizer,
     toneMatrix: toneMatrix,
+    downsample: downsample,
     raycaster: raycaster,
     transport: transport,
     startTime: startTime,
@@ -96,10 +98,9 @@ Application.prototype.setScale = function(newScale) {
   this.knobPanel.setColor(new THREE.Color(this.currentScale.color));
 };
 
-var DOWNSAMPLE = 1;
 Application.prototype.resize = function(width, height) {
   this.renderer.setSize(width, height);
-  this.renderer.setPixelRatio(window.devicePixelRatio/DOWNSAMPLE);
+  this.renderer.setPixelRatio(window.devicePixelRatio/this.downsample);
   this.camera.left = -width/2;
   this.camera.right = width/2;
   this.camera.top = height/2;

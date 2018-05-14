@@ -1,14 +1,15 @@
-// import * as THREE from "../node_modules/three";
+import * as THREE from "../node_modules/three";
 import Tone from "../node_modules/Tone";
 
 import Application from "./Application";
 import {Constants} from "./AppData";
 
+var isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 window.app = new Application("#app", window.innerWidth, window.innerHeight, {
   numSteps: Constants.NUM_STEPS,
   numNotes: Constants.NUM_STEPS,
+  isMobile: isMobile,
 });
-var isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 var hasInteracted = false;
 var interactionGate = document.getElementById("interactionGate");
 
@@ -70,4 +71,4 @@ window.setTimeout(function() {
 
 // export some globals
 window.Tone = Tone;
-// window.THREE = THREE;
+window.THREE = THREE;
