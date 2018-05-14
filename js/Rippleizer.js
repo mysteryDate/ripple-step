@@ -9,7 +9,7 @@ var rtOptions = {
   stencilBuffer: false,
 };
 var RENDER_TEXTURE_RESOLUTION = 256; // TODO
-// var RENDER_TEXTURE_RESOLUTION = 64; // TODO
+// var RENDER_TEXTURE_RESOLUTION = 128; // TODO
 // For off-screen, ripple renders
 function makeShadowScene(group) {
   var shadowGroup = group; // TODO, find a way to clone this, law of demeter and all

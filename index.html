@@ -31,21 +31,17 @@
       text-align: center;
       width: 100%;
       color: white;
-      font-size: 150px;
+      font-size: 25vw;
     }
     #soundOn {
-      top: 25%;
-    }
-    #play {
-      bottom: 25%;
+      top: calc(50% - 28vw)
     }
   </style>
 </head>
 <body>
   <div id="interactionGate">
     <div id="coverScreen"></div>
-    <h1 id="soundOn">SOUND ON!</h1>
-    <h1 id="play">▶︎</h1>
+    <h1 id="soundOn">SOUND ON!<br>▶︎</h1>
   </div>
   <canvas id="app"></canvas>
   <script src="dist/app.bundle.js"></script>

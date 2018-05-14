@@ -62,8 +62,8 @@ Controls.Filter = {
 
 Controls.Knobs = [
   Controls.Filter.frequency,
-  Controls.Filter.resonance,
-  Controls.Envelope.attack,
+  // Controls.Filter.resonance,
+  // Controls.Envelope.attack,
   // Controls.Envelope.decay,
   // Controls.Envelope.sustain,
   Controls.Envelope.release,

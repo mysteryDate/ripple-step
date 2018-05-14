@@ -52,7 +52,7 @@ function Application(selector, width, height, options) {
     setter: synth.setControl,
   });
   scene.add(knobPanel);
-  // knobPanel.visible = false; TODO
+  // knobPanel.visible = false; //  TODO
 
   var transport = new Transport();
   var raycaster = new THREE.Raycaster();
@@ -108,14 +108,11 @@ Application.prototype.resize = function(width, height) {
   this.camera.position.set(width/2, height/2, 50);
   this.camera.updateProjectionMatrix();
 
-  var toneMatrixSize = Math.min(width, height) * 0.8;
+  var toneMatrixSize = Math.min(width, height);
   this.toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
   this.toneMatrix.position.set(width/2, height/2, 1);
   this.toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
   this.rippleizer = new Rippleizer(this.renderer, this.toneMatrix.shadowGroup);
-
-  this.scaleChooser.position.x = width/2;
-  this.scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
 
   var controlPanelLayout = (width > height) ? "vertical" : "horizontal";
   var availableSpace = height - (height/2 + toneMatrixSize/2);
@@ -135,6 +132,19 @@ Application.prototype.resize = function(width, height) {
     this.knobPanel.position.x = width/2;
     this.knobPanel.position.y = (3 * height + toneMatrixSize) / 4;
   }
+
+  this.scaleChooser.position.set(0, 0, 0);
+  this.scaleChooser.rotation.set(0, 0, 0);
+  if (controlPanelLayout === "vertical") {
+    this.scaleChooser.position.x = (width - toneMatrixSize) / 4;
+    this.scaleChooser.position.y = height/2;
+    this.scaleChooser.rotateZ(Math.PI /2);
+  } else {
+    this.scaleChooser.position.x = width/2;
+    this.scaleChooser.position.y = (height - toneMatrixSize) / 4;
+  }
+  this.scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
+
   this.width = width;
   this.height = height;
 };
