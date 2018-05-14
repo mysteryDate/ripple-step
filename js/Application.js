@@ -23,7 +23,7 @@ function Application(selector, width, height, options) {
   var canvas = document.querySelector(selector);
   // this.inputHandler = new InputHandler(this.canvas);
   var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
-  renderer.setPixelRatio(window.devicePixelRatio);
+  // renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(width, height);
   var scene = new THREE.Scene();
   var camera = new THREE.OrthographicCamera();
@@ -140,8 +140,8 @@ Application.prototype.resize = function(width, height) {
 // TODO store interactables in array
 Application.prototype.touchStart = function(event) {
   var mouse = new THREE.Vector2();
-  mouse.x = (event.clientX / this.width) * 2 - 1;
-  mouse.y = -(event.clientY / this.height) * 2 + 1;
+  mouse.x = (event.pageX / this.width) * 2 - 1;
+  mouse.y = -(event.pageY / this.height) * 2 + 1;
   this.raycaster.setFromCamera(mouse, this.camera);
   this.toneMatrix.touchStart(this.raycaster);
   this.scaleChooser.touchStart(this.raycaster);
@@ -152,8 +152,8 @@ Application.prototype.touchStart = function(event) {
 
 Application.prototype.touch = function(event) {
   var mouse = new THREE.Vector2();
-  mouse.x = (event.clientX / this.width) * 2 - 1;
-  mouse.y = -(event.clientY / this.height) * 2 + 1;
+  mouse.x = (event.pageX / this.width) * 2 - 1;
+  mouse.y = -(event.pageY / this.height) * 2 + 1;
   this.raycaster.setFromCamera(mouse, this.camera);
   this.toneMatrix.touch(this.raycaster);
   if (this.knobPanel.visible) {

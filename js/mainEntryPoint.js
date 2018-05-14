@@ -10,16 +10,17 @@ window.app = new Application("#app", window.innerWidth, window.innerHeight, {
 });
 
 // HANDLERS
-function onDocumentMouseMove(event) {
+function touchMove(event) {
+  event.preventDefault();
   if (event.which === 1) { // Mouse is down
-    window.app.touch(event);
   }
+  window.app.touch(event);
 }
-function onDocumentMouseDown(event) {
+function touchStart(event) {
   Tone.context.resume(); // TODO
   window.app.touchStart(event);
 }
-function onDocumentMouseUp(event) {
+function touchEnd(event) {
   window.app.touchEnd();
 }
 function onDocumentKeyPress(event) {
@@ -32,14 +33,19 @@ function onDocumentKeyPress(event) {
 function windowResize(event) {
   window.app.resize(window.innerWidth, window.innerHeight);
 }
-document.addEventListener("mousemove", onDocumentMouseMove, false);
-document.addEventListener("mousedown", onDocumentMouseDown, false);
-document.addEventListener("mouseup", onDocumentMouseUp, false);
-// document.addEventListener("touchmove", onDocumentMouseMove, false);
-// document.addEventListener("touchstart", onDocumentMouseDown, false);
-// document.addEventListener("touchend", onDocumentMouseUp, false);
+document.addEventListener("mousemove", touchMove, false);
+document.addEventListener("mousedown", touchStart, false);
+document.addEventListener("mouseup", touchEnd, false);
+document.addEventListener("touchmove", touchMove, false);
+document.addEventListener("touchstart", touchStart, false);
+document.addEventListener("touchend", touchEnd, false);
 document.addEventListener("keypress", onDocumentKeyPress, false);
 window.onresize = windowResize;
+
+var canvas = document.getElementById("app");
+canvas.addEventListener("touchmove", function(event) {
+  event.preventDefault();
+});
 
 function update() {
   window.app.update();
