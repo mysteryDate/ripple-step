@@ -2,7 +2,7 @@ import * as THREE from "../node_modules/three";
 import Tone from "../node_modules/Tone";
 
 import Application from "./Application";
-import {Constants, Controls} from "./AppData";
+import {Constants} from "./AppData";
 
 window.app = new Application("#app", window.innerWidth, window.innerHeight, {
   numSteps: Constants.NUM_STEPS,
@@ -41,40 +41,14 @@ function windowResize(event) {
 document.addEventListener("mousemove", onDocumentMouseMove, false);
 document.addEventListener("mousedown", onDocumentMouseDown, false);
 document.addEventListener("mouseup", onDocumentMouseUp, false);
+// document.addEventListener("touchmove", onDocumentMouseMove, false);
+// document.addEventListener("touchstart", onDocumentMouseDown, false);
+// document.addEventListener("touchend", onDocumentMouseUp, false);
 document.addEventListener("keypress", onDocumentKeyPress, false);
 window.onresize = windowResize;
 
 function update() {
   window.app.update();
-
-  // TODO, this is hideous
-  window.app.rippleizer.damping.value = (function getRelease() {
-    var release = window.app.synth.getControl("release");
-    var minRelease = Controls.Envelope.release.minValue;
-    var maxRelease = Controls.Envelope.release.maxValue;
-    var dampingValue;
-    var firstStop = 0.05;
-    if (release < THREE.Math.lerp(minRelease, maxRelease, firstStop)) {
-      dampingValue = THREE.Math.mapLinear(release, minRelease, THREE.Math.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
-    } else if (release === Controls.Envelope.release.maxValue) {
-      dampingValue = 1;
-    } else {
-      dampingValue = THREE.Math.mapLinear(release, THREE.Math.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.999);
-    }
-    return dampingValue;
-  })();
-
-  // TODO
-  // if (!window.app.knobPanel.visible) {
-  //   var sum = 0;
-  //   for (let i = 0; i < numNotesPlayed.length; i++) {
-  //     sum += numNotesPlayed[i];
-  //   }
-  //   if (sum > Controls.NUM_NOTES_BEFORE_KNOBS_DISPLAY) {
-  //     window.app.knobPanel.visible = true;
-  //   }
-  // }
-
   window.app.render();
   requestAnimationFrame(update);
 }

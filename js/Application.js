@@ -71,12 +71,12 @@ function Application(selector, width, height, options) {
     startTime: startTime,
     knobPanel: knobPanel,
     renderer: renderer,
-    height: height,
     paused: paused,
     muted: muted,
-    width: width,
     scene: scene,
     synth: synth,
+    width: width,
+    height: height,
   });
 }
 
@@ -97,39 +97,39 @@ Application.prototype.setScale = function(newScale) {
 };
 
 Application.prototype.resize = function(width, height) {
-  this.width = width;
-  this.height = height;
-  this.renderer.setSize(this.width, this.height);
-  this.camera = new THREE.OrthographicCamera(-this.width/2, this.width/2, this.height/2, -this.height/2, 0.1, 100);
-  this.camera.position.set(this.width/2, this.height/2, 50);
+  this.renderer.setSize(width, height);
+  this.camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0.1, 100);
+  this.camera.position.set(width/2, height/2, 50);
 
-  var toneMatrixSize = Math.min(this.width, this.height) * 0.8;
+  var toneMatrixSize = Math.min(width, height) * 0.8;
   this.toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
-  this.toneMatrix.position.set(this.width/2, this.height/2, 1);
+  this.toneMatrix.position.set(width/2, height/2, 1);
   this.toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
   this.rippleizer = new Rippleizer(this.renderer, this.toneMatrix.shadowGroup);
 
-  this.scaleChooser.position.x = this.width/2;
+  this.scaleChooser.position.x = width/2;
   this.scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
 
-  var controlPanelLayout = (this.width > this.height) ? "vertical" : "horizontal";
-  var availableSpace = this.height - (this.height/2 + toneMatrixSize/2);
+  var controlPanelLayout = (width > height) ? "vertical" : "horizontal";
+  var availableSpace = height - (height/2 + toneMatrixSize/2);
   var controlPanelHeight = availableSpace * 0.7;
-  var controlPanelWidth = this.width;
+  var controlPanelWidth = width;
   if (controlPanelLayout === "vertical") {
-    availableSpace = this.width - (this.width/2 + toneMatrixSize/2);
+    availableSpace = width - (width/2 + toneMatrixSize/2);
     controlPanelWidth = availableSpace * 0.7;
-    controlPanelHeight = this.height;
+    controlPanelHeight = height;
   }
 
   this.knobPanel.resize(controlPanelWidth, controlPanelHeight);
   if (controlPanelLayout === "vertical") { // On the right side
-    this.knobPanel.position.x = (3 * this.width + toneMatrixSize) / 4;
-    this.knobPanel.position.y = this.height/2;
+    this.knobPanel.position.x = (3 * width + toneMatrixSize) / 4;
+    this.knobPanel.position.y = height/2;
   } else { // On the top
-    this.knobPanel.position.x = this.width/2;
-    this.knobPanel.position.y = (3 * this.height + toneMatrixSize) / 4;
+    this.knobPanel.position.x = width/2;
+    this.knobPanel.position.y = (3 * height + toneMatrixSize) / 4;
   }
+  this.width = width;
+  this.height = height;
 };
 
 // TODO store interactables in array
@@ -176,6 +176,24 @@ Application.prototype.start = function() {
 Application.prototype.update = function() {
   var timeSinceStart = performance.now() - this.startTime;
   this.transport.update(timeSinceStart);
+
+
+  // TODO, this is hideous
+  this.rippleizer.damping.value = (function getRelease() {
+    var release = window.app.synth.getControl("release");
+    var minRelease = Controls.Envelope.release.minValue;
+    var maxRelease = Controls.Envelope.release.maxValue;
+    var dampingValue;
+    var firstStop = 0.05;
+    if (release < THREE.Math.lerp(minRelease, maxRelease, firstStop)) {
+      dampingValue = THREE.Math.mapLinear(release, minRelease, THREE.Math.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
+    } else if (release === Controls.Envelope.release.maxValue) {
+      dampingValue = 1;
+    } else {
+      dampingValue = THREE.Math.mapLinear(release, THREE.Math.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.999);
+    }
+    return dampingValue;
+  })();
 };
 
 export default Application;

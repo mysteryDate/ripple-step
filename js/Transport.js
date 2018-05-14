@@ -25,6 +25,17 @@ Transport.prototype.update = function(timeSinceStart) {
       });
     }
   }
+
+  // TODO
+  if (!window.app.knobPanel.visible) {
+    var sum = 0;
+    for (let i = 0; i < numNotesPlayed.length; i++) {
+      sum += numNotesPlayed[i];
+    }
+    if (sum > Controls.NUM_NOTES_BEFORE_KNOBS_DISPLAY) {
+      window.app.knobPanel.visible = true;
+    }
+  }
 };
 
 export default Transport;
