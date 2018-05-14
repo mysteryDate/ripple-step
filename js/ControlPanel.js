@@ -31,7 +31,7 @@ function makeKnobs(knobOptions, getter, setter) {
   for (var i = 0; i < numKnobs; i++) {
     var knob = new Knob(Object.assign(knobOptions[i], {
       currentValue: knobOptions[i].initialValue || getter(knobOptions[i].control),
-      sensitivity: 2,
+      sensitivity: 2 / window.devicePixelRatio,
     }));
     setter(knob.control, knob.getValue());
     knobGroup.add(knob);
@@ -48,14 +48,14 @@ function ControlPanel(options) {
 
   this.touch = function(raycaster, event) {
     knobGroup.children.forEach(function(knob) {
-      knob.touch(new THREE.Vector2(event.clientX, -event.clientY));
+      knob.touch(new THREE.Vector2(event.pageX, -event.pageY)); // TODO why redo this?
       options.setter(knob.control, knob.getValue());
     });
   };
 
   this.touchStart = function(raycaster, event) {
     knobGroup.children.forEach(function(knob) {
-      knob.touchStart(raycaster, new THREE.Vector2(event.clientX, -event.clientY));
+      knob.touchStart(raycaster, new THREE.Vector2(event.pageX, -event.pageY)); // TODO why redo this?
     });
   };
 
