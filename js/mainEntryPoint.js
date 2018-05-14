@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three";
+// import * as THREE from "../node_modules/three";
 import Tone from "../node_modules/Tone";
 
 import Application from "./Application";
@@ -12,18 +12,12 @@ window.app = new Application("#app", window.innerWidth, window.innerHeight, {
 // HANDLERS
 function onDocumentMouseMove(event) {
   if (event.which === 1) { // Mouse is down
-    var mouse = new THREE.Vector2();
-    mouse.x = (event.clientX / window.app.width) * 2 - 1;
-    mouse.y = -(event.clientY / window.app.height) * 2 + 1;
-    window.app.touch(mouse);
+    window.app.touch(event);
   }
 }
 function onDocumentMouseDown(event) {
   Tone.context.resume(); // TODO
-  var mouse = new THREE.Vector2();
-  mouse.x = (event.clientX / window.app.width) * 2 - 1;
-  mouse.y = -(event.clientY / window.app.height) * 2 + 1;
-  window.app.touchStart(mouse);
+  window.app.touchStart(event);
 }
 function onDocumentMouseUp(event) {
   window.app.touchEnd();
@@ -62,5 +56,5 @@ window.setTimeout(function() {
 
 // export some globals
 window.Tone = Tone;
-window.THREE = THREE;
+// window.THREE = THREE;
 // console.log(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));

@@ -26,7 +26,7 @@ function Application(selector, width, height, options) {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(width, height);
   var scene = new THREE.Scene();
-  var camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0.1, 100);
+  var camera = new THREE.OrthographicCamera();
   camera.position.set(width/2, height/2, 50);
 
   var currentScale = sample(Object.values(Scales));
@@ -69,14 +69,15 @@ function Application(selector, width, height, options) {
     raycaster: raycaster,
     transport: transport,
     startTime: startTime,
+    camera: camera,
     knobPanel: knobPanel,
     renderer: renderer,
     paused: paused,
+    height: height,
     muted: muted,
     scene: scene,
     synth: synth,
     width: width,
-    height: height,
   });
 }
 
@@ -98,8 +99,12 @@ Application.prototype.setScale = function(newScale) {
 
 Application.prototype.resize = function(width, height) {
   this.renderer.setSize(width, height);
-  this.camera = new THREE.OrthographicCamera(-width/2, width/2, height/2, -height/2, 0.1, 100);
+  this.camera.left = -width/2;
+  this.camera.right = width/2;
+  this.camera.top = height/2;
+  this.camera.bottom = -height/2;
   this.camera.position.set(width/2, height/2, 50);
+  this.camera.updateProjectionMatrix();
 
   var toneMatrixSize = Math.min(width, height) * 0.8;
   this.toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
@@ -133,7 +138,10 @@ Application.prototype.resize = function(width, height) {
 };
 
 // TODO store interactables in array
-Application.prototype.touchStart = function(mouse) {
+Application.prototype.touchStart = function(event) {
+  var mouse = new THREE.Vector2();
+  mouse.x = (event.clientX / this.width) * 2 - 1;
+  mouse.y = -(event.clientY / this.height) * 2 + 1;
   this.raycaster.setFromCamera(mouse, this.camera);
   this.toneMatrix.touchStart(this.raycaster);
   this.scaleChooser.touchStart(this.raycaster);
@@ -142,7 +150,10 @@ Application.prototype.touchStart = function(mouse) {
   } // TODO is a mousemove now necessary?
 };
 
-Application.prototype.touch = function(mouse) {
+Application.prototype.touch = function(event) {
+  var mouse = new THREE.Vector2();
+  mouse.x = (event.clientX / this.width) * 2 - 1;
+  mouse.y = -(event.clientY / this.height) * 2 + 1;
   this.raycaster.setFromCamera(mouse, this.camera);
   this.toneMatrix.touch(this.raycaster);
   if (this.knobPanel.visible) {
