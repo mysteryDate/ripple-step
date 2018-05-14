@@ -9,6 +9,8 @@ window.app = new Application("#app", window.innerWidth, window.innerHeight, {
   numNotes: Constants.NUM_STEPS,
 });
 var isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+var hasInteracted = false;
+var interactionGate = document.getElementById("interactionGate");
 
 // HANDLERS
 function touchMove(event) {
@@ -18,8 +20,13 @@ function touchMove(event) {
   }
 }
 function touchStart(event) {
-  Tone.context.resume(); // TODO
-  window.app.touchStart(event);
+  if (!hasInteracted) {
+    Tone.context.resume(); // TODO
+    interactionGate.style.display = "none";
+    hasInteracted = true;
+  } else {
+    window.app.touchStart(event);
+  }
 }
 function touchEnd(event) {
   window.app.touchEnd();

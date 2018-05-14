@@ -54,7 +54,6 @@ function Application(selector, width, height, options) {
   // knobPanel.visible = false; TODO
 
   var transport = new Transport();
-
   var raycaster = new THREE.Raycaster();
 
   var paused = false;
@@ -69,9 +68,9 @@ function Application(selector, width, height, options) {
     raycaster: raycaster,
     transport: transport,
     startTime: startTime,
-    camera: camera,
     knobPanel: knobPanel,
     renderer: renderer,
+    camera: camera,
     paused: paused,
     height: height,
     muted: muted,
@@ -97,8 +96,10 @@ Application.prototype.setScale = function(newScale) {
   this.knobPanel.setColor(new THREE.Color(this.currentScale.color));
 };
 
+var DOWNSAMPLE = 1;
 Application.prototype.resize = function(width, height) {
   this.renderer.setSize(width, height);
+  this.renderer.setPixelRatio(window.devicePixelRatio/DOWNSAMPLE);
   this.camera.left = -width/2;
   this.camera.right = width/2;
   this.camera.top = height/2;
