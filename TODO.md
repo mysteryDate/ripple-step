@@ -1,8 +1,8 @@
 - [X] Mute (darken buttons)
 - [X] Filter w/controls
 - [X] Resolution bounds on rippling
-- [ ] Application structure
-- [ ] Mobile compatibility
+- [X] Application structure
+- [X] Mobile compatibility
 - [ ] Colors (even luminance for ripple colors)
 - [ ] Instanced buffer geometry for matrix buttons
 - [ ] Save/export/record
