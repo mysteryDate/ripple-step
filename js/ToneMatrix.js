@@ -18,7 +18,7 @@ function makeKeyShader() {
       u_relativePosition: {value: new THREE.Vector2()},
       u_armed: {value: 0},
       u_muted: {value: 0},
-      u_columnActive: {value: 0},
+      u_activeColumn: {value: 0},
     },
     vertexShader: `
       varying vec2 v_uv;
@@ -35,7 +35,7 @@ function makeKeyShader() {
       uniform vec2 u_relativePosition;
       uniform float u_armed;
       uniform float u_muted;
-      uniform float u_columnActive;
+      uniform float u_activeColumn;
       varying vec2 v_uv;
 
       float rectangleSDF(vec2 st, vec2 s) {
@@ -43,7 +43,7 @@ function makeKeyShader() {
         return max(abs(st.x/s.x), abs(st.y/s.y));
       }
 
-      float rectangleSDF(vec2 st) { // For squares
+      float squareSDF(vec2 st) {
         return rectangleSDF(st, vec2(1.0));
       }
 
@@ -52,11 +52,12 @@ function makeKeyShader() {
         vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
         col = mix(u_baseColor, col, u_armed);
         vec3 playingColor = 2.0 * col * mix(1.0, MUTE_COLOR_VALUE, u_muted);
-        col = mix(col, vec3(1.0), u_columnActive * u_armed);
+        float activeColumn = 1.0 - step(0.1, abs(u_activeColumn - u_relativePosition.x));
+        col = mix(col, vec3(1.0), activeColumn * u_armed);
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + u_relativePosition) / NUM_STEPS).rgb;
         col += rippleTex * rippleTex;
 
-        float rect = rectangleSDF(v_uv);
+        float rect = squareSDF(v_uv);
         col *= 1.0 - step(1.0 - ${Constants.SPACING_RATIO.toFixed(3)}, rect);
         gl_FragColor = vec4(col, 1.0);
       }
@@ -134,8 +135,8 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   };
   this.activateColumn = function(num, isMuted) {
     var armedRows = [];
-    columns[num].forEach(function(btn) {
-      btn.material.uniforms.u_columnActive.value = true;
+    setButtonUniform("u_activeColumn", num);
+    columns[num].forEach(function(btn, index) {
       if (btn.isArmed()) {
         armedRows.push(btn.row);
         if (!isMuted) {
@@ -150,7 +151,6 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
 
   this.deactivateColumn = function(num) {
     columns[num].forEach(function(btn) {
-      btn.material.uniforms.u_columnActive.value = false;
       if (btn.isArmed()) {
         btn.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
       }
