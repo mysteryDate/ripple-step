@@ -118,6 +118,8 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     }
   }
 
+  // var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
+
   function setButtonUniform(uniform, value) {
     buttons.forEach(function(btn) {
       btn.material.uniforms[uniform].value = value;

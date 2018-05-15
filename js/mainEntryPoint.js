@@ -69,6 +69,15 @@ window.setTimeout(function() {
   update();
 }, 0);
 
+window.onload = function() {
+  var domElement = document.getElementById("soundOn");
+  domElement.innerHTML = "SOUND ON!<br>▶︎";
+  domElement.style.top = "calc(50% - 28vw)";
+  domElement.style.animationName = "fade";
+  domElement.style.animationIterationCount = 1;
+  domElement.style.animationDuration = "0.5s";
+};
+
 // export some globals
 window.Tone = Tone;
 window.THREE = THREE;

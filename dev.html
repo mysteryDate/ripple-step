@@ -7,6 +7,7 @@
       margin: 0px;
       background-color: black;
       overflow: hidden;
+      cursor: default;
     }
     @font-face {
       font-family: bebas;
@@ -34,14 +35,27 @@
       font-size: 25vw;
     }
     #soundOn {
-      top: calc(50% - 28vw)
+      top: calc(50% - 14vw);
+      animation-name: fadeSwap;
+      animation-iteration-count: infinite;
+      animation-duration: 2s;
+      animation-timing-function: ease-in-out;
+    }
+    @keyframes fadeSwap {
+      0% {opacity: 0.25;}
+      50% {opacity: 1;}
+      100% {opacity: 0.25;}
+    }
+    @keyframes fade {
+      0% {opacity: 0.25;}
+      100% {opacity: 1;}
     }
   </style>
 </head>
 <body>
   <div id="interactionGate">
     <div id="coverScreen"></div>
-    <h1 id="soundOn">SOUND ON!<br>▶︎</h1>
+    <h1 id="soundOn">LOADING</h1>
   </div>
   <canvas id="app"></canvas>
   <script src="app.bundle.js"></script>
