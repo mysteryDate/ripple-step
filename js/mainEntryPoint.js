@@ -33,10 +33,18 @@ function touchEnd(event) {
   window.app.touchEnd();
 }
 function onDocumentKeyPress(event) {
-  if (event.key === "c") {
-    window.app.clear();
-  } else if (event.key === "m") {
-    window.app.toggleMute();
+  switch (event.code) {
+    case "KeyC":
+      window.app.clear();
+      break;
+    case "KeyM":
+      window.app.toggleMute();
+      break;
+    case "Space":
+      window.app.togglePaused();
+      break;
+    default:
+      break;
   }
 }
 function windowResize(event) {
@@ -64,10 +72,6 @@ function update() {
 
 window.onresize();
 window.app.render();
-window.setTimeout(function() {
-  window.app.setScale(window.app.currentScale);
-  update();
-}, 0);
 
 window.onload = function() {
   var domElement = document.getElementById("soundOn");
@@ -76,6 +80,15 @@ window.onload = function() {
   domElement.style.animationName = "fade";
   domElement.style.animationIterationCount = 1;
   domElement.style.animationDuration = "0.5s";
+
+
+  document.body.appendChild(stats.domElement);
+
+  window.setTimeout(function() {
+    window.app.setScale(window.app.currentScale);
+    window.app.start();
+    update();
+  }, 0);
 };
 
 // export some globals

@@ -192,13 +192,16 @@ Application.prototype.toggleMute = function() {
   )); // TODO set damping
 };
 
+Application.prototype.togglePaused = function() {
+  this.transport.togglePaused();
+};
+
 Application.prototype.start = function() {
-  this.startTime = performance.now();
+  this.transport.start();
 };
 
 Application.prototype.update = function() {
-  var timeSinceStart = performance.now() - this.startTime;
-  this.transport.update(timeSinceStart);
+  this.transport.update();
 
 
   // TODO, this is hideous

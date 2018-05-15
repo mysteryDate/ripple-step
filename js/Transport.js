@@ -2,40 +2,52 @@ import {Constants, Controls} from "./AppData";
 
 // TODO make this not terrible
 function Transport() {
+  this.startTime = performance.now();
+  this.paused = true;
+  this.startPosition = Constants.NUM_STEPS - 1;
+  this.previousPosition = Constants.NUM_STEPS - 1;
+  this.position = this.previousPosition;
+
+  this.start = function() {
+    this.startTime = performance.now();
+    this.paused = false;
+  };
+
+  this.togglePaused = function() {
+    if (!this.paused) {
+      this.startPosition = this.position;
+      this.previousPosition = this.position;
+      this.paused = true;
+    } else {
+      this.start();
+    }
+  };
 }
 
-var previousPosition = Constants.NUM_STEPS - 1;
-var numNotesPlayed = new Array(Constants.NUM_STEPS).fill(0); // Hacky activity monitor
-Transport.prototype.update = function(timeSinceStart) {
-  var beats = (timeSinceStart) / 1000 / 60 * Controls.TEMPO;
-  var position = beats * (1/4 / Constants.STEP_VALUE);
-  if (Math.floor(position) % 2 === 1) {
-    position += window.app.synth.getControl("swing");
+Transport.prototype.update = function() {
+  if (this.paused) {
+    // window.app.toneMatrix.deactivateColumn(this.previousPosition);
+    // window.app.toneMatrix.deactivateColumn(this.position);
+    return;
   }
-  position = Math.floor(position % Constants.NUM_STEPS);
+  var timeSinceStart = performance.now() - this.startTime;
+  var beats = (timeSinceStart) / 1000 / 60 * Controls.TEMPO;
+  this.position = beats * (1/4 / Constants.STEP_VALUE) + this.startPosition;
+  if (Math.floor(this.position) % 2 === 1) {
+    this.position += window.app.synth.getControl("swing");
+  }
+  this.position = Math.floor(this.position % Constants.NUM_STEPS);
 
-  if (position !== previousPosition) {
-    window.app.toneMatrix.deactivateColumn(previousPosition);
-    previousPosition = position;
-    var rowsToPlay = window.app.toneMatrix.activateColumn(position, window.app.muted);
+  if (this.position !== this.previousPosition) {
+    window.app.toneMatrix.deactivateColumn(this.previousPosition);
+    this.previousPosition = this.position;
+    var rowsToPlay = window.app.toneMatrix.activateColumn(this.position, window.app.muted);
     if (!window.app.muted) {
-      numNotesPlayed[position] = rowsToPlay.length;
       rowsToPlay.forEach(function(row) {
         window.app.synth.playRow(row);
       });
     }
   }
-
-  // TODO
-  // if (!window.app.knobPanel.visible) {
-  //   var sum = 0;
-  //   for (let i = 0; i < numNotesPlayed.length; i++) {
-  //     sum += numNotesPlayed[i];
-  //   }
-  //   if (sum > Controls.NUM_NOTES_BEFORE_KNOBS_DISPLAY) {
-  //     window.app.knobPanel.visible = true;
-  //   }
-  // }
 };
 
 export default Transport;
