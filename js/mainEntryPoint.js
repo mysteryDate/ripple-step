@@ -1,5 +1,6 @@
 import * as THREE from "../node_modules/three";
 import Tone from "../node_modules/Tone";
+import Stats from "../node_modules/stats.js";
 
 import Application from "./Application";
 import {Constants} from "./AppData";
@@ -64,7 +65,9 @@ canvas.addEventListener("touchmove", function(event) {
   event.preventDefault();
 });
 
+var stats = new Stats();
 function update() {
+  stats.update();
   window.app.update();
   window.app.render();
   requestAnimationFrame(update);
