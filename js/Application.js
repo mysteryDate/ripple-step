@@ -1,7 +1,7 @@
 import * as THREE from "../node_modules/three";
 import {sample, random} from "../node_modules/underscore";
 
-import {Constants, Scales, Controls} from "./AppData";
+import {Constants, Scales, Settings, Controls} from "./AppData";
 import ToneMatrix from "./ToneMatrix";
 import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
@@ -21,7 +21,7 @@ function makeToneMatrix(width, height, numSteps, numNotes) {
 
 function Application(selector, width, height, options) {
   var canvas = document.querySelector(selector);
-  var downsample = (options.isMobile === true) ? 4 : 1;
+  var downsample = (options.isMobile === true) ? Settings.MOBILE_DOWNSAMPLE : Settings.DESKTOP_DOWNSAMPLE;
   // this.inputHandler = new InputHandler(this.canvas);
   var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
   renderer.setPixelRatio(window.devicePixelRatio/downsample);

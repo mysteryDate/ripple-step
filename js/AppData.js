@@ -1,3 +1,8 @@
+var Settings = {
+  MOBILE_DOWNSAMPLE: 4,
+  DESKTOP_DOWNSAMPLE: 1,
+};
+
 var Constants = {
   BASE_COLOR: 0x1d1e26,
   SECONDARY_BASE_COLOR: 0xaaaaaa,
@@ -126,4 +131,4 @@ var Scales = {
   },
 };
 
-export {Constants, Scales, Controls};
+export {Constants, Scales, Settings, Controls};
