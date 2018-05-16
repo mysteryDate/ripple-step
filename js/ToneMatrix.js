@@ -1,40 +1,44 @@
 import * as THREE from "../node_modules/three";
-import {Constants} from "./AppData";
+import {Constants} from "./AppData"; // TODO pass in as options
 import Materials from "./Materials";
 
 function makeKeyMaterial(options) {
   return new THREE.ShaderMaterial({
     uniforms: {
-      u_rippleTex: {value: null},
-      u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
-      u_activeColor: {value: new THREE.Color()},
-      u_muted: {value: false},
+      u_baseColor: {value: new THREE.Color(options.baseColor)},
+      u_numHorizontalNotes: {value: options.numHorizontalNotes},
+      u_numVerticalNotes: {value: options.numVerticalNotes},
+      u_activeColor: {value: new THREE.Color(options.activeColor)},
       u_activeColumn: {value: -1},
+      u_rippleTex: {value: null},
+      u_muted: {value: false},
     },
     vertexShader: `
       attribute vec2 relativePosition;
       attribute float isArmed;
+      uniform float u_numHorizontalNotes;
+      uniform float u_numVerticalNotes;
       varying vec2 v_relativePosition;
       varying float v_armed;
       varying vec2 v_uv;
       ${Materials.Include.map}
-      const float numSteps = ${Constants.NUM_STEPS.toFixed(3)};
       void main() {
         v_uv = uv;
         v_armed = isArmed;
         v_relativePosition = relativePosition;
-        vec2 offset = map(relativePosition, 0.0, numSteps, 0.0, 1.0);
+        vec2 offset = map(relativePosition, vec2(0.0), vec2(u_numHorizontalNotes, u_numVerticalNotes), vec2(0.0), vec2(1.0));
         vec3 pos = vec3(position.xy + offset - 0.5, 1.0);
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       }
     `,
     fragmentShader: `
-      #define NUM_STEPS ${(Constants.NUM_STEPS).toFixed(3)}
       uniform sampler2D u_rippleTex;
       uniform vec3 u_baseColor;
       uniform vec3 u_activeColor;
       uniform float u_muted;
       uniform float u_activeColumn;
+      uniform float u_numHorizontalNotes;
+      uniform float u_numVerticalNotes;
       varying vec2 v_uv;
       varying vec2 v_relativePosition;
       varying float v_armed;
@@ -54,7 +58,7 @@ function makeKeyMaterial(options) {
         col = mix(u_baseColor, col, v_armed);
         float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
         col = mix(col, vec3(1.0), isColumnActive * v_armed);
-        vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / NUM_STEPS).rgb;
+        vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / vec2(u_numHorizontalNotes, u_numVerticalNotes)).rgb;
         col += rippleTex * rippleTex;
 
         float rect = squareSDF(v_uv);
@@ -66,25 +70,28 @@ function makeKeyMaterial(options) {
   });
 }
 
-function makeShadowKeyMaterial() {
+function makeShadowKeyMaterial(options) {
   return new THREE.ShaderMaterial({
     transparent: true,
     uniforms: {
       u_activeColor: {value: new THREE.Color("#ffffff")},
+      u_numHorizontalNotes: {value: options.numHorizontalNotes},
+      u_numVerticalNotes: {value: options.numVerticalNotes},
       u_muted: {value: false},
       u_activeColumn: {value: -1},
     },
     vertexShader: `
       attribute vec2 relativePosition;
       attribute float isArmed;
+      uniform float numHorizontalNotes;
+      uniform float numVerticalNotes;
       varying vec2 v_relativePosition;
       varying float v_armed;
       ${Materials.Include.map}
-      const float numSteps = ${Constants.NUM_STEPS.toFixed(3)};
       void main() {
         v_armed = isArmed;
         v_relativePosition = relativePosition;
-        vec2 offset = map(relativePosition, 0.0, numSteps, 0.0, 1.0);
+        vec2 offset = map(relativePosition, vec2(0.0), vec2(16.0), vec2(0.0), vec2(1.0));
         vec3 pos = vec3(position.xy + offset - 0.5, 1.0);
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       }
@@ -108,23 +115,19 @@ function makeShadowKeyMaterial() {
   });
 }
 
-var KEY_MATERIAL = makeKeyMaterial();
-var SHADOW_KEY_MATERIAL = makeShadowKeyMaterial();
-
-function MatrixButton(row, column, geometry, armedBuffer) {
-  this.row = row;
+function MatrixButton(column, row, rowSize, armedBuffer) {
   this.column = column;
-
+  this.row = row;
   var armed = false;
 
   this.arm = function() {
     armed = true;
-    armedBuffer.setX(column * Constants.NUM_STEPS + row, 1);
+    armedBuffer.setX(column * rowSize + row, 1);
     armedBuffer.needsUpdate = true;
   };
   this.disarm = function() {
     armed = false;
-    armedBuffer.setX(column * Constants.NUM_STEPS + row, 0);
+    armedBuffer.setX(column * rowSize + row, 0);
     armedBuffer.needsUpdate = true;
   };
   this.isArmed = function() {
@@ -135,6 +138,10 @@ MatrixButton.prototype = Object.create(THREE.Mesh.prototype);
 
 function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   THREE.Group.call(this);
+  // Some hacky debouncing
+  var arming = true;
+  var touchActive = false;
+
   var keyGeometry = (function makeKeyGeometry() {
     var w = numHorizontalSteps;
     var h = numVerticalSteps;
@@ -159,118 +166,90 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   var numButtons = numHorizontalSteps * numVerticalSteps;
   var relativePositions = new THREE.InstancedBufferAttribute(new Float32Array(numButtons * 2), 2, 1);
   var armedBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons), 1, 1); // 0 = inactive, 1 = armed
-  // var relativePositions = new THREE.InstancedBufferAttribute(new Float32Array(2), 2, 1);
 
-  this.shadowGroup = new THREE.Group();
+  var shadowGroup = new THREE.Group();
   for (var col = 0; col < numHorizontalSteps; col++) {
     columns.push([]);
     for (var row = 0; row < numVerticalSteps; row++) {
-      var button = new MatrixButton(row, col, keyGeometry, armedBuffer);
-      // button.material.uniforms.u_relativePosition.value = new THREE.Vector2(col, row);
+      var button = new MatrixButton(col, row, numHorizontalSteps, armedBuffer);
       relativePositions.setXY(col * numHorizontalSteps + row, col, row);
       armedBuffer.setX(col * numHorizontalSteps + row, 0); // Set all to inactive
-      // button.position.set(col - numHorizontalSteps/2, row - numVerticalSteps/2, 0).multiplyScalar(1/numHorizontalSteps, 1/numVerticalSteps, 1);
-      // var buttonPosition = new THREE.Vector3(col - numHorizontalSteps/2, row - numVerticalSteps/2, 0).multiplyScalar(1/numHorizontalSteps, 1/numVerticalSteps, 1);
-      // button.shadow.position.copy(buttonPosition);
       buttons.push(button);
       columns[col].push(button);
-      // this.add(button);
-      // this.shadowGroup.add(button.shadow);
     }
   }
-  this.columns = columns;
-  // console.log(keyGeometry);
   armedBuffer.setDynamic(true);
   keyGeometry.addAttribute("relativePosition", relativePositions);
   keyGeometry.addAttribute("isArmed", armedBuffer);
-  // this.add(new THREE.Mesh(keyGeometry, SHADOW_KEY_MATERIAL));
-  this.add(new THREE.Mesh(keyGeometry, KEY_MATERIAL));
-  this.shadowGroup.add(new THREE.Mesh(keyGeometry, SHADOW_KEY_MATERIAL));
+  var keyMaterial = makeKeyMaterial({
+    numHorizontalNotes: numHorizontalSteps,
+    numVerticalNotes: numVerticalSteps,
+    baseColor: Constants.BASE_COLOR,
+  });
+  this.add(new THREE.Mesh(keyGeometry, keyMaterial));
 
-  this.clickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({color: "pink", wireframe: true}));
-  this.add(this.clickScreen);
-  this.clickScreen.position.z += 10;
-  this.shadowClickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({color: "pink", wireframe: true}));
-  this.shadowClickScreen.visible = false;
-  this.shadowGroup.add(this.shadowClickScreen);
+  var shadowKeyMaterial = makeShadowKeyMaterial({numHorizontalNotes: numHorizontalSteps, numVerticalNotes: numVerticalSteps});
+  shadowGroup.add(new THREE.Mesh(keyGeometry, shadowKeyMaterial));
 
-  // var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup); // TODO should live here
+  // Because the instanced buffer geometries don't have true bounding boxes
+  var clickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
+  this.add(clickScreen);
+  shadowGroup.add(clickScreen.clone()); // So that it has a proper BB
 
-  function setButtonUniform(uniformName, value, shadowValue) {
-    KEY_MATERIAL.uniforms[uniformName].value = value;
+  var setButtonUniform = function(uniformName, value, shadowValue) {
+    keyMaterial.uniforms[uniformName].value = value;
     if (shadowValue === undefined) shadowValue = value;
-    if (SHADOW_KEY_MATERIAL.uniforms[uniformName] !== undefined) {
-      SHADOW_KEY_MATERIAL.uniforms[uniformName].value = shadowValue;
+    if (shadowKeyMaterial.uniforms[uniformName] !== undefined) {
+      shadowKeyMaterial.uniforms[uniformName].value = shadowValue;
     }
-  }
-
-  this.numHorizontalSteps = numHorizontalSteps;
-  this.numVerticalSteps = numVerticalSteps;
-
-  this.armButton = function(x, y) {
+  };
+  var armButton = function(x, y) {
     columns[x][y].arm();
   };
-  this.getButton = function(x, y) {
+  var getButton = function(x, y) {
     return columns[x][y];
   };
-  this.activateColumn = function(num, isMuted) {
-    var armedRows = [];
-    setButtonUniform("u_activeColumn", num);
-    columns[num].forEach(function(btn, index) {
+  var clear = function() {
+    buttons.forEach(function(btn) {
+      btn.disarm();
+    });
+  };
+  var getActiveNotesInColumn = function(columnNum) {
+    var activeNotesInColumn = [];
+    columns[columnNum].forEach(function(btn) {
       if (btn.isArmed()) {
-        armedRows.push(btn.row);
-        // if (!isMuted) {
-        //   // btn.material = KEY_PLAYING_MATERIAL;
-        //   // btn.shadow.material = SHADOW_KEY_PLAYING_MATERIAL;
-        // } else {
-        //   // btn.shadow.material = SHADOW_KEY_PLAYING_MUTED_MATERIAL;
-        // }
+        activeNotesInColumn.push(btn.row);
       }
     });
-    return armedRows;
+    return activeNotesInColumn;
+  };
+  var uvToButtonIndex = function(uv) {
+    var result = uv.clone().multiply(new THREE.Vector2(numHorizontalSteps, numVerticalSteps));
+    result.x = Math.floor(result.x);
+    result.y = Math.floor(result.y);
+    return result;
   };
 
-  // this.deactivateColumn = function(num) {
-  //   columns[num].forEach(function(btn) {
-  //     if (btn.isArmed()) {
-  //       // btn.material = KEY_ARMED_MATERIAL;
-  //       // btn.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
-  //     }
-  //   });
-  // };
-
-  this.setActiveColor = function({buttonColor, shadowColor}) {
-    setButtonUniform("u_activeColor", buttonColor, shadowColor);
-  };
-
-  this.mute = function(value) {
-    setButtonUniform("u_muted", value);
-  };
-
-  this.setRippleTexture = function(texture) {
-    setButtonUniform("u_rippleTex", texture);
-  };
-
-  // Some hacky debouncing
-  this.arming = true;
-  this.touchActive = false;
+  Object.assign(this, {
+    getActiveNotesInColumn: getActiveNotesInColumn,
+    setButtonUniform: setButtonUniform,
+    uvToButtonIndex: uvToButtonIndex,
+    touchActive: touchActive,
+    shadowGroup: shadowGroup,
+    clickScreen: clickScreen,
+    getButton: getButton,
+    armButton: armButton,
+    arming: arming,
+    clear: clear,
+  });
 }
-
-function uvToButtonIndex(uv, width, height) {
-  var result = uv.clone().multiply(new THREE.Vector2(width, height));
-  result.x = Math.floor(result.x);
-  result.y = Math.floor(result.y);
-  return result;
-}
-
 ToneMatrix.prototype = Object.create(THREE.Object3D.prototype);
 
 ToneMatrix.prototype.touch = function(raycaster) {
   var intersection = raycaster.intersectObject(this.clickScreen)[0];
-  // var t = raycaster.intersectObject(this);
   if (intersection && this.touchActive) {
-    var address = uvToButtonIndex(intersection.uv, this.numHorizontalSteps, this.numVerticalSteps); // TODO
-    var touchedButton = this.columns[address.x][address.y];
+    var address = this.uvToButtonIndex(intersection.uv);
+    var touchedButton = this.getButton(address.x, address.y);
     if (this.arming === true) {
       touchedButton.arm();
     } else {
@@ -278,25 +257,40 @@ ToneMatrix.prototype.touch = function(raycaster) {
     }
   }
 };
+
 ToneMatrix.prototype.touchStart = function(raycaster) {
   var intersection = raycaster.intersectObject(this.clickScreen)[0];
-  // var t = raycaster.intersectObject(this);
   if (intersection) {
-    var address = uvToButtonIndex(intersection.uv, this.numHorizontalSteps, this.numVerticalSteps); // TODO
-    var touchedButton = this.columns[address.x][address.y];
+    var address = this.uvToButtonIndex(intersection.uv);
+    var touchedButton = this.getButton(address.x, address.y);
     this.arming = !touchedButton.isArmed();
     this.touchActive = true;
   }
   this.touch(raycaster);
 };
+
 ToneMatrix.prototype.touchEnd = function() {
   this.touchActive = false;
 };
 
-ToneMatrix.prototype.clear = function() {
-  this.children.forEach(function(button) {
-    button.disarm();
-  });
+ToneMatrix.prototype.deactivateColumns = function(num) {
+  this.setButtonUniform("u_activeColumn", -1);
+};
+
+ToneMatrix.prototype.setActiveColor = function({buttonColor, shadowColor}) {
+  this.setButtonUniform("u_activeColor", buttonColor, shadowColor);
+};
+
+ToneMatrix.prototype.mute = function(value) {
+  this.setButtonUniform("u_muted", value);
+};
+
+ToneMatrix.prototype.setRippleTexture = function(texture) {
+  this.setButtonUniform("u_rippleTex", texture);
+};
+
+ToneMatrix.prototype.activateColumn = function(num) {
+  this.setButtonUniform("u_activeColumn", num);
 };
 
 export default ToneMatrix;

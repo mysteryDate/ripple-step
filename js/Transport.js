@@ -27,8 +27,7 @@ function Transport() {
 // TODO lots of law-of-demeter violations here
 Transport.prototype.update = function() {
   if (this.paused) {
-    // window.app.toneMatrix.deactivateColumn(this.previousPosition);
-    // window.app.toneMatrix.deactivateColumn(this.position);
+    window.app.toneMatrix.deactivateColumns();
     return;
   }
   var timeSinceStart = performance.now() - this.startTime;
@@ -40,9 +39,9 @@ Transport.prototype.update = function() {
   this.position = Math.floor(this.position % Constants.NUM_STEPS);
 
   if (this.position !== this.previousPosition) {
-    // window.app.toneMatrix.deactivateColumn(this.previousPosition);
     this.previousPosition = this.position;
-    var rowsToPlay = window.app.toneMatrix.activateColumn(this.position, window.app.muted);
+    window.app.toneMatrix.activateColumn(this.position);
+    var rowsToPlay = window.app.toneMatrix.getActiveNotesInColumn(this.position);
     if (!window.app.muted) {
       rowsToPlay.forEach(function(row) {
         window.app.synth.playRow(row);
