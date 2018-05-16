@@ -18,11 +18,12 @@ function makeKeyMaterial(options) {
       varying float v_armed;
       varying vec2 v_uv;
       ${Materials.Include.map}
+      const float numSteps = ${Constants.NUM_STEPS.toFixed(3)};
       void main() {
         v_uv = uv;
         v_armed = isArmed;
         v_relativePosition = relativePosition;
-        vec2 offset = map(relativePosition, 0.0, 16.0, 0.0, 1.0);
+        vec2 offset = map(relativePosition, 0.0, numSteps, 0.0, 1.0);
         vec3 pos = vec3(position.xy + offset - 0.5, 1.0);
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       }
@@ -79,10 +80,11 @@ function makeShadowKeyMaterial() {
       varying vec2 v_relativePosition;
       varying float v_armed;
       ${Materials.Include.map}
+      const float numSteps = ${Constants.NUM_STEPS.toFixed(3)};
       void main() {
         v_armed = isArmed;
         v_relativePosition = relativePosition;
-        vec2 offset = map(relativePosition, 0.0, 16.0, 0.0, 1.0);
+        vec2 offset = map(relativePosition, 0.0, numSteps, 0.0, 1.0);
         vec3 pos = vec3(position.xy + offset - 0.5, 1.0);
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       }
@@ -117,12 +119,12 @@ function MatrixButton(row, column, geometry, armedBuffer) {
 
   this.arm = function() {
     armed = true;
-    armedBuffer.setX(column * 16 + row, 1);
+    armedBuffer.setX(column * Constants.NUM_STEPS + row, 1);
     armedBuffer.needsUpdate = true;
   };
   this.disarm = function() {
     armed = false;
-    armedBuffer.setX(column * 16 + row, 0);
+    armedBuffer.setX(column * Constants.NUM_STEPS + row, 0);
     armedBuffer.needsUpdate = true;
   };
   this.isArmed = function() {
@@ -202,6 +204,9 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     }
   }
 
+  this.numHorizontalSteps = numHorizontalSteps;
+  this.numVerticalSteps = numVerticalSteps;
+
   this.armButton = function(x, y) {
     columns[x][y].arm();
   };
@@ -264,7 +269,7 @@ ToneMatrix.prototype.touch = function(raycaster) {
   var intersection = raycaster.intersectObject(this.clickScreen)[0];
   // var t = raycaster.intersectObject(this);
   if (intersection && this.touchActive) {
-    var address = uvToButtonIndex(intersection.uv, 16, 16); // TODO
+    var address = uvToButtonIndex(intersection.uv, this.numHorizontalSteps, this.numVerticalSteps); // TODO
     var touchedButton = this.columns[address.x][address.y];
     if (this.arming === true) {
       touchedButton.arm();
@@ -277,7 +282,7 @@ ToneMatrix.prototype.touchStart = function(raycaster) {
   var intersection = raycaster.intersectObject(this.clickScreen)[0];
   // var t = raycaster.intersectObject(this);
   if (intersection) {
-    var address = uvToButtonIndex(intersection.uv, 16, 16); // TODO
+    var address = uvToButtonIndex(intersection.uv, this.numHorizontalSteps, this.numVerticalSteps); // TODO
     var touchedButton = this.columns[address.x][address.y];
     this.arming = !touchedButton.isArmed();
     this.touchActive = true;
