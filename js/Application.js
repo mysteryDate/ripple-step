@@ -8,33 +8,20 @@ import RippleSynth from "./RippleSynth";
 import ControlPanel from "./ControlPanel";
 import Transport from "./Transport";
 
-function makeToneMatrix(width, height, numSteps, numNotes) {
-  var toneMatrix = new ToneMatrix(numSteps, numNotes);
-  toneMatrix.scale.set(width, height, 1);
-  toneMatrix.position.set(width/2, height/2, 1);
-  toneMatrix.armButton(0, random(0, numNotes - 1)); // Arm random button
-
-  return toneMatrix;
-}
-
 function Application(selector, width, height, options) {
   var canvas = document.querySelector(selector);
   var downsample = (options.isMobile === true) ? Settings.MOBILE_DOWNSAMPLE : Settings.DESKTOP_DOWNSAMPLE;
   var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
   renderer.setPixelRatio(window.devicePixelRatio/downsample);
-  renderer.setSize(width, height);
   var scene = new THREE.Scene();
   var camera = new THREE.OrthographicCamera();
-  camera.position.set(width/2, height/2, 50);
 
   var currentScale = sample(Object.values(Scales));
-  var toneMatrixSize = Math.min(width, height) * 0.8;
-  var toneMatrix = makeToneMatrix(toneMatrixSize, toneMatrixSize, options.numSteps, options.numNotes);
+  var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes);
+  toneMatrix.armButton(0, random(0, options.numNotes - 1)); // Arm random button
   scene.add(toneMatrix);
 
   var scaleChooser = new ScaleChooser(Scales);
-  scaleChooser.position.x = width/2;
-  scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
   scene.add(scaleChooser);
 
   // SYNTH
@@ -48,7 +35,6 @@ function Application(selector, width, height, options) {
     setter: synth.setControl,
   });
   scene.add(knobPanel);
-  // knobPanel.visible = false; //  TODO
 
   var transport = new Transport();
   var raycaster = new THREE.Raycaster();
@@ -103,6 +89,14 @@ Application.prototype.resize = function(width, height) {
   this.camera.updateProjectionMatrix();
 
   var toneMatrixSize = Math.min(width, height);
+  var aspectRatio = width/height;
+  if (aspectRatio > 1 - Constants.MIN_UI_PADDING && aspectRatio < 1/(1 - Constants.MIN_UI_PADDING)) {
+    if (aspectRatio > 1) {
+      toneMatrixSize = (1 - Constants.MIN_UI_PADDING) * width;
+    } else {
+      toneMatrixSize = (1 - Constants.MIN_UI_PADDING) * height;
+    }
+  }
   this.toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
   this.toneMatrix.position.set(width/2, height/2, 1);
 
@@ -127,15 +121,19 @@ Application.prototype.resize = function(width, height) {
 
   this.scaleChooser.position.set(0, 0, 0);
   this.scaleChooser.rotation.set(0, 0, 0);
+  var numScales = Object.keys(Scales).length;
+  var scaleChooserSize = 0.5;
   if (controlPanelLayout === "vertical") {
     this.scaleChooser.position.x = (width - toneMatrixSize) / 4;
     this.scaleChooser.position.y = height/2;
     this.scaleChooser.rotateZ(Math.PI /2);
+    scaleChooserSize *= height/numScales;
   } else {
     this.scaleChooser.position.x = width/2;
     this.scaleChooser.position.y = (height - toneMatrixSize) / 4;
+    scaleChooserSize *= width/numScales;
   }
-  this.scaleChooser.scale.set(toneMatrixSize/Constants.NUM_STEPS, toneMatrixSize/Constants.NUM_STEPS, 1);
+  this.scaleChooser.scale.set(scaleChooserSize, scaleChooserSize, 1);
 
   this.width = width;
   this.height = height;
@@ -149,9 +147,7 @@ Application.prototype.touchStart = function(event) {
   this.raycaster.setFromCamera(mouse, this.camera);
   this.toneMatrix.touchStart(this.raycaster);
   this.scaleChooser.touchStart(this.raycaster);
-  if (this.knobPanel.visible) {
-    this.knobPanel.touchStart(this.raycaster, event);
-  } // TODO is a mousemove now necessary?
+  this.knobPanel.touchStart(this.raycaster, event);
 };
 
 Application.prototype.touch = function(event) {
@@ -160,15 +156,11 @@ Application.prototype.touch = function(event) {
   mouse.y = -(event.pageY / this.height) * 2 + 1;
   this.raycaster.setFromCamera(mouse, this.camera);
   this.toneMatrix.touch(this.raycaster);
-  if (this.knobPanel.visible) {
-    this.knobPanel.touch(this.raycaster, event);
-  }
+  this.knobPanel.touch(this.raycaster, event);
 };
 
 Application.prototype.touchEnd = function() {
-  if (this.knobPanel.visible) {
-    this.knobPanel.touchEnd();
-  }
+  this.knobPanel.touchEnd();
   this.toneMatrix.touchEnd();
 };
 

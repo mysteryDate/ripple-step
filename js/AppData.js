@@ -5,6 +5,7 @@ var Settings = {
 
 var Constants = {
   BASE_COLOR: 0x1d1e26,
+  MIN_UI_PADDING: 0.2,
   SECONDARY_BASE_COLOR: 0xaaaaaa,
   NUM_STEPS: 16,
   SPACING_RATIO: 1/10,

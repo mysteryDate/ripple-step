@@ -2,14 +2,11 @@ import * as THREE from "../node_modules/three";
 import Materials from "./Materials";
 import {blitTexture} from "./Graphics";
 
-// TODO refactor me
-
 var rtOptions = {
   depthBuffer: false,
   stencilBuffer: false,
 };
-var RENDER_TEXTURE_RESOLUTION = 256; // TODO
-// var RENDER_TEXTURE_RESOLUTION = 128; // TODO
+var RENDER_TEXTURE_RESOLUTION = 256;
 // For off-screen, ripple renders
 function makeShadowScene(group) {
   var shadowGroup = group; // TODO, find a way to clone this, law of demeter and all
@@ -29,7 +26,6 @@ function makeShadowScene(group) {
 
   return scene;
 }
-
 
 var RATIO = 0.4; // TODO
 function Rippleizer(group) {
@@ -57,8 +53,8 @@ function Rippleizer(group) {
 
   return {
     damping: rippleMaterial.uniforms.u_damping,
-    render: render,
     getActiveTexture: getActiveTexture,
+    render: render,
   };
 }
 

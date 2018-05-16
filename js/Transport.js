@@ -1,6 +1,5 @@
 import {Constants, Controls} from "./AppData";
 
-// TODO make this not terrible
 function Transport() {
   this.startTime = performance.now();
   this.paused = true;
