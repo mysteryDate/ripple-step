@@ -2,6 +2,23 @@ import * as THREE from "../node_modules/three/build/three.min.js";
 
 var Materials = {};
 
+Materials.Include = {};
+Materials.Include.map = `
+  float map(float value, float inMin, float inMax, float outMin, float outMax) {
+    return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
+  }
+
+  vec2 map(vec2 value, vec2 inMin, vec2 inMax, vec2 outMin, vec2 outMax) {
+    vec2 result = vec2(0.0);
+    result.x = map(value.x, inMin.x, inMax.x, outMin.x, outMax.x);
+    result.y = map(value.y, inMin.y, inMax.y, outMin.y, outMax.y);
+    return result;
+  }
+
+  vec2 map(vec2 value, float inMin, float inMax, float outMin, float outMax) {
+    return map(value, vec2(inMin), vec2(inMax), vec2(outMin), vec2(outMax));
+  }`;
+
 Materials.ripple = function(options) {
   var defaultOptions = {
     width: 512,
@@ -66,48 +83,48 @@ Materials.indicatorLight = function() {
     transparent: true,
     uniforms: {
       u_color: {value: new THREE.Color(0xff00ff)},
-      u_brightness: {value: 1.0},
-      u_isOn: {value: 1.0},
+      u_currentRotation: {value: 0.0},
+      // u_isOn: {value: 1.0},
     },
     vertexShader: `
+      attribute vec3 relativePosition;
+      attribute float angle;
+      varying vec3 v_relativePosition;
       varying vec2 v_uv;
+      varying float v_angle;
       void main() {
         v_uv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        v_angle = angle;
+        v_relativePosition = relativePosition;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position + relativePosition, 1.0);
       }
     `,
     fragmentShader: `
+      varying vec3 v_relativePosition;
       varying vec2 v_uv;
+      varying float v_angle;
       uniform vec3 u_color;
-      uniform float u_brightness;
-      uniform float u_isOn;
+      uniform float u_currentRotation;
+      ${Materials.Include.map}
+
+      // uniform float u_isOn;
+      // var brightness = THREE.Math.smoothstep(light.angle, lightRot - 0.5, lightRot); // light is smeared out by 0.5 radians
+      // brightness = THREE.Math.mapLinear(brightness, 0.0, 1.0, 0.05, 0.3); // [min brightness, max brightness] = [0.05, 0.3]
       void main() {
+        float isOn = step(0.0, v_angle - u_currentRotation);
         float dist = length(v_uv - vec2(0.5));
         float centerCircle = 1.0 - smoothstep(0.0, 0.2, dist);
-        float outerGlow = (1.0 - smoothstep(0.1, 0.5, dist)) * u_brightness;
-        float alpha = outerGlow + centerCircle * u_isOn;
+
+        float brightness = smoothstep(u_currentRotation - 0.5, u_currentRotation, v_angle);
+        brightness = map(brightness, 0.0, 1.0, 0.05, 0.3);
+
+        float outerGlow = (1.0 - smoothstep(0.1, 0.5, dist)) * brightness;
+        float alpha = outerGlow + centerCircle * isOn;
         gl_FragColor = vec4(u_color, alpha);
       }
     `,
   });
 };
-
-Materials.Include = {};
-Materials.Include.map = `
-  float map(float value, float inMin, float inMax, float outMin, float outMax) {
-    return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
-  }
-
-  vec2 map(vec2 value, vec2 inMin, vec2 inMax, vec2 outMin, vec2 outMax) {
-    vec2 result = vec2(0.0);
-    result.x = map(value.x, inMin.x, inMax.x, outMin.x, outMax.x);
-    result.y = map(value.y, inMin.y, inMax.y, outMin.y, outMax.y);
-    return result;
-  }
-
-  vec2 map(vec2 value, float inMin, float inMax, float outMin, float outMax) {
-    return map(value, vec2(inMin), vec2(inMax), vec2(outMin), vec2(outMax));
-  }`;
 
 
 export default Materials;

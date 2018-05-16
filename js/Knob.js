@@ -45,6 +45,18 @@ function Knob(options) {
 
   var lights = (function makeLights() {
     var group = new THREE.Group();
+    var icRadius = INDICATOR_LIGHT_SIZE_RATIO * radius;
+    var positions = [0, 2 * icRadius, 0, 2 * icRadius, 2 * icRadius, 0, 0, 0, 0, 2 * icRadius, 0, 0];
+    var indices = [0, 2, 1, 2, 3, 1];
+    var uvs = [0, 1, 1, 1, 0, 0, 1, 0];
+    var geom = new THREE.InstancedBufferGeometry();
+    geom.addAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+    geom.translate(-icRadius, -icRadius, 0);
+    geom.setIndex(indices);
+    geom.addAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvs), 2));
+    var relativePositions = new THREE.InstancedBufferAttribute(new Float32Array(numLights * 3), 3, 1);
+    var angles = new THREE.InstancedBufferAttribute(new Float32Array(numLights), 1, 1);
+
     for (let i = 0; i < numLights; i++) {
       var ic = new IndicatorLight({radius: INDICATOR_LIGHT_SIZE_RATIO * radius});
       var rot = THREE.Math.mapLinear(i, 0, numLights - 1, minRotation, maxRotation);
@@ -54,10 +66,15 @@ function Knob(options) {
       var x = INDICATOR_LIGHT_DISTANCE_RATIO * radius * Math.cos(rot);
       var y = INDICATOR_LIGHT_DISTANCE_RATIO * radius * Math.sin(rot);
       ic.angle = rot;
+      relativePositions.setXYZ(i, x, y, 0);
+      angles.setX(i, rot);
       ic.position.set(x, y, 0);
       group.add(ic);
     }
-    return group;
+    geom.addAttribute("relativePosition", relativePositions);
+    geom.addAttribute("angle", angles);
+    var instancedMesh = new THREE.Mesh(geom, Materials.indicatorLight());
+    return instancedMesh;
   })();
   this.add(lights);
 
@@ -68,14 +85,15 @@ function Knob(options) {
       // Same regrettable tranformation as above
       var lightRot = -rotation + Math.PI/2;
       if (light.angle >= lightRot) {
-        light.material.uniforms.u_isOn.value = 1;
+        // light.material.uniforms.u_isOn.value = 1;
       } else {
-        light.material.uniforms.u_isOn.value = 0;
+        // light.material.uniforms.u_isOn.value = 0;
       }
       var brightness = THREE.Math.smoothstep(light.angle, lightRot - 0.5, lightRot); // light is smeared out by 0.5 radians
       brightness = THREE.Math.mapLinear(brightness, 0.0, 1.0, 0.05, 0.3); // [min brightness, max brightness] = [0.05, 0.3]
       light.material.uniforms.u_brightness.value = brightness;
     });
+    lights.material.uniforms.u_currentRotation.value = -rotation + Math.PI/2;
   }
   function getRotationFromValue(value) {
     return THREE.Math.mapLinear(value, minValue, maxValue, minRotation, maxRotation);
