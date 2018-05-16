@@ -23,6 +23,7 @@ function touchMove(event) {
 }
 function touchStart(event) {
   if (!hasInteracted) {
+    window.app.start();
     Tone.context.resume(); // TODO
     interactionGate.style.display = "none";
     hasInteracted = true;
@@ -89,7 +90,6 @@ window.onload = function() {
 
   window.setTimeout(function() {
     window.app.setScale(window.app.currentScale);
-    window.app.start();
     update();
   }, 0);
 };

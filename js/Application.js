@@ -3,7 +3,7 @@ import {sample, random} from "../node_modules/underscore";
 
 import {Constants, Scales, Controls} from "./AppData";
 import ToneMatrix from "./ToneMatrix";
-import Rippleizer from "./Rippleizer";
+// import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
 import ControlPanel from "./ControlPanel";
@@ -12,7 +12,7 @@ import Transport from "./Transport";
 function makeToneMatrix(width, height, numSteps, numNotes) {
   var toneMatrix = new ToneMatrix(numSteps, numNotes);
   toneMatrix.scale.set(width, height, 1);
-  toneMatrix.shadowGroup.scale.set(width, height, 1);
+  // toneMatrix.shadowGroup.scale.set(width, height, 1);
   toneMatrix.position.set(width/2, height/2, 1);
   toneMatrix.armButton(0, random(0, numNotes - 1)); // Arm random button
 
@@ -33,7 +33,7 @@ function Application(selector, width, height, options) {
   var currentScale = sample(Object.values(Scales));
   var toneMatrixSize = Math.min(width, height) * 0.8;
   var toneMatrix = makeToneMatrix(toneMatrixSize, toneMatrixSize, options.numSteps, options.numNotes);
-  var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
+  // var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
   scene.add(toneMatrix);
 
   var scaleChooser = new ScaleChooser(Scales);
@@ -64,7 +64,7 @@ function Application(selector, width, height, options) {
   Object.assign(this, {
     scaleChooser: scaleChooser,
     currentScale: currentScale,
-    rippleizer: rippleizer,
+    // rippleizer: rippleizer,
     toneMatrix: toneMatrix,
     downsample: downsample,
     raycaster: raycaster,
@@ -83,8 +83,8 @@ function Application(selector, width, height, options) {
 }
 
 Application.prototype.render = function() {
-  this.rippleizer.render();
-  this.toneMatrix.setRippleTexture(this.rippleizer.getActiveTexture());
+  // this.rippleizer.render();
+  // this.toneMatrix.setRippleTexture(this.rippleizer.getActiveTexture());
   this.renderer.render(this.scene, this.camera);
 };
 
@@ -111,8 +111,8 @@ Application.prototype.resize = function(width, height) {
   var toneMatrixSize = Math.min(width, height);
   this.toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
   this.toneMatrix.position.set(width/2, height/2, 1);
-  this.toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
-  this.rippleizer = new Rippleizer(this.renderer, this.toneMatrix.shadowGroup);
+  // this.toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
+  // this.rippleizer = new Rippleizer(this.renderer, this.toneMatrix.shadowGroup);
 
   var controlPanelLayout = (width > height) ? "vertical" : "horizontal";
   var availableSpace = height - (height/2 + toneMatrixSize/2);
@@ -205,21 +205,21 @@ Application.prototype.update = function() {
 
 
   // TODO, this is hideous
-  this.rippleizer.damping.value = (function getRelease() {
-    var release = window.app.synth.getControl("release");
-    var minRelease = Controls.Envelope.release.minValue;
-    var maxRelease = Controls.Envelope.release.maxValue;
-    var dampingValue;
-    var firstStop = 0.05;
-    if (release < THREE.Math.lerp(minRelease, maxRelease, firstStop)) {
-      dampingValue = THREE.Math.mapLinear(release, minRelease, THREE.Math.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
-    } else if (release === Controls.Envelope.release.maxValue) {
-      dampingValue = 1;
-    } else {
-      dampingValue = THREE.Math.mapLinear(release, THREE.Math.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.999);
-    }
-    return dampingValue;
-  })();
+  // this.rippleizer.damping.value = (function getRelease() {
+  //   var release = window.app.synth.getControl("release");
+  //   var minRelease = Controls.Envelope.release.minValue;
+  //   var maxRelease = Controls.Envelope.release.maxValue;
+  //   var dampingValue;
+  //   var firstStop = 0.05;
+  //   if (release < THREE.Math.lerp(minRelease, maxRelease, firstStop)) {
+  //     dampingValue = THREE.Math.mapLinear(release, minRelease, THREE.Math.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
+  //   } else if (release === Controls.Envelope.release.maxValue) {
+  //     dampingValue = 1;
+  //   } else {
+  //     dampingValue = THREE.Math.mapLinear(release, THREE.Math.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.999);
+  //   }
+  //   return dampingValue;
+  // })();
 };
 
 export default Application;

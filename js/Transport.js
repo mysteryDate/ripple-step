@@ -24,10 +24,11 @@ function Transport() {
   };
 }
 
+// TODO lots of law-of-demeter violations here
 Transport.prototype.update = function() {
   if (this.paused) {
-    // window.app.toneMatrix.deactivateColumn(this.previousPosition);
-    // window.app.toneMatrix.deactivateColumn(this.position);
+    window.app.toneMatrix.deactivateColumn(this.previousPosition);
+    window.app.toneMatrix.deactivateColumn(this.position);
     return;
   }
   var timeSinceStart = performance.now() - this.startTime;

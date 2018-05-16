@@ -1,13 +1,14 @@
 import * as THREE from "../node_modules/three";
 import {Constants} from "./AppData";
+import Materials from "./Materials";
 
-var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({
-  transparent: true,
-  opacity: 0.0,
-});
-var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xffffff)});
-var SHADOW_KEY_PLAYING_MUTED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xcccccc)});
-var SHADOW_KEY_ARMED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
+// var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({
+//   transparent: true,
+//   opacity: 0.0,
+// });
+// var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xffffff)});
+// var SHADOW_KEY_PLAYING_MUTED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xcccccc)});
+// var SHADOW_KEY_ARMED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
 
 function makeKeyMaterial(options) {
   return new THREE.ShaderMaterial({
@@ -23,12 +24,18 @@ function makeKeyMaterial(options) {
     },
     vertexShader: `
       attribute vec2 relativePosition;
+      attribute float isArmed;
       varying vec2 v_relativePosition;
+      varying float v_armed;
       varying vec2 v_uv;
+      ${Materials.Include.map}
       void main() {
         v_uv = uv;
+        v_armed = isArmed;
         v_relativePosition = relativePosition;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        vec2 offset = map(relativePosition, 0.0, 16.0, 0.0, 1.0);
+        vec3 pos = vec3(position.xy + offset - 0.5, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       }
     `,
     fragmentShader: `
@@ -43,6 +50,7 @@ function makeKeyMaterial(options) {
       uniform float u_activeColumn;
       varying vec2 v_uv;
       varying vec2 v_relativePosition;
+      varying float v_armed;
 
       float rectangleSDF(vec2 st, vec2 s) {
         st = st * 2.0 - 1.0;
@@ -56,7 +64,7 @@ function makeKeyMaterial(options) {
       #define MUTE_COLOR_VALUE ${Constants.MUTE_COLOR_VALUE.toFixed(3)}
       void main() {
         vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
-        col = mix(u_baseColor, col, u_armed);
+        col = mix(u_baseColor, col, v_armed);
         vec3 playingColor = 2.0 * col * mix(1.0, MUTE_COLOR_VALUE, u_muted);
         col = mix(col, vec3(1.0), u_playing);
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / NUM_STEPS).rgb;
@@ -64,6 +72,7 @@ function makeKeyMaterial(options) {
 
         float rect = squareSDF(v_uv);
         col *= 1.0 - step(1.0 - ${Constants.SPACING_RATIO.toFixed(3)}, rect);
+
         gl_FragColor = vec4(col, 1.0);
       }
     `,
@@ -71,29 +80,33 @@ function makeKeyMaterial(options) {
 }
 
 var KEY_UNARMED_MATERIAL = makeKeyMaterial({armed: false});
-var KEY_ARMED_MATERIAL = makeKeyMaterial({armed: true});
-var KEY_PLAYING_MATERIAL = makeKeyMaterial({playing: true});
+// var KEY_ARMED_MATERIAL = makeKeyMaterial({armed: true});
+// var KEY_PLAYING_MATERIAL = makeKeyMaterial({playing: true});
 
-function MatrixButton(row, column, geometry) {
-  THREE.Mesh.call(this, geometry, KEY_UNARMED_MATERIAL);
+function MatrixButton(row, column, geometry, armedBuffer) {
+  // THREE.Mesh.call(this, geometry, KEY_UNARMED_MATERIAL);
   this.row = row;
   this.column = column;
-  this.shadow = new THREE.Mesh(geometry, SHADOW_KEY_MATERIAL);
-  this.shadow.visible = false;
+  // this.shadow = new THREE.Mesh(geometry, SHADOW_KEY_MATERIAL);
+  // this.shadow.visible = false;
 
   var armed = false;
 
   this.arm = function() {
     armed = true;
-    this.material = KEY_ARMED_MATERIAL;
-    this.shadow.visible = true;
-    this.shadow.material = SHADOW_KEY_MATERIAL;
+    // this.material = KEY_ARMED_MATERIAL;
+    armedBuffer.setX(column * 16 + row, 1);
+    armedBuffer.needsUpdate = true;
+    // this.shadow.visible = true;
+    // this.shadow.material = SHADOW_KEY_MATERIAL;
   };
   this.disarm = function() {
     armed = false;
-    this.material = KEY_UNARMED_MATERIAL;
-    this.shadow.material = SHADOW_KEY_MATERIAL;
-    this.shadow.visible = false;
+    // this.material = KEY_UNARMED_MATERIAL;
+    armedBuffer.setX(column * 16 + row, 0);
+    armedBuffer.needsUpdate = true;
+    // this.shadow.material = SHADOW_KEY_MATERIAL;
+    // this.shadow.visible = false;
   };
   this.isArmed = function() {
     return armed;
@@ -106,33 +119,62 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   var keyGeometry = (function makeKeyGeometry() {
     var w = numHorizontalSteps;
     var h = numVerticalSteps;
-    var g = new THREE.PlaneBufferGeometry(1/w, 1/h);
-    g.translate(0.5/w, 0.5/h, 0);
+    /* Copied from PlaneBufferGeometry
+    0 ----- 1
+    |       |
+    |       |
+    2 ----- 3
+    */
+    var positions = [0, 1/h, 0, 1/w, 1/h, 0, 0, 0, 0, 1/w, 0, 0];
+    var indices = [0, 2, 1, 2, 3, 1];
+    var uvs = [0, 1, 1, 1, 0, 0, 1, 0];
+
+    var g = new THREE.InstancedBufferGeometry();
+    g.addAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+    g.setIndex(indices);
+    g.addAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvs), 2));
     return g;
   })();
   var buttons = [];
   var columns = [];
+  var numButtons = numHorizontalSteps * numVerticalSteps;
+  var relativePositions = new THREE.InstancedBufferAttribute(new Float32Array(numButtons * 2), 2, 1);
+  var armedBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons), 1, 1); // 0 = inactive, 1 = armed
+  // var relativePositions = new THREE.InstancedBufferAttribute(new Float32Array(2), 2, 1);
 
-  this.shadowGroup = new THREE.Group();
+  // this.shadowGroup = new THREE.Group();
   for (var col = 0; col < numHorizontalSteps; col++) {
     columns.push([]);
     for (var row = 0; row < numVerticalSteps; row++) {
-      var button = new MatrixButton(row, col, keyGeometry);
-      button.material.uniforms.u_relativePosition.value = new THREE.Vector2(col, row);
-      button.position.set(col - numHorizontalSteps/2, row - numVerticalSteps/2, 0).multiplyScalar(1/numHorizontalSteps, 1/numVerticalSteps, 1);
-      button.shadow.position.copy(button.position);
+      var button = new MatrixButton(row, col, keyGeometry, armedBuffer);
+      // button.material.uniforms.u_relativePosition.value = new THREE.Vector2(col, row);
+      relativePositions.setXY(col * numHorizontalSteps + row, col, row);
+      armedBuffer.setX(col * numHorizontalSteps + row, 0); // Set all to inactive
+      // button.position.set(col - numHorizontalSteps/2, row - numVerticalSteps/2, 0).multiplyScalar(1/numHorizontalSteps, 1/numVerticalSteps, 1);
+      // var buttonPosition = new THREE.Vector3(col - numHorizontalSteps/2, row - numVerticalSteps/2, 0).multiplyScalar(1/numHorizontalSteps, 1/numVerticalSteps, 1);
+      // button.shadow.position.copy(buttonPosition);
       buttons.push(button);
       columns[col].push(button);
-      this.add(button);
-      this.shadowGroup.add(button.shadow);
+      // this.add(button);
+      // this.shadowGroup.add(button.shadow);
     }
   }
+  this.columns = columns;
+  // console.log(keyGeometry);
+  armedBuffer.setDynamic(true);
+  keyGeometry.addAttribute("relativePosition", relativePositions);
+  keyGeometry.addAttribute("isArmed", armedBuffer);
+  this.add(new THREE.Mesh(keyGeometry, KEY_UNARMED_MATERIAL));
 
-  // var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
+  this.clickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({color: "pink", wireframe: true}));
+  this.add(this.clickScreen);
+  this.clickScreen.position.z += 10;
+
+  // var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup); // TODO should live here
 
   function setButtonUniform(uniform, value) {
     buttons.forEach(function(btn) {
-      btn.material.uniforms[uniform].value = value;
+      // btn.material.uniforms[uniform].value = value;
     });
   }
 
@@ -149,10 +191,10 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
       if (btn.isArmed()) {
         armedRows.push(btn.row);
         if (!isMuted) {
-          btn.material = KEY_PLAYING_MATERIAL;
-          btn.shadow.material = SHADOW_KEY_PLAYING_MATERIAL;
+          // btn.material = KEY_PLAYING_MATERIAL;
+          // btn.shadow.material = SHADOW_KEY_PLAYING_MATERIAL;
         } else {
-          btn.shadow.material = SHADOW_KEY_PLAYING_MUTED_MATERIAL;
+          // btn.shadow.material = SHADOW_KEY_PLAYING_MUTED_MATERIAL;
         }
       }
     });
@@ -162,16 +204,16 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   this.deactivateColumn = function(num) {
     columns[num].forEach(function(btn) {
       if (btn.isArmed()) {
-        btn.material = KEY_ARMED_MATERIAL;
-        btn.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
+        // btn.material = KEY_ARMED_MATERIAL;
+        // btn.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
       }
     });
   };
 
   this.setActiveColor = function({buttonColor, shadowColor}) {
     setButtonUniform("u_activeColor", buttonColor);
-    SHADOW_KEY_PLAYING_MATERIAL.color = shadowColor;
-    SHADOW_KEY_PLAYING_MUTED_MATERIAL.color = shadowColor.clone().multiplyScalar(0.02);
+    // SHADOW_KEY_PLAYING_MATERIAL.color = shadowColor;
+    // SHADOW_KEY_PLAYING_MUTED_MATERIAL.color = shadowColor.clone().multiplyScalar(0.02);
   };
 
   this.mute = function(value) {
@@ -189,19 +231,29 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
 ToneMatrix.prototype = Object.create(THREE.Object3D.prototype);
 
 ToneMatrix.prototype.touch = function(raycaster) {
-  var touchedButton = raycaster.intersectObjects(this.children)[0];
-  if (touchedButton && this.touchActive) {
+  var intersection = raycaster.intersectObject(this.clickScreen)[0];
+  // var t = raycaster.intersectObject(this);
+  if (intersection && this.touchActive) {
+    var uv = intersection.uv.multiplyScalar(16);
+    uv.x = Math.floor(uv.x);
+    uv.y = Math.floor(uv.y);
+    var touchedButton = this.columns[uv.x][uv.y];
     if (this.arming === true) {
-      touchedButton.object.arm();
+      touchedButton.arm();
     } else {
-      touchedButton.object.disarm();
+      touchedButton.disarm();
     }
   }
 };
 ToneMatrix.prototype.touchStart = function(raycaster) {
-  var touchedButton = raycaster.intersectObjects(this.children)[0];
-  if (touchedButton) {
-    this.arming = !touchedButton.object.isArmed();
+  var intersection = raycaster.intersectObject(this.clickScreen)[0];
+  // var t = raycaster.intersectObject(this);
+  if (intersection) {
+    var uv = intersection.uv.multiplyScalar(16);
+    uv.x = Math.floor(uv.x);
+    uv.y = Math.floor(uv.y);
+    var touchedButton = this.columns[uv.x][uv.y];
+    this.arming = !touchedButton.isArmed();
     this.touchActive = true;
   }
   this.touch(raycaster);
