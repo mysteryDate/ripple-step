@@ -3,7 +3,6 @@ import {sample, random} from "../node_modules/underscore";
 
 import {Constants, Scales, Settings, Controls} from "./AppData";
 import ToneMatrix from "./ToneMatrix";
-import Rippleizer from "./Rippleizer";
 import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
 import ControlPanel from "./ControlPanel";
@@ -12,7 +11,6 @@ import Transport from "./Transport";
 function makeToneMatrix(width, height, numSteps, numNotes) {
   var toneMatrix = new ToneMatrix(numSteps, numNotes);
   toneMatrix.scale.set(width, height, 1);
-  toneMatrix.shadowGroup.scale.set(width, height, 1); // TODO Demeter!!!
   toneMatrix.position.set(width/2, height/2, 1);
   toneMatrix.armButton(0, random(0, numNotes - 1)); // Arm random button
 
@@ -22,7 +20,6 @@ function makeToneMatrix(width, height, numSteps, numNotes) {
 function Application(selector, width, height, options) {
   var canvas = document.querySelector(selector);
   var downsample = (options.isMobile === true) ? Settings.MOBILE_DOWNSAMPLE : Settings.DESKTOP_DOWNSAMPLE;
-  // this.inputHandler = new InputHandler(this.canvas);
   var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
   renderer.setPixelRatio(window.devicePixelRatio/downsample);
   renderer.setSize(width, height);
@@ -33,9 +30,7 @@ function Application(selector, width, height, options) {
   var currentScale = sample(Object.values(Scales));
   var toneMatrixSize = Math.min(width, height) * 0.8;
   var toneMatrix = makeToneMatrix(toneMatrixSize, toneMatrixSize, options.numSteps, options.numNotes);
-  var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup);
   scene.add(toneMatrix);
-  // scene.add(toneMatrix.shadowGroup);
 
   var scaleChooser = new ScaleChooser(Scales);
   scaleChooser.position.x = width/2;
@@ -65,7 +60,6 @@ function Application(selector, width, height, options) {
   Object.assign(this, {
     scaleChooser: scaleChooser,
     currentScale: currentScale,
-    rippleizer: rippleizer,
     toneMatrix: toneMatrix,
     downsample: downsample,
     raycaster: raycaster,
@@ -84,8 +78,7 @@ function Application(selector, width, height, options) {
 }
 
 Application.prototype.render = function() {
-  this.rippleizer.render();
-  this.toneMatrix.setRippleTexture(this.rippleizer.getActiveTexture());
+  this.toneMatrix.render(this.renderer);
   this.renderer.render(this.scene, this.camera);
 };
 
@@ -112,9 +105,6 @@ Application.prototype.resize = function(width, height) {
   var toneMatrixSize = Math.min(width, height);
   this.toneMatrix.scale.set(toneMatrixSize, toneMatrixSize, 1);
   this.toneMatrix.position.set(width/2, height/2, 1);
-  this.toneMatrix.shadowGroup.scale.set(toneMatrixSize, toneMatrixSize, 1);
-  this.rippleizer = new Rippleizer(this.renderer, this.toneMatrix.shadowGroup);
-  // this.rippleizer = new Rippleizer(this.renderer, this.toneMatrix);
 
   var controlPanelLayout = (width > height) ? "vertical" : "horizontal";
   var availableSpace = height - (height/2 + toneMatrixSize/2);
@@ -205,9 +195,8 @@ Application.prototype.start = function() {
 Application.prototype.update = function() {
   this.transport.update();
 
-
   // TODO, this is hideous
-  this.rippleizer.damping.value = (function getRelease() {
+  var newDamping = (function getRelease() {
     var release = window.app.synth.getControl("release");
     var minRelease = Controls.Envelope.release.minValue;
     var maxRelease = Controls.Envelope.release.maxValue;
@@ -222,6 +211,7 @@ Application.prototype.update = function() {
     }
     return dampingValue;
   })();
+  this.toneMatrix.setDamping(newDamping);
 };
 
 export default Application;

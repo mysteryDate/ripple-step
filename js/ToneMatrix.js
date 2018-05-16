@@ -1,14 +1,15 @@
 import * as THREE from "../node_modules/three";
 import {Constants} from "./AppData"; // TODO pass in as options
 import Materials from "./Materials";
+import Rippleizer from "./Rippleizer";
 
 function makeKeyMaterial(options) {
   return new THREE.ShaderMaterial({
     uniforms: {
-      u_baseColor: {value: new THREE.Color(options.baseColor)},
-      u_numHorizontalNotes: {value: options.numHorizontalNotes},
-      u_numVerticalNotes: {value: options.numVerticalNotes},
       u_activeColor: {value: new THREE.Color(options.activeColor)},
+      u_numHorizontalNotes: {value: options.numHorizontalNotes},
+      u_baseColor: {value: new THREE.Color(options.baseColor)},
+      u_numVerticalNotes: {value: options.numVerticalNotes},
       u_activeColumn: {value: -1},
       u_rippleTex: {value: null},
       u_muted: {value: false},
@@ -19,15 +20,17 @@ function makeKeyMaterial(options) {
       uniform float u_numHorizontalNotes;
       uniform float u_numVerticalNotes;
       varying vec2 v_relativePosition;
-      varying float v_armed;
       varying vec2 v_uv;
+      varying float v_armed;
       ${Materials.Include.map}
       void main() {
         v_uv = uv;
         v_armed = isArmed;
         v_relativePosition = relativePosition;
+
         vec2 offset = map(relativePosition, vec2(0.0), vec2(u_numHorizontalNotes, u_numVerticalNotes), vec2(0.0), vec2(1.0));
-        vec3 pos = vec3(position.xy + offset - 0.5, 1.0);
+        vec3 pos = vec3(position.xy + offset - 0.5, 1.0); // Center it with -0.5
+
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       }
     `,
@@ -35,12 +38,12 @@ function makeKeyMaterial(options) {
       uniform sampler2D u_rippleTex;
       uniform vec3 u_baseColor;
       uniform vec3 u_activeColor;
-      uniform float u_muted;
-      uniform float u_activeColumn;
       uniform float u_numHorizontalNotes;
       uniform float u_numVerticalNotes;
-      varying vec2 v_uv;
+      uniform float u_activeColumn;
+      uniform float u_muted;
       varying vec2 v_relativePosition;
+      varying vec2 v_uv;
       varying float v_armed;
 
       float rectangleSDF(vec2 st, vec2 s) {
@@ -58,6 +61,7 @@ function makeKeyMaterial(options) {
         col = mix(u_baseColor, col, v_armed);
         float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
         col = mix(col, vec3(1.0), isColumnActive * v_armed);
+
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / vec2(u_numHorizontalNotes, u_numVerticalNotes)).rgb;
         col += rippleTex * rippleTex;
 
@@ -74,25 +78,25 @@ function makeShadowKeyMaterial(options) {
   return new THREE.ShaderMaterial({
     transparent: true,
     uniforms: {
-      u_activeColor: {value: new THREE.Color("#ffffff")},
       u_numHorizontalNotes: {value: options.numHorizontalNotes},
       u_numVerticalNotes: {value: options.numVerticalNotes},
-      u_muted: {value: false},
+      u_activeColor: {value: new THREE.Color("#ffffff")},
       u_activeColumn: {value: -1},
+      u_muted: {value: false},
     },
     vertexShader: `
       attribute vec2 relativePosition;
       attribute float isArmed;
-      uniform float numHorizontalNotes;
-      uniform float numVerticalNotes;
+      uniform float u_numHorizontalNotes;
+      uniform float u_numVerticalNotes;
       varying vec2 v_relativePosition;
       varying float v_armed;
       ${Materials.Include.map}
       void main() {
         v_armed = isArmed;
         v_relativePosition = relativePosition;
-        vec2 offset = map(relativePosition, vec2(0.0), vec2(16.0), vec2(0.0), vec2(1.0));
-        vec3 pos = vec3(position.xy + offset - 0.5, 1.0);
+        vec2 offset = map(relativePosition, vec2(0.0), vec2(u_numHorizontalNotes, u_numVerticalNotes), vec2(0.0), vec2(1.0));
+        vec3 pos = vec3(position.xy + offset - 0.5, 1.0); // Center it with -0.5
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       }
     `,
@@ -102,13 +106,13 @@ function makeShadowKeyMaterial(options) {
       uniform float u_activeColumn;
       varying vec2 v_relativePosition;
       varying float v_armed;
-
       #define MUTE_COLOR_VALUE ${Constants.MUTE_COLOR_VALUE.toFixed(3)}
       void main() {
         vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
-        float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
 
+        float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
         float opacity = v_armed * isColumnActive;
+
         gl_FragColor = vec4(col, opacity);
       }
     `,
@@ -188,33 +192,38 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   });
   this.add(new THREE.Mesh(keyGeometry, keyMaterial));
 
-  var shadowKeyMaterial = makeShadowKeyMaterial({numHorizontalNotes: numHorizontalSteps, numVerticalNotes: numVerticalSteps});
-  shadowGroup.add(new THREE.Mesh(keyGeometry, shadowKeyMaterial));
-
   // Because the instanced buffer geometries don't have true bounding boxes
   var clickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
   this.add(clickScreen);
-  shadowGroup.add(clickScreen.clone()); // So that it has a proper BB
 
-  var setButtonUniform = function(uniformName, value, shadowValue) {
+  var shadowKeyMaterial = makeShadowKeyMaterial({numHorizontalNotes: numHorizontalSteps, numVerticalNotes: numVerticalSteps});
+  shadowGroup.add(new THREE.Mesh(keyGeometry, shadowKeyMaterial));
+  shadowGroup.add(clickScreen.clone()); // So that it has a proper BB
+  var rippleizer = new Rippleizer(shadowGroup);
+
+  function setButtonUniform(uniformName, value, shadowValue) {
     keyMaterial.uniforms[uniformName].value = value;
     if (shadowValue === undefined) shadowValue = value;
     if (shadowKeyMaterial.uniforms[uniformName] !== undefined) {
       shadowKeyMaterial.uniforms[uniformName].value = shadowValue;
     }
-  };
-  var armButton = function(x, y) {
+  }
+
+  function armButton(x, y) {
     columns[x][y].arm();
-  };
-  var getButton = function(x, y) {
+  }
+
+  function getButton(x, y) {
     return columns[x][y];
-  };
-  var clear = function() {
+  }
+
+  function clear() {
     buttons.forEach(function(btn) {
       btn.disarm();
     });
-  };
-  var getActiveNotesInColumn = function(columnNum) {
+  }
+
+  function getActiveNotesInColumn(columnNum) {
     var activeNotesInColumn = [];
     columns[columnNum].forEach(function(btn) {
       if (btn.isArmed()) {
@@ -222,13 +231,23 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
       }
     });
     return activeNotesInColumn;
-  };
-  var uvToButtonIndex = function(uv) {
+  }
+
+  function uvToButtonIndex(uv) {
     var result = uv.clone().multiply(new THREE.Vector2(numHorizontalSteps, numVerticalSteps));
     result.x = Math.floor(result.x);
     result.y = Math.floor(result.y);
     return result;
-  };
+  }
+
+  function setDamping(newDamping) {
+    rippleizer.damping.value = newDamping;
+  }
+
+  function render(renderer) {
+    rippleizer.render(renderer);
+    setButtonUniform("u_rippleTex", rippleizer.getActiveTexture());
+  }
 
   Object.assign(this, {
     getActiveNotesInColumn: getActiveNotesInColumn,
@@ -237,8 +256,10 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     touchActive: touchActive,
     shadowGroup: shadowGroup,
     clickScreen: clickScreen,
+    setDamping: setDamping,
     getButton: getButton,
     armButton: armButton,
+    render: render,
     arming: arming,
     clear: clear,
   });

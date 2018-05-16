@@ -32,7 +32,7 @@ function makeShadowScene(group) {
 
 
 var RATIO = 0.4; // TODO
-function Rippleizer(renderer, group) {
+function Rippleizer(group) {
   var rippleMaterial = Materials.ripple();
   var shadowScene = makeShadowScene(group);
   rippleMaterial.uniforms.u_sceneTex.value = shadowScene.texture;
@@ -43,7 +43,7 @@ function Rippleizer(renderer, group) {
   var finalTarget = mainTarget.clone();
   rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/subTextureResolution, 1/subTextureResolution);
 
-  function render() {
+  function render(renderer) {
     shadowScene.render(renderer);
     rippleMaterial.uniforms.u_mainTex.value = mainTarget.texture;
     rippleMaterial.uniforms.u_backTex.value = backTarget.texture;
