@@ -17,9 +17,9 @@ function makeKeyMaterial(options) {
       u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
       u_activeColor: {value: new THREE.Color()},
       // u_relativePosition: {value: new THREE.Vector2()},
-      u_armed: {value: (options.armed !== undefined) ? options.armed : false},
-      u_muted: {value: (options.muted !== undefined) ? options.muted : false},
-      u_playing: {value: (options.playing !== undefined) ? options.playing : false},
+      u_armed: {value: false},
+      u_muted: {value: false},
+      u_playing: {value: false},
       u_activeColumn: {value: -1},
     },
     vertexShader: `
@@ -66,7 +66,8 @@ function makeKeyMaterial(options) {
         vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
         col = mix(u_baseColor, col, v_armed);
         vec3 playingColor = 2.0 * col * mix(1.0, MUTE_COLOR_VALUE, u_muted);
-        col = mix(col, vec3(1.0), u_playing);
+        float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
+        col = mix(col, vec3(1.0), isColumnActive * v_armed);
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / NUM_STEPS).rgb;
         col += rippleTex * rippleTex;
 
@@ -79,7 +80,50 @@ function makeKeyMaterial(options) {
   });
 }
 
-var KEY_UNARMED_MATERIAL = makeKeyMaterial({armed: false});
+function makeShadowKeyMaterial() {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    uniforms: {
+      u_activeColor: {value: new THREE.Color("#ffffff")},
+      u_muted: {value: false},
+      u_activeColumn: {value: -1},
+    },
+    vertexShader: `
+      attribute vec2 relativePosition;
+      attribute float isArmed;
+      varying vec2 v_relativePosition;
+      varying float v_armed;
+      ${Materials.Include.map}
+      void main() {
+        v_armed = isArmed;
+        v_relativePosition = relativePosition;
+        vec2 offset = map(relativePosition, 0.0, 16.0, 0.0, 1.0);
+        vec3 pos = vec3(position.xy + offset - 0.5, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 u_activeColor;
+      uniform float u_muted;
+      uniform float u_activeColumn;
+      varying vec2 v_relativePosition;
+      varying float v_armed;
+
+      #define MUTE_COLOR_VALUE ${Constants.MUTE_COLOR_VALUE.toFixed(3)}
+      void main() {
+        vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
+        float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
+
+        float opacity = v_armed * isColumnActive;
+        gl_FragColor = vec4(col, opacity);
+      }
+    `,
+  });
+}
+
+// var KEY_UNARMED_MATERIAL = makeKeyMaterial({armed: false});
+var KEY_MATERIAL = makeKeyMaterial();
+var SHADOW_KEY_MATERIAL = makeShadowKeyMaterial();
 // var KEY_ARMED_MATERIAL = makeKeyMaterial({armed: true});
 // var KEY_PLAYING_MATERIAL = makeKeyMaterial({playing: true});
 
@@ -164,7 +208,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   armedBuffer.setDynamic(true);
   keyGeometry.addAttribute("relativePosition", relativePositions);
   keyGeometry.addAttribute("isArmed", armedBuffer);
-  this.add(new THREE.Mesh(keyGeometry, KEY_UNARMED_MATERIAL));
+  this.add(new THREE.Mesh(keyGeometry, SHADOW_KEY_MATERIAL));
 
   this.clickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({color: "pink", wireframe: true}));
   this.add(this.clickScreen);
@@ -172,10 +216,12 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
 
   // var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup); // TODO should live here
 
-  function setButtonUniform(uniform, value) {
-    buttons.forEach(function(btn) {
-      // btn.material.uniforms[uniform].value = value;
-    });
+  function setButtonUniform(uniformName, value, shadowValue) {
+    KEY_MATERIAL.uniforms[uniformName].value = value;
+    if (shadowValue === undefined) shadowValue = value;
+    if (SHADOW_KEY_MATERIAL.uniforms[uniformName] !== undefined) {
+      SHADOW_KEY_MATERIAL.uniforms[uniformName].value = shadowValue;
+    }
   }
 
   this.armButton = function(x, y) {
@@ -211,7 +257,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   };
 
   this.setActiveColor = function({buttonColor, shadowColor}) {
-    setButtonUniform("u_activeColor", buttonColor);
+    setButtonUniform("u_activeColor", buttonColor, shadowColor);
     // SHADOW_KEY_PLAYING_MATERIAL.color = shadowColor;
     // SHADOW_KEY_PLAYING_MUTED_MATERIAL.color = shadowColor.clone().multiplyScalar(0.02);
   };
@@ -228,16 +274,22 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   this.arming = true;
   this.touchActive = false;
 }
+
+function uvToButtonIndex(uv, width, height) {
+  var result = uv.clone().multiply(new THREE.Vector2(width, height));
+  result.x = Math.floor(result.x);
+  result.y = Math.floor(result.y);
+  return result;
+}
+
 ToneMatrix.prototype = Object.create(THREE.Object3D.prototype);
 
 ToneMatrix.prototype.touch = function(raycaster) {
   var intersection = raycaster.intersectObject(this.clickScreen)[0];
   // var t = raycaster.intersectObject(this);
   if (intersection && this.touchActive) {
-    var uv = intersection.uv.multiplyScalar(16);
-    uv.x = Math.floor(uv.x);
-    uv.y = Math.floor(uv.y);
-    var touchedButton = this.columns[uv.x][uv.y];
+    var address = uvToButtonIndex(intersection.uv, 16, 16); // TODO
+    var touchedButton = this.columns[address.x][address.y];
     if (this.arming === true) {
       touchedButton.arm();
     } else {
@@ -249,10 +301,8 @@ ToneMatrix.prototype.touchStart = function(raycaster) {
   var intersection = raycaster.intersectObject(this.clickScreen)[0];
   // var t = raycaster.intersectObject(this);
   if (intersection) {
-    var uv = intersection.uv.multiplyScalar(16);
-    uv.x = Math.floor(uv.x);
-    uv.y = Math.floor(uv.y);
-    var touchedButton = this.columns[uv.x][uv.y];
+    var address = uvToButtonIndex(intersection.uv, 16, 16); // TODO
+    var touchedButton = this.columns[address.x][address.y];
     this.arming = !touchedButton.isArmed();
     this.touchActive = true;
   }
