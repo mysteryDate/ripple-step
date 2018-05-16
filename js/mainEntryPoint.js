@@ -17,9 +17,7 @@ var interactionGate = document.getElementById("interactionGate");
 // HANDLERS
 function touchMove(event) {
   event.preventDefault();
-  // if (event.which === 1 || isMobile) { // Mouse is down
   window.app.touch(event);
-  // }
 }
 function touchStart(event) {
   if (!hasInteracted) {
@@ -86,7 +84,7 @@ window.onload = function() {
   domElement.style.animationDuration = "0.5s";
 
 
-  document.body.appendChild(stats.domElement);
+  // document.body.appendChild(stats.domElement);
 
   window.setTimeout(function() {
     window.app.setScale(window.app.currentScale);
