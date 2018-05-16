@@ -16,12 +16,13 @@ function Application(selector, width, height, options) {
   var scene = new THREE.Scene();
   var camera = new THREE.OrthographicCamera();
 
-  var currentScale = sample(Object.values(Scales));
+  var currentScaleName = sample(Object.keys(Scales));
+  var currentScale = Scales[currentScaleName];
   var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes);
   toneMatrix.armButton(0, random(0, options.numNotes - 1)); // Arm random button
   scene.add(toneMatrix);
 
-  var scaleChooser = new ScaleChooser(Scales);
+  var scaleChooser = new ScaleChooser(Scales, currentScaleName);
   scene.add(scaleChooser);
 
   // SYNTH
@@ -157,6 +158,7 @@ Application.prototype.touch = function(event) {
   this.raycaster.setFromCamera(mouse, this.camera);
   this.toneMatrix.touch(this.raycaster);
   this.knobPanel.touch(this.raycaster, event);
+  this.scaleChooser.touch(this.raycaster);
 };
 
 Application.prototype.touchEnd = function() {
