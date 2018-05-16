@@ -9,21 +9,25 @@ var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.
 var SHADOW_KEY_PLAYING_MUTED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xcccccc)});
 var SHADOW_KEY_ARMED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
 
-function makeKeyShader() {
+function makeKeyMaterial(options) {
   return new THREE.ShaderMaterial({
     uniforms: {
       u_rippleTex: {value: null},
       u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
       u_activeColor: {value: new THREE.Color()},
-      u_relativePosition: {value: new THREE.Vector2()},
-      u_armed: {value: 0},
-      u_muted: {value: 0},
-      u_activeColumn: {value: 0},
+      // u_relativePosition: {value: new THREE.Vector2()},
+      u_armed: {value: (options.armed !== undefined) ? options.armed : false},
+      u_muted: {value: (options.muted !== undefined) ? options.muted : false},
+      u_playing: {value: (options.playing !== undefined) ? options.playing : false},
+      u_activeColumn: {value: -1},
     },
     vertexShader: `
+      attribute vec2 relativePosition;
+      varying vec2 v_relativePosition;
       varying vec2 v_uv;
       void main() {
         v_uv = uv;
+        v_relativePosition = relativePosition;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
@@ -32,11 +36,13 @@ function makeKeyShader() {
       uniform sampler2D u_rippleTex;
       uniform vec3 u_baseColor;
       uniform vec3 u_activeColor;
-      uniform vec2 u_relativePosition;
+      // uniform vec2 u_relativePosition;
       uniform float u_armed;
       uniform float u_muted;
+      uniform float u_playing;
       uniform float u_activeColumn;
       varying vec2 v_uv;
+      varying vec2 v_relativePosition;
 
       float rectangleSDF(vec2 st, vec2 s) {
         st = st * 2.0 - 1.0;
@@ -52,9 +58,8 @@ function makeKeyShader() {
         vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
         col = mix(u_baseColor, col, u_armed);
         vec3 playingColor = 2.0 * col * mix(1.0, MUTE_COLOR_VALUE, u_muted);
-        float activeColumn = 1.0 - step(0.1, abs(u_activeColumn - u_relativePosition.x));
-        col = mix(col, vec3(1.0), activeColumn * u_armed);
-        vec3 rippleTex = texture2D(u_rippleTex, (v_uv + u_relativePosition) / NUM_STEPS).rgb;
+        col = mix(col, vec3(1.0), u_playing);
+        vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / NUM_STEPS).rgb;
         col += rippleTex * rippleTex;
 
         float rect = squareSDF(v_uv);
@@ -65,8 +70,12 @@ function makeKeyShader() {
   });
 }
 
+var KEY_UNARMED_MATERIAL = makeKeyMaterial({armed: false});
+var KEY_ARMED_MATERIAL = makeKeyMaterial({armed: true});
+var KEY_PLAYING_MATERIAL = makeKeyMaterial({playing: true});
+
 function MatrixButton(row, column, geometry) {
-  THREE.Mesh.call(this, geometry, makeKeyShader());
+  THREE.Mesh.call(this, geometry, KEY_UNARMED_MATERIAL);
   this.row = row;
   this.column = column;
   this.shadow = new THREE.Mesh(geometry, SHADOW_KEY_MATERIAL);
@@ -76,13 +85,13 @@ function MatrixButton(row, column, geometry) {
 
   this.arm = function() {
     armed = true;
-    this.material.uniforms.u_armed.value = true;
+    this.material = KEY_ARMED_MATERIAL;
     this.shadow.visible = true;
     this.shadow.material = SHADOW_KEY_MATERIAL;
   };
   this.disarm = function() {
     armed = false;
-    this.material.uniforms.u_armed.value = false;
+    this.material = KEY_UNARMED_MATERIAL;
     this.shadow.material = SHADOW_KEY_MATERIAL;
     this.shadow.visible = false;
   };
@@ -140,6 +149,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
       if (btn.isArmed()) {
         armedRows.push(btn.row);
         if (!isMuted) {
+          btn.material = KEY_PLAYING_MATERIAL;
           btn.shadow.material = SHADOW_KEY_PLAYING_MATERIAL;
         } else {
           btn.shadow.material = SHADOW_KEY_PLAYING_MUTED_MATERIAL;
@@ -152,6 +162,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   this.deactivateColumn = function(num) {
     columns[num].forEach(function(btn) {
       if (btn.isArmed()) {
+        btn.material = KEY_ARMED_MATERIAL;
         btn.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
       }
     });
