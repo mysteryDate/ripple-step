@@ -2,24 +2,13 @@ import * as THREE from "../node_modules/three";
 import {Constants} from "./AppData";
 import Materials from "./Materials";
 
-// var SHADOW_KEY_MATERIAL = new THREE.MeshBasicMaterial({
-//   transparent: true,
-//   opacity: 0.0,
-// });
-// var SHADOW_KEY_PLAYING_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xffffff)});
-// var SHADOW_KEY_PLAYING_MUTED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0xcccccc)});
-// var SHADOW_KEY_ARMED_MATERIAL = new THREE.MeshBasicMaterial({color: new THREE.Color(0x000000)});
-
 function makeKeyMaterial(options) {
   return new THREE.ShaderMaterial({
     uniforms: {
       u_rippleTex: {value: null},
       u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
       u_activeColor: {value: new THREE.Color()},
-      // u_relativePosition: {value: new THREE.Vector2()},
-      u_armed: {value: false},
       u_muted: {value: false},
-      u_playing: {value: false},
       u_activeColumn: {value: -1},
     },
     vertexShader: `
@@ -43,10 +32,7 @@ function makeKeyMaterial(options) {
       uniform sampler2D u_rippleTex;
       uniform vec3 u_baseColor;
       uniform vec3 u_activeColor;
-      // uniform vec2 u_relativePosition;
-      uniform float u_armed;
       uniform float u_muted;
-      uniform float u_playing;
       uniform float u_activeColumn;
       varying vec2 v_uv;
       varying vec2 v_relativePosition;
@@ -65,7 +51,6 @@ function makeKeyMaterial(options) {
       void main() {
         vec3 col = mix(u_activeColor, u_activeColor * MUTE_COLOR_VALUE, u_muted);
         col = mix(u_baseColor, col, v_armed);
-        vec3 playingColor = 2.0 * col * mix(1.0, MUTE_COLOR_VALUE, u_muted);
         float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
         col = mix(col, vec3(1.0), isColumnActive * v_armed);
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / NUM_STEPS).rgb;
@@ -121,36 +106,24 @@ function makeShadowKeyMaterial() {
   });
 }
 
-// var KEY_UNARMED_MATERIAL = makeKeyMaterial({armed: false});
 var KEY_MATERIAL = makeKeyMaterial();
 var SHADOW_KEY_MATERIAL = makeShadowKeyMaterial();
-// var KEY_ARMED_MATERIAL = makeKeyMaterial({armed: true});
-// var KEY_PLAYING_MATERIAL = makeKeyMaterial({playing: true});
 
 function MatrixButton(row, column, geometry, armedBuffer) {
-  // THREE.Mesh.call(this, geometry, KEY_UNARMED_MATERIAL);
   this.row = row;
   this.column = column;
-  // this.shadow = new THREE.Mesh(geometry, SHADOW_KEY_MATERIAL);
-  // this.shadow.visible = false;
 
   var armed = false;
 
   this.arm = function() {
     armed = true;
-    // this.material = KEY_ARMED_MATERIAL;
     armedBuffer.setX(column * 16 + row, 1);
     armedBuffer.needsUpdate = true;
-    // this.shadow.visible = true;
-    // this.shadow.material = SHADOW_KEY_MATERIAL;
   };
   this.disarm = function() {
     armed = false;
-    // this.material = KEY_UNARMED_MATERIAL;
     armedBuffer.setX(column * 16 + row, 0);
     armedBuffer.needsUpdate = true;
-    // this.shadow.material = SHADOW_KEY_MATERIAL;
-    // this.shadow.visible = false;
   };
   this.isArmed = function() {
     return armed;
@@ -186,7 +159,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   var armedBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons), 1, 1); // 0 = inactive, 1 = armed
   // var relativePositions = new THREE.InstancedBufferAttribute(new Float32Array(2), 2, 1);
 
-  // this.shadowGroup = new THREE.Group();
+  this.shadowGroup = new THREE.Group();
   for (var col = 0; col < numHorizontalSteps; col++) {
     columns.push([]);
     for (var row = 0; row < numVerticalSteps; row++) {
@@ -208,11 +181,16 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   armedBuffer.setDynamic(true);
   keyGeometry.addAttribute("relativePosition", relativePositions);
   keyGeometry.addAttribute("isArmed", armedBuffer);
-  this.add(new THREE.Mesh(keyGeometry, SHADOW_KEY_MATERIAL));
+  // this.add(new THREE.Mesh(keyGeometry, SHADOW_KEY_MATERIAL));
+  this.add(new THREE.Mesh(keyGeometry, KEY_MATERIAL));
+  this.shadowGroup.add(new THREE.Mesh(keyGeometry, SHADOW_KEY_MATERIAL));
 
   this.clickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({color: "pink", wireframe: true}));
   this.add(this.clickScreen);
   this.clickScreen.position.z += 10;
+  this.shadowClickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({color: "pink", wireframe: true}));
+  this.shadowClickScreen.visible = false;
+  this.shadowGroup.add(this.shadowClickScreen);
 
   // var rippleizer = new Rippleizer(renderer, toneMatrix.shadowGroup); // TODO should live here
 
@@ -236,30 +214,28 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     columns[num].forEach(function(btn, index) {
       if (btn.isArmed()) {
         armedRows.push(btn.row);
-        if (!isMuted) {
-          // btn.material = KEY_PLAYING_MATERIAL;
-          // btn.shadow.material = SHADOW_KEY_PLAYING_MATERIAL;
-        } else {
-          // btn.shadow.material = SHADOW_KEY_PLAYING_MUTED_MATERIAL;
-        }
+        // if (!isMuted) {
+        //   // btn.material = KEY_PLAYING_MATERIAL;
+        //   // btn.shadow.material = SHADOW_KEY_PLAYING_MATERIAL;
+        // } else {
+        //   // btn.shadow.material = SHADOW_KEY_PLAYING_MUTED_MATERIAL;
+        // }
       }
     });
     return armedRows;
   };
 
-  this.deactivateColumn = function(num) {
-    columns[num].forEach(function(btn) {
-      if (btn.isArmed()) {
-        // btn.material = KEY_ARMED_MATERIAL;
-        // btn.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
-      }
-    });
-  };
+  // this.deactivateColumn = function(num) {
+  //   columns[num].forEach(function(btn) {
+  //     if (btn.isArmed()) {
+  //       // btn.material = KEY_ARMED_MATERIAL;
+  //       // btn.shadow.material = SHADOW_KEY_ARMED_MATERIAL;
+  //     }
+  //   });
+  // };
 
   this.setActiveColor = function({buttonColor, shadowColor}) {
     setButtonUniform("u_activeColor", buttonColor, shadowColor);
-    // SHADOW_KEY_PLAYING_MATERIAL.color = shadowColor;
-    // SHADOW_KEY_PLAYING_MUTED_MATERIAL.color = shadowColor.clone().multiplyScalar(0.02);
   };
 
   this.mute = function(value) {
