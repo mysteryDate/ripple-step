@@ -8,6 +8,7 @@ function makeChooserMaterial(color) {
       u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
       u_mouseOver: {value: false},
       u_selected: {value: false},
+      u_time: {value: 0.0},
     },
     vertexShader: `
       void main() {
@@ -19,9 +20,12 @@ function makeChooserMaterial(color) {
       uniform vec3 u_baseColor;
       uniform float u_mouseOver;
       uniform float u_selected;
+      uniform float u_time;
       void main() {
-        vec3 color = mix(u_baseColor, u_color * 0.5, u_mouseOver);
+        vec3 color = mix(u_baseColor, u_color, 0.1);
+        color = mix(color, u_color * 0.8, u_mouseOver);
         color = mix(color, u_color, u_selected);
+        color += 0.05 * (sin(u_time / 200.0) * u_selected);
         gl_FragColor = vec4(color, 1.0);
       }
     `,
@@ -66,6 +70,11 @@ ScaleChooser.prototype.touch = function(raycaster) {
   if (touched !== undefined) {
     touched.object.material.uniforms.u_mouseOver.value = true;
   }
+};
+ScaleChooser.prototype.update = function(time) {
+  this.children.forEach(function(key) {
+    key.material.uniforms.u_time.value = time;
+  });
 };
 
 export default ScaleChooser;

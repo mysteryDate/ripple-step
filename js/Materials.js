@@ -84,32 +84,25 @@ Materials.indicatorLight = function() {
     uniforms: {
       u_color: {value: new THREE.Color(0xff00ff)},
       u_currentRotation: {value: 0.0},
-      // u_isOn: {value: 1.0},
     },
     vertexShader: `
       attribute vec3 relativePosition;
       attribute float angle;
-      varying vec3 v_relativePosition;
       varying vec2 v_uv;
       varying float v_angle;
       void main() {
         v_uv = uv;
         v_angle = angle;
-        v_relativePosition = relativePosition;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position + relativePosition, 1.0);
       }
     `,
     fragmentShader: `
-      varying vec3 v_relativePosition;
       varying vec2 v_uv;
       varying float v_angle;
       uniform vec3 u_color;
       uniform float u_currentRotation;
       ${Materials.Include.map}
 
-      // uniform float u_isOn;
-      // var brightness = THREE.Math.smoothstep(light.angle, lightRot - 0.5, lightRot); // light is smeared out by 0.5 radians
-      // brightness = THREE.Math.mapLinear(brightness, 0.0, 1.0, 0.05, 0.3); // [min brightness, max brightness] = [0.05, 0.3]
       void main() {
         float isOn = step(0.0, v_angle - u_currentRotation);
         float dist = length(v_uv - vec2(0.5));

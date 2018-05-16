@@ -43,10 +43,12 @@ function Application(selector, width, height, options) {
   var paused = false;
   var muted = false;
   var startTime = null;
+  var currentTime = null;
 
   Object.assign(this, {
     scaleChooser: scaleChooser,
     currentScale: currentScale,
+    currentTime: currentTime,
     toneMatrix: toneMatrix,
     downsample: downsample,
     raycaster: raycaster,
@@ -187,7 +189,9 @@ Application.prototype.start = function() {
 };
 
 Application.prototype.update = function() {
+  this.currentTime = performance.now();
   this.transport.update();
+  this.scaleChooser.update(this.currentTime);
 
   // TODO, this is hideous
   var newDamping = (function getRelease() {

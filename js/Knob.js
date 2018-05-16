@@ -2,16 +2,6 @@ import * as THREE from "../node_modules/three/build/three.min.js";
 import Materials from "./Materials";
 import {Constants} from "./AppData";
 
-function IndicatorLight(options) {
-  options = options || {};
-  var radius = options.radius || 1;
-  var g = new THREE.PlaneBufferGeometry(2 * radius, 2 * radius);
-  THREE.Mesh.call(this, g, Materials.indicatorLight());
-
-  this.angle = options.angle || 0;
-}
-IndicatorLight.prototype = Object.create(THREE.Mesh.prototype);
-
 function Knob(options) {
   THREE.Group.call(this);
   const NUM_CIRCLE_SEGMENTS = 100; // How smooth is the circle
@@ -44,7 +34,6 @@ function Knob(options) {
   nib.position.y += radius * 0.8;
 
   var lights = (function makeLights() {
-    var group = new THREE.Group();
     var icRadius = INDICATOR_LIGHT_SIZE_RATIO * radius;
     var positions = [0, 2 * icRadius, 0, 2 * icRadius, 2 * icRadius, 0, 0, 0, 0, 2 * icRadius, 0, 0];
     var indices = [0, 2, 1, 2, 3, 1];
@@ -58,18 +47,14 @@ function Knob(options) {
     var angles = new THREE.InstancedBufferAttribute(new Float32Array(numLights), 1, 1);
 
     for (let i = 0; i < numLights; i++) {
-      var ic = new IndicatorLight({radius: INDICATOR_LIGHT_SIZE_RATIO * radius});
       var rot = THREE.Math.mapLinear(i, 0, numLights - 1, minRotation, maxRotation);
       // Our rotations start pointing up and have positive values going clockwise
       // Yes, this is absurd, stop waving your arms
       rot = -rot + Math.PI/2;
       var x = INDICATOR_LIGHT_DISTANCE_RATIO * radius * Math.cos(rot);
       var y = INDICATOR_LIGHT_DISTANCE_RATIO * radius * Math.sin(rot);
-      ic.angle = rot;
       relativePositions.setXYZ(i, x, y, 0);
       angles.setX(i, rot);
-      ic.position.set(x, y, 0);
-      group.add(ic);
     }
     geom.addAttribute("relativePosition", relativePositions);
     geom.addAttribute("angle", angles);
@@ -81,18 +66,7 @@ function Knob(options) {
   function setRotation(rotation) {
     // This is necessary because values are counter clockwise
     body.rotation.z = -rotation;
-    lights.children.forEach(function(light) {
-      // Same regrettable tranformation as above
-      var lightRot = -rotation + Math.PI/2;
-      if (light.angle >= lightRot) {
-        // light.material.uniforms.u_isOn.value = 1;
-      } else {
-        // light.material.uniforms.u_isOn.value = 0;
-      }
-      var brightness = THREE.Math.smoothstep(light.angle, lightRot - 0.5, lightRot); // light is smeared out by 0.5 radians
-      brightness = THREE.Math.mapLinear(brightness, 0.0, 1.0, 0.05, 0.3); // [min brightness, max brightness] = [0.05, 0.3]
-      light.material.uniforms.u_brightness.value = brightness;
-    });
+    // same regrettable transformation as above
     lights.material.uniforms.u_currentRotation.value = -rotation + Math.PI/2;
   }
   function getRotationFromValue(value) {
@@ -134,9 +108,7 @@ function Knob(options) {
   };
 
   this.setColor = function(color) {
-    lights.children.forEach(function(light) {
-      light.material.uniforms.u_color.value = new THREE.Color(color);
-    });
+    lights.material.uniforms.u_color.value = new THREE.Color(color); // TODO come in as a three.color?
   };
 }
 Knob.prototype = Object.create(THREE.Object3D.prototype);
