@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three";
+import * as THREE from "../node_modules/three/build/three.min.js";
 
 // Render a texture with a particular shader, useful for blurs
 var blitTexture = (function() {

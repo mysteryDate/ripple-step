@@ -1,4 +1,4 @@
-import Tone from "../node_modules/Tone";
+import Tone from "../node_modules/Tone/build/Tone.min.js";
 
 function RippleSynth(numVoices, options) {
   Tone.PolySynth.call(this, numVoices, Tone.Synth);

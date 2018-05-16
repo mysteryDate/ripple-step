@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three";
+import * as THREE from "../node_modules/three/build/three.min.js";
 import Knob from "./Knob";
 import {Constants} from "./AppData";
 

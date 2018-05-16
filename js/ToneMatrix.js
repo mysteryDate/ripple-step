@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three";
+import * as THREE from "../node_modules/three/build/three.min.js";
 import {Constants} from "./AppData"; // TODO pass in as options
 import Materials from "./Materials";
 import Rippleizer from "./Rippleizer";

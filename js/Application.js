@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three";
+import * as THREE from "../node_modules/three/build/three.min.js";
 import {sample, random} from "../node_modules/underscore";
 
 import {Constants, Scales, Settings, Controls} from "./AppData";

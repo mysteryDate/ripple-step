@@ -1,5 +1,5 @@
-import * as THREE from "../node_modules/three";
-import Tone from "../node_modules/Tone";
+import * as THREE from "../node_modules/three/build/three.min.js";
+import Tone from "../node_modules/Tone/build/Tone.min.js";
 import Stats from "../node_modules/stats.js";
 
 import Application from "./Application";
