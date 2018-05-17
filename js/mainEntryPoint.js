@@ -78,7 +78,8 @@ window.app.render();
 window.onload = function() {
   var domElement = document.getElementById("soundOn");
   domElement.innerHTML = "SOUND ON!<br>▶︎";
-  domElement.style.top = "calc(50% - 28vw)";
+  domElement.style.top = "calc(50% - 24vw)";
+  domElement.style.lineHeight = "25vw";
   domElement.style.animationName = "fade";
   domElement.style.animationIterationCount = 1;
   domElement.style.animationDuration = "0.5s";

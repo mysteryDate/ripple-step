@@ -1,11 +1,13 @@
 import {Constants, Controls} from "./AppData";
 
-function Transport() {
+function Transport(options) {
+  options = options || {};
   this.startTime = performance.now();
   this.paused = true;
   this.startPosition = Constants.NUM_STEPS - 1;
   this.previousPosition = Constants.NUM_STEPS - 1;
   this.position = this.previousPosition;
+  this.swing = (options.swing !== undefined) ? 0 : options.swing;
 
   this.start = function() {
     this.startTime = performance.now();
@@ -23,29 +25,21 @@ function Transport() {
   };
 }
 
-// TODO lots of law-of-demeter violations here
-Transport.prototype.update = function() {
+Transport.prototype.update = function(beatCallback) {
   if (this.paused) {
-    window.app.toneMatrix.deactivateColumns();
     return;
   }
-  var timeSinceStart = performance.now() - this.startTime;
-  var beats = (timeSinceStart) / 1000 / 60 * Controls.TEMPO;
+  var secondsSinceStart = (performance.now() - this.startTime) / 1000;
+  var beats = Controls.TEMPO * secondsSinceStart / 60;
   this.position = beats * (1/4 / Constants.STEP_VALUE) + this.startPosition;
   if (Math.floor(this.position) % 2 === 1) {
-    this.position += window.app.synth.getControl("swing");
+    this.position += this.swing;
   }
   this.position = Math.floor(this.position % Constants.NUM_STEPS);
 
   if (this.position !== this.previousPosition) {
     this.previousPosition = this.position;
-    window.app.toneMatrix.activateColumn(this.position);
-    var rowsToPlay = window.app.toneMatrix.getActiveNotesInColumn(this.position);
-    if (!window.app.muted) {
-      rowsToPlay.forEach(function(row) {
-        window.app.synth.playRow(row);
-      });
-    }
+    beatCallback();
   }
 };
 

@@ -45,6 +45,19 @@ function Application(selector, width, height, options) {
   var startTime = null;
   var currentTime = null;
 
+  // Things to execute on the frame of a beat
+  function onBeat() {
+    toneMatrix.activateColumn(transport.position);
+    if (!muted) {
+      var rowsToPlay = toneMatrix.getActiveNotesInColumn(transport.position);
+      if (!window.app.muted) {
+        rowsToPlay.forEach(function(row) {
+          window.app.synth.playRow(row);
+        });
+      }
+    }
+  }
+
   Object.assign(this, {
     scaleChooser: scaleChooser,
     currentScale: currentScale,
@@ -56,6 +69,7 @@ function Application(selector, width, height, options) {
     startTime: startTime,
     knobPanel: knobPanel,
     renderer: renderer,
+    onBeat: onBeat,
     camera: camera,
     paused: paused,
     height: height,
@@ -182,7 +196,11 @@ Application.prototype.toggleMute = function() {
 
 Application.prototype.togglePaused = function() {
   this.transport.togglePaused();
+  if (this.paused) {
+    this.toneMatrix.deactivateColumns();
+  }
 };
+
 
 Application.prototype.start = function() {
   this.transport.start();
@@ -190,8 +208,11 @@ Application.prototype.start = function() {
 
 Application.prototype.update = function() {
   this.currentTime = performance.now();
-  this.transport.update();
+  this.transport.update(this.onBeat);
   this.scaleChooser.update(this.currentTime);
+
+  // TODO have more robust control infrastructure
+  this.transport.swing = this.synth.getControl("swing");
 
   // TODO, this is hideous
   var newDamping = (function getRelease() {
