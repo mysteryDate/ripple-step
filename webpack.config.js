@@ -11,9 +11,6 @@ module.exports = {
     app: "./js/mainEntryPoint.js",
     testbed: "./js/testbedEntryPoint.js",
   },
-  // performance: {
-  //   hints: "warning",
-  // },
   module: {
     rules: [
       {

@@ -88,7 +88,7 @@ window.onload = function() {
 
   window.setTimeout(function() {
     window.app.setScale(window.app.currentScale);
-    mixpanel.track("App started");
+    mixpanel.track("App Started");
     update();
   }, 0);
 };

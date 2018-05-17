@@ -60,7 +60,7 @@ ScaleChooser.prototype.touchStart = function(raycaster) {
     });
     clickedScale.object.material.uniforms.u_selected.value = true;
     window.app.setScale(this.scales[clickedScale.object.scaleName]); // TODO, demeter
-    mixpanel.track("scale set");
+    mixpanel.track("Scale Set");
   }
 };
 ScaleChooser.prototype.touch = function(raycaster) {
