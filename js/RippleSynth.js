@@ -2,7 +2,6 @@ import Tone from "../node_modules/Tone/build/Tone.min.js";
 
 function RippleSynth(numVoices, options) {
   Tone.PolySynth.call(this, numVoices, Tone.Synth);
-  Tone.context.suspend(); // Wait for interaction
 
   this.relative = (options.relative !== undefined) ? options.relative : false;
   this.scale = options.scale;
@@ -58,7 +57,7 @@ RippleSynth.prototype.playRow = function(row) { // TODO relative
   var octave = Math.floor(row / this.scale.notes.length) + 3;
   octave += this.scale.octaves[(row) % this.scale.notes.length];
   // Duration of an 8th note
-  window.app.synth.triggerAttackRelease(note + octave, "16n");
+  this.triggerAttackRelease(note + octave, "16n");
 };
 
 export default RippleSynth;
