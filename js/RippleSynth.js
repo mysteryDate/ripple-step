@@ -48,7 +48,7 @@ RippleSynth.prototype.setVolume = function(newVolume) {
   Tone.Master.volume.value = newVolume;
 };
 
-RippleSynth.prototype.init = function() {
+RippleSynth.prototype.start = function() {
   Tone.context.resume();
 };
 

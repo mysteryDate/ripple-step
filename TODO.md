@@ -4,12 +4,12 @@
 - [X] Application structure
 - [X] Mobile compatibility
 - [X] Instanced buffer geometry for matrix buttons
-- [ ] Fewer materials on knobs
+- [X] Spacebar pause
+- [X] Scale chooser sizing different
+- [X] Fewer materials on knobs
 - [ ] Colors (even luminance for ripple colors)
 - [ ] Save/export/record
 - [ ] Tie sustain to release (0 release = 0 sustain, 1 release = 0.5 ish sustain)
-- [ ] Spacebar pause
-- [ ] Scale chooser sizing different
 - [ ] Clear/mute/share buttons
 
 Maybe
@@ -17,3 +17,4 @@ Maybe
 - [ ] Don't allow vertical drags (creating cluster chords)
 - [ ] Good inspo: https://musiclab.chromeexperiments.com/Rhythm/
 - [ ] Full screen?
+- [ ] Midi

@@ -48,7 +48,6 @@ function ScaleChooser(scales, currentScale) {
     }
   }.bind(this));
   this.scales = scales;
-  this.currentScale = null;
 }
 ScaleChooser.prototype = Object.create(THREE.Object3D.prototype);
 
