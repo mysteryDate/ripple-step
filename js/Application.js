@@ -80,13 +80,18 @@ function Application(selector, width, height, options) {
   });
 }
 
+Application.prototype.init = function() {
+  this.setScale(this.currentScale);
+  this.resize(this.width, this.height);
+};
+
 Application.prototype.render = function() {
   this.toneMatrix.render(this.renderer);
   this.renderer.render(this.scene, this.camera);
 };
 
 Application.prototype.setScale = function(newScale) {
-  this.currentScale = newScale; // TODO does this need to be stored?
+  this.currentScale = newScale;
   this.toneMatrix.setActiveColor({
     buttonColor: new THREE.Color(this.currentScale.color),
     shadowColor: new THREE.Color(this.currentScale.ripple_color),
@@ -203,6 +208,7 @@ Application.prototype.togglePaused = function() {
 
 
 Application.prototype.start = function() {
+  this.synth.start();
   this.transport.start();
 };
 

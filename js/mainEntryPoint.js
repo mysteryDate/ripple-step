@@ -22,7 +22,6 @@ function touchMove(event) {
 function touchStart(event) {
   if (!hasInteracted) {
     window.app.start();
-    Tone.context.resume(); // TODO
     interactionGate.style.display = "none";
     hasInteracted = true;
   } else {
@@ -72,9 +71,8 @@ function update() {
   requestAnimationFrame(update);
 }
 
-window.onresize();
+window.app.init();
 window.app.render();
-
 window.onload = function() {
   var domElement = document.getElementById("soundOn");
   domElement.innerHTML = "SOUND ON!<br>▶︎";
@@ -84,11 +82,9 @@ window.onload = function() {
   domElement.style.animationIterationCount = 1;
   domElement.style.animationDuration = "0.5s";
 
-
   // document.body.appendChild(stats.domElement);
-
   window.setTimeout(function() {
-    window.app.setScale(window.app.currentScale);
+    // window.app.setScale(window.app.currentScale);
     mixpanel.track("App Started");
     update();
   }, 0);
