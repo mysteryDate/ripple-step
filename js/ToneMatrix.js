@@ -119,19 +119,19 @@ function makeShadowKeyMaterial(options) {
   });
 }
 
-function MatrixButton(column, row, rowSize, armedBuffer) {
+function MatrixButton(column, row, buttonIndex, armedBuffer) {
   this.column = column;
   this.row = row;
   var armed = false;
 
   this.arm = function() {
     armed = true;
-    armedBuffer.setX(column * rowSize + row, 1);
+    armedBuffer.setX(buttonIndex, 1);
     armedBuffer.needsUpdate = true;
   };
   this.disarm = function() {
     armed = false;
-    armedBuffer.setX(column * rowSize + row, 0);
+    armedBuffer.setX(buttonIndex, 0);
     armedBuffer.needsUpdate = true;
   };
   this.isArmed = function() {
@@ -172,14 +172,16 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   var armedBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons), 1, 1); // 0 = inactive, 1 = armed
 
   var shadowGroup = new THREE.Group();
+  var buttonIndex = 0;
   for (var col = 0; col < numHorizontalSteps; col++) {
     columns.push([]);
     for (var row = 0; row < numVerticalSteps; row++) {
-      var button = new MatrixButton(col, row, numHorizontalSteps, armedBuffer);
-      relativePositions.setXY(col * numHorizontalSteps + row, col, row);
-      armedBuffer.setX(col * numHorizontalSteps + row, 0); // Set all to inactive
+      var button = new MatrixButton(col, row, buttonIndex, armedBuffer);
+      relativePositions.setXY(buttonIndex, col, row);
+      armedBuffer.setX(buttonIndex, 0); // Set all to inactive
       buttons.push(button);
       columns[col].push(button);
+      buttonIndex++;
     }
   }
   armedBuffer.setDynamic(true);

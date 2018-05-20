@@ -8,7 +8,7 @@ import {Constants} from "./AppData";
 var isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 window.app = new Application("#app", window.innerWidth, window.innerHeight, {
   numSteps: Constants.NUM_STEPS,
-  numNotes: Constants.NUM_STEPS,
+  numNotes: Constants.NUM_NOTES,
   isMobile: isMobile,
 });
 var hasInteracted = false;

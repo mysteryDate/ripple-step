@@ -26,7 +26,7 @@ function Application(selector, width, height, options) {
   scene.add(scaleChooser);
 
   // SYNTH
-  var synth = new RippleSynth(Constants.NUM_STEPS, {});
+  var synth = new RippleSynth(Constants.NUM_NOTES, {});
   synth.setVolume(-6);
 
   // Controls for the envelope

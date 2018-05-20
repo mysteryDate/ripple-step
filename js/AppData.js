@@ -8,6 +8,7 @@ var Constants = {
   MIN_UI_PADDING: 0.2,
   SECONDARY_BASE_COLOR: 0xaaaaaa,
   NUM_STEPS: 16,
+  NUM_NOTES: 16,
   SPACING_RATIO: 1/10,
   STEP_VALUE: 1/8,
   RELATIVE: false,
