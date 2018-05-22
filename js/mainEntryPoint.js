@@ -6,11 +6,6 @@ import Application from "./Application";
 import {Constants} from "./AppData";
 
 var isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
-window.app = new Application("#app", window.innerWidth, window.innerHeight, {
-  numSteps: Constants.NUM_STEPS,
-  numNotes: Constants.NUM_NOTES,
-  isMobile: isMobile,
-});
 var hasInteracted = false;
 var interactionGate = document.getElementById("interactionGate");
 
@@ -71,9 +66,14 @@ function update() {
   requestAnimationFrame(update);
 }
 
-window.app.init();
-window.app.render();
 window.onload = function() {
+  window.app = new Application("#app", window.innerWidth, window.innerHeight, {
+    numSteps: Constants.NUM_STEPS,
+    numNotes: Constants.NUM_NOTES,
+    isMobile: isMobile,
+  });
+  window.app.init();
+  window.app.render();
   var domElement = document.getElementById("soundOn");
   domElement.innerHTML = "SOUND ON!<br>▶︎";
   domElement.style.top = "calc(50% - 24vw)";
