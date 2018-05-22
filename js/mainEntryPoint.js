@@ -44,14 +44,6 @@ function onDocumentKeyPress(event) {
 function windowResize(event) {
   window.app.resize(window.innerWidth, window.innerHeight);
 }
-document.addEventListener("mousemove", touchMove, false);
-document.addEventListener("mousedown", touchStart, false);
-document.addEventListener("mouseup", touchEnd, false);
-document.addEventListener("touchmove", touchMove, false);
-document.addEventListener("touchstart", touchStart, false);
-document.addEventListener("touchend", touchEnd, false);
-document.addEventListener("keypress", onDocumentKeyPress, false);
-window.onresize = windowResize;
 
 var canvas = document.getElementById("app");
 canvas.addEventListener("touchmove", function(event) {
@@ -74,6 +66,16 @@ window.onload = function() {
   });
   window.app.init();
   window.app.render();
+
+  document.addEventListener("mousemove", touchMove, false);
+  document.addEventListener("mousedown", touchStart, false);
+  document.addEventListener("mouseup", touchEnd, false);
+  document.addEventListener("touchmove", touchMove, false);
+  document.addEventListener("touchstart", touchStart, false);
+  document.addEventListener("touchend", touchEnd, false);
+  document.addEventListener("keypress", onDocumentKeyPress, false);
+  window.onresize = windowResize;
+
   var domElement = document.getElementById("soundOn");
   domElement.innerHTML = "SOUND ON!<br>▶︎";
   domElement.style.top = "calc(50% - 24vw)";
