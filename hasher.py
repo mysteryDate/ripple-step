@@ -4,10 +4,10 @@ import argparse
 def max_int_from_string(string, max_val, current_value=''):
   if len(string) == 0:
     return int(current_value), string
-  if int(current_value + string[0]) > max_val:
+  if int(current_value + string[-1]) > max_val:
     return int(current_value), string
 
-  return max_int_from_string(string[1:], max_val, current_value=current_value + string[0])
+  return max_int_from_string(string[:-1], max_val, current_value=current_value + string[-1])
 
 def main():
   parser = argparse.ArgumentParser()
