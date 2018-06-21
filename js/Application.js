@@ -206,7 +206,6 @@ Application.prototype.togglePaused = function() {
   }
 };
 
-
 Application.prototype.start = function() {
   this.synth.start();
   this.transport.start();
@@ -237,6 +236,14 @@ Application.prototype.update = function() {
     return dampingValue;
   })();
   this.toneMatrix.setDamping(newDamping);
+};
+
+Application.prototype.getState = function() {
+  var result = {};
+  result.toneMatrix = this.toneMatrix.getState();
+  result.knobPanel = this.knobPanel.getState();
+  result.currentScale = this.currentScale;
+  return result;
 };
 
 export default Application;

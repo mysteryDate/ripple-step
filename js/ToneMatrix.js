@@ -251,6 +251,19 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     setButtonUniform("u_rippleTex", rippleizer.getActiveTexture());
   }
 
+  function getState() {
+    // Returns an object representing the state of the matrix
+    var result = [];
+    columns.forEach(function(column) {
+      var thisColumn = [];
+      column.forEach(function(btn) {
+        thisColumn.push(btn.isArmed());
+      });
+      result.push(thisColumn);
+    });
+    return result;
+  }
+
   Object.assign(this, {
     getActiveNotesInColumn: getActiveNotesInColumn,
     setButtonUniform: setButtonUniform,
@@ -261,6 +274,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     setDamping: setDamping,
     getButton: getButton,
     armButton: armButton,
+    getState: getState,
     render: render,
     arming: arming,
     clear: clear,

@@ -46,6 +46,14 @@ function ControlPanel(options) {
   var knobGroup = makeKnobs(knobOptions, options.getter, options.setter);
   this.add(knobGroup);
 
+  this.getState = function() {
+    var result = {};
+    knobGroup.children.forEach(function(knob) {
+      result[knob.control] = knob.getValue();
+    });
+    return result;
+  };
+
   this.touch = function(raycaster, event) {
     knobGroup.children.forEach(function(knob) {
       knob.touch(new THREE.Vector2(event.pageX, -event.pageY)); // TODO why redo this?
