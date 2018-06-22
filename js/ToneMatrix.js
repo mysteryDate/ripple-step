@@ -257,11 +257,30 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     columns.forEach(function(column) {
       var thisColumn = [];
       column.forEach(function(btn) {
-        thisColumn.push(btn.isArmed());
+        thisColumn.push(btn.isArmed() ? 1 : 0);
       });
       result.push(thisColumn);
     });
     return result;
+  }
+
+  function setState(stateMatrix) {
+    // stateMatrix is a matrix of 0s and 1s, representing the armed-ness of each button
+    if (stateMatrix.length !== columns.length || stateMatrix[0].length !== columns[0].length) {
+      console.error(
+        `Couldn't load matrix! A ${columns.length}x${columns[0].length} matrix was expected. `+
+        `A ${stateMatrix.length}x${stateMatrix[0].length} matrix was entered.`);
+      return;
+    }
+    columns.forEach(function(column, x) {
+      column.forEach(function(btn, y) {
+        if (stateMatrix[x][y] === 1) {
+          btn.arm();
+        } else {
+          btn.disarm();
+        }
+      });
+    });
   }
 
   Object.assign(this, {
@@ -275,6 +294,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     getButton: getButton,
     armButton: armButton,
     getState: getState,
+    setState: setState,
     render: render,
     arming: arming,
     clear: clear,
