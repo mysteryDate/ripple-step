@@ -1,3 +1,5 @@
 # node js packages
 node_modules/
 _notes
+__pycache__/*
+
