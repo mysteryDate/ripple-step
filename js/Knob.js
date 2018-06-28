@@ -82,6 +82,11 @@ function Knob(options) {
     return currentValue;
   };
 
+  this.setValue = function(value) {
+    currentValue = value;
+    setRotation(getRotationFromValue(currentValue));
+  };
+
   this.touchStart = function(raycaster, mouse) {
     var touch = raycaster.intersectObjects(this.children)[0];
     if (touch) {

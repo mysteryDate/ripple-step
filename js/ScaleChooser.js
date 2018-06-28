@@ -34,12 +34,14 @@ function makeChooserMaterial(color) {
 
 function ScaleChooser(scales, currentScale) {
   THREE.Group.call(this);
+  this.colorDict = {};
   Object.keys(scales).forEach(function(scale, index) {
     var pickerKey = new THREE.Mesh(
       new THREE.PlaneBufferGeometry(1, 1),
       makeChooserMaterial(scales[scale].color)
     );
     this.add(pickerKey);
+    this.colorDict[scales[scale].color] = pickerKey;
     pickerKey.position.set(index * ((1 + Constants.SPACING_RATIO)), 0, 0);
     pickerKey.position.x -= (Object.keys(scales).length/2 - 0.5) * (1 + Constants.SPACING_RATIO); // Center it
     pickerKey.scaleName = scale;
@@ -75,6 +77,12 @@ ScaleChooser.prototype.update = function(time) {
   this.children.forEach(function(key) {
     key.material.uniforms.u_time.value = time;
   });
+};
+ScaleChooser.prototype.setColor = function(color) { // HAAAAAAAAX
+  this.children.forEach(function(key) {
+    key.material.uniforms.u_selected.value = false;
+  });
+  this.colorDict[color].material.uniforms.u_selected.value = true;
 };
 
 export default ScaleChooser;

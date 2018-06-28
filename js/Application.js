@@ -92,12 +92,14 @@ Application.prototype.render = function() {
 
 Application.prototype.setScale = function(newScale) {
   this.currentScale = newScale;
+  var mainColor = new THREE.Color(this.currentScale.color);
   this.toneMatrix.setActiveColor({
-    buttonColor: new THREE.Color(this.currentScale.color),
+    buttonColor: mainColor,
     shadowColor: new THREE.Color(this.currentScale.ripple_color),
   });
   this.synth.scale = this.currentScale;
-  this.knobPanel.setColor(new THREE.Color(this.currentScale.color));
+  this.knobPanel.setColor(mainColor);
+  this.scaleChooser.setColor(this.currentScale.color);
 };
 
 Application.prototype.resize = function(width, height) {
@@ -244,6 +246,18 @@ Application.prototype.getState = function() {
   result.knobPanel = this.knobPanel.getState();
   result.currentScale = this.currentScale;
   return result;
+};
+
+Application.prototype.load = function(jsonData) {
+  if (jsonData.toneMatrix !== undefined) {
+    this.toneMatrix.setState(jsonData.toneMatrix);
+  }
+  if (jsonData.knobPanel !== undefined) {
+    this.knobPanel.setState(jsonData.knobPanel);
+  }
+  if (jsonData.currentScale !== undefined) {
+    this.setScale(jsonData.currentScale);
+  }
 };
 
 export default Application;

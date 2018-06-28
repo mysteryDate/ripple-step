@@ -9,20 +9,19 @@ def load_dictionary(file_path):
       dictionary_words.append(line.rstrip("\n"))
   return dictionary_words
 
-def hash_to_words(input_word, num_words=3, dictionary=None):
+def hash_to_words(input_word, num_words, dictionary):
   hex_digest = hashlib.sha1(str.encode(input_word)).hexdigest()
-  int_digest = str(int(hex_digest, 16))
-  indeces = textwrap.wrap(int_digest, len(int_digest) // num_words + 1)
-  indeces = [int(x) % len(dictionary) for x in indeces]
+  hex_indeces = textwrap.wrap(hex_digest, len(hex_digest) // num_words + 1)
+  indeces = [int(x, 16) % len(dictionary) for x in hex_indeces]
   hash_words = [dictionary[x] for x in indeces]
 
   result = '-'.join(hash_words)
-  return result, indeces
+  return result
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument(dest='input_word', action='store')
-  parser.add_argument('-n', '--num-words', dest='num_words', type=int, default=3)
+  parser.add_argument('-n', '--num-words', dest='num_words', type=int, default=4)
   args = parser.parse_args()
-  result = hash_to_words(args.input_word, num_words=args.num_words, dictionary=load_dictionary("word_list.txt"))
+  result = hash_to_words(args.input_word, args.num_words, load_dictionary("word_list.txt"))
   print(result)

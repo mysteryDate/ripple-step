@@ -54,6 +54,14 @@ function ControlPanel(options) {
     return result;
   };
 
+  this.setState = function(jsonData) {
+    knobGroup.children.forEach(function(knob) {
+      if (knob.control in jsonData) {
+        knob.setValue(jsonData[knob.control]);
+      }
+    });
+  };
+
   this.touch = function(raycaster, event) {
     knobGroup.children.forEach(function(knob) {
       knob.touch(new THREE.Vector2(event.pageX, -event.pageY)); // TODO why redo this?
