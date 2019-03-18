@@ -11,7 +11,6 @@ function RippleSynth(numVoices, options) {
     voice.oscillator.disconnect(voice.envelope);
     voice.oscillator.chain(voice.filter, voice.envelope);
   });
-  this.toMaster();
 
   var controls = {
     attack: {group: "envelope", value: this.voices[0].envelope.attack},
@@ -49,6 +48,7 @@ RippleSynth.prototype.setVolume = function(newVolume) {
 };
 
 RippleSynth.prototype.start = function() {
+  this.toMaster();
   Tone.context.resume();
 };
 

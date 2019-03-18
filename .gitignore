@@ -1,3 +1,4 @@
 # node js packages
 node_modules/
 _notes
+package-lock.json
