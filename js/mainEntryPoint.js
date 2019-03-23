@@ -1,7 +1,10 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
-import Tone from "../node_modules/Tone/build/Tone.min.js";
-import Stats from "../node_modules/stats.js";
+// export some globals for debugging
+// import * as THREE from "../node_modules/three/build/three.min.js";
+// import Tone from "../node_modules/Tone/build/Tone.min.js";
+// window.Tone = Tone;
+// window.THREE = THREE;
 
+import Stats from "../node_modules/stats.js";
 import Application from "./Application";
 import {Constants} from "./AppData";
 
@@ -10,11 +13,15 @@ var hasInteracted = false;
 var interactionGate = document.getElementById("interactionGate");
 
 // HANDLERS
-function touchMove(event) {
-  event.preventDefault();
+function mouseMove(event) {
   window.app.touch(event);
 }
-function touchStart(event) {
+function touchMove(event) {
+  event.pageX = event.changedTouches[0].pageX;
+  event.pageY = event.changedTouches[0].pageY;
+  mouseMove(event);
+}
+function mouseDown(event) {
   if (!hasInteracted) {
     window.app.start();
     interactionGate.style.display = "none";
@@ -23,8 +30,16 @@ function touchStart(event) {
     window.app.touchStart(event);
   }
 }
-function touchEnd(event) {
+function touchStart(event) {
+  event.pageX = event.changedTouches[0].pageX;
+  event.pageY = event.changedTouches[0].pageY;
+  mouseDown(event);
+}
+function mouseUp(event) {
   window.app.touchEnd();
+}
+function touchEnd(event) {
+  mouseUp(event);
 }
 function onDocumentKeyPress(event) {
   switch (event.code) {
@@ -44,13 +59,17 @@ function onDocumentKeyPress(event) {
 function windowResize(event) {
   window.app.resize(window.innerWidth, window.innerHeight);
 }
-document.addEventListener("mousemove", touchMove, false);
-document.addEventListener("mousedown", touchStart, false);
-document.addEventListener("mouseup", touchEnd, false);
-document.addEventListener("touchmove", touchMove, false);
-document.addEventListener("touchstart", touchStart, false);
-document.addEventListener("touchend", touchEnd, false);
-document.addEventListener("keypress", onDocumentKeyPress, false);
+
+if (isMobile) {
+  document.addEventListener("touchmove", touchMove, false);
+  document.addEventListener("touchstart", touchStart, false);
+  document.addEventListener("touchend", touchEnd, false);
+} else {
+  document.addEventListener("mousemove", mouseMove, false);
+  document.addEventListener("mousedown", mouseDown, false);
+  document.addEventListener("mouseup", mouseUp, false);
+  document.addEventListener("keypress", onDocumentKeyPress, false);
+}
 window.onresize = windowResize;
 
 var canvas = document.getElementById("app");
@@ -84,12 +103,8 @@ window.onload = function() {
 
   // document.body.appendChild(stats.domElement);
   window.setTimeout(function() {
-    // window.app.setScale(window.app.currentScale);
     mixpanel.track("App Started");
     update();
   }, 0);
 };
 
-// export some globals
-window.Tone = Tone;
-window.THREE = THREE;

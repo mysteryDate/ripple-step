@@ -21,6 +21,10 @@ module.exports = {
     ],
   },
   stats: {maxModules: Infinity, exclude: undefined},
+  devServer: {
+    host: '0.0.0.0',//your ip address
+    port: 8080,
+  },
   devtool: "cheap-module-eval-source-map",
   target: "web",
   output: {

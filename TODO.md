@@ -11,6 +11,8 @@
 - [ ] Save/export/record
 - [ ] Tie sustain to release (0 release = 0 sustain, 1 release = 0.5 ish sustain)
 - [ ] Clear/mute/share buttons
+- [ ] SYNC OVER NETWORK OMYGOD
+- [ ] Some kind of limiter/compressor
 
 Maybe
 - [ ] Maybe I want the harmony to be modal? (https://www.youtube.com/watch?v=JkAl3It8sEQ)
