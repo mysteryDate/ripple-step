@@ -8,7 +8,7 @@ function Transport(options) {
   this.previousPosition = Constants.NUM_STEPS - 1;
   this.position = this.previousPosition;
   this.distanceFromBeat = 0;
-  this.swing = (options.swing !== undefined) ? 0 : options.swing;
+  this.swing = (options.swing === undefined) ? 0 : options.swing;
 
   this.start = function() {
     this.startTime = performance.now();

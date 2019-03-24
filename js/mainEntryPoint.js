@@ -14,6 +14,14 @@ var interactionGate = document.getElementById("interactionGate");
 
 // HANDLERS
 function interactionCallback() {
+  window.app = new Application("#app", window.innerWidth, window.innerHeight, {
+    numSteps: Constants.NUM_STEPS,
+    numNotes: Constants.NUM_NOTES,
+    isMobile: isMobile,
+  });
+  window.app.init();
+  window.app.render();
+  window.app.start();
   function mouseMove(event) {
     window.app.touch(event);
   }
@@ -55,11 +63,35 @@ function interactionCallback() {
     document.addEventListener("keypress", onDocumentKeyPress, false);
   }
   window.onresize = windowResize;
+  var stats = new Stats();
+  function update() {
+    stats.update();
+    window.app.update();
+    window.app.render();
+    requestAnimationFrame(update);
+  }
+  window.setTimeout(function() {
+    update();
+  }, 0);
 }
+
+window.onload = function() {
+  var domElement = document.getElementById("soundOn");
+  domElement.innerHTML = "SOUND ON!<br>▶︎";
+  domElement.style.top = "calc(50% - 24vw)";
+  domElement.style.lineHeight = "25vw";
+  domElement.style.animationName = "fade";
+  domElement.style.animationIterationCount = 1;
+  domElement.style.animationDuration = "0.5s";
+
+  // document.body.appendChild(stats.domElement);
+  window.setTimeout(function() {
+    mixpanel.track("App Started");
+  }, 0);
+};
 
 function mouseDown(event) {
   if (!hasInteracted) {
-    window.app.start();
     interactionGate.style.display = "none";
     hasInteracted = true;
     interactionCallback();
@@ -82,35 +114,3 @@ var canvas = document.getElementById("app");
 canvas.addEventListener("touchmove", function(event) {
   event.preventDefault();
 });
-
-var stats = new Stats();
-function update() {
-  stats.update();
-  window.app.update();
-  window.app.render();
-  requestAnimationFrame(update);
-}
-
-window.onload = function() {
-  window.app = new Application("#app", window.innerWidth, window.innerHeight, {
-    numSteps: Constants.NUM_STEPS,
-    numNotes: Constants.NUM_NOTES,
-    isMobile: isMobile,
-  });
-  window.app.init();
-  window.app.render();
-  var domElement = document.getElementById("soundOn");
-  domElement.innerHTML = "SOUND ON!<br>▶︎";
-  domElement.style.top = "calc(50% - 24vw)";
-  domElement.style.lineHeight = "25vw";
-  domElement.style.animationName = "fade";
-  domElement.style.animationIterationCount = 1;
-  domElement.style.animationDuration = "0.5s";
-
-  // document.body.appendChild(stats.domElement);
-  window.setTimeout(function() {
-    mixpanel.track("App Started");
-    update();
-  }, 0);
-};
-
