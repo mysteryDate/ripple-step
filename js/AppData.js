@@ -17,11 +17,10 @@ var Constants = {
 };
 
 var Controls = {
-  // TEMPO: 120,
-  TEMPO: 12,
+  TEMPO: 120,
   SWING: 0,
-  // NUM_NOTES_BEFORE_KNOBS_DISPLAY: 3,
-  NUM_NOTES_BEFORE_KNOBS_DISPLAY: 0,
+  NUM_NOTES_BEFORE_KNOBS_DISPLAY: 3,
+  // NUM_NOTES_BEFORE_KNOBS_DISPLAY: 0,
 };
 
 Controls.Envelope = {
