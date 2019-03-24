@@ -25,18 +25,6 @@ function Application(selector, width, height, options) {
   var scaleChooser = new ScaleChooser(Scales, currentScaleName);
   scene.add(scaleChooser);
 
-  // SYNTH
-  var synth = new RippleSynth(Constants.NUM_NOTES, {});
-  synth.setVolume(-6);
-
-  // Controls for the envelope
-  var knobPanel = new ControlPanel({
-    knobs: Controls.Knobs,
-    getter: synth.getControl,
-    setter: synth.setControl,
-  });
-  scene.add(knobPanel);
-
   var transport = new Transport();
   var raycaster = new THREE.Raycaster();
 
@@ -67,7 +55,6 @@ function Application(selector, width, height, options) {
     raycaster: raycaster,
     transport: transport,
     startTime: startTime,
-    knobPanel: knobPanel,
     renderer: renderer,
     onBeat: onBeat,
     camera: camera,
@@ -75,12 +62,25 @@ function Application(selector, width, height, options) {
     height: height,
     muted: muted,
     scene: scene,
-    synth: synth,
     width: width,
   });
 }
 
 Application.prototype.init = function() {
+  // SYNTH
+  var synth = new RippleSynth(Constants.NUM_NOTES, {});
+  synth.setVolume(-6);
+
+  // Controls for the envelope
+  var knobPanel = new ControlPanel({
+    knobs: Controls.Knobs,
+    getter: synth.getControl,
+    setter: synth.setControl,
+  });
+  this.scene.add(knobPanel);
+  this.synth = synth;
+  this.knobPanel = knobPanel;
+
   this.setScale(this.currentScale);
   this.resize(this.width, this.height);
 };

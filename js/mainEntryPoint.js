@@ -13,19 +13,56 @@ var hasInteracted = false;
 var interactionGate = document.getElementById("interactionGate");
 
 // HANDLERS
-function mouseMove(event) {
-  window.app.touch(event);
+function interactionCallback() {
+  function mouseMove(event) {
+    window.app.touch(event);
+  }
+  function touchMove(event) {
+    event.pageX = event.changedTouches[0].pageX;
+    event.pageY = event.changedTouches[0].pageY;
+    mouseMove(event);
+  }
+  function mouseUp(event) {
+    window.app.touchEnd();
+  }
+  function touchEnd(event) {
+    mouseUp(event);
+  }
+  function onDocumentKeyPress(event) {
+    switch (event.code) {
+      case "KeyC":
+        window.app.clear();
+        break;
+      case "KeyM":
+        window.app.toggleMute();
+        break;
+      case "Space":
+        window.app.togglePaused();
+        break;
+      default:
+        break;
+    }
+  }
+  function windowResize(event) {
+    window.app.resize(window.innerWidth, window.innerHeight);
+  }
+  if (isMobile) {
+    document.addEventListener("touchmove", touchMove, false);
+    document.addEventListener("touchend", touchEnd, false);
+  } else {
+    document.addEventListener("mousemove", mouseMove, false);
+    document.addEventListener("mouseup", mouseUp, false);
+    document.addEventListener("keypress", onDocumentKeyPress, false);
+  }
+  window.onresize = windowResize;
 }
-function touchMove(event) {
-  event.pageX = event.changedTouches[0].pageX;
-  event.pageY = event.changedTouches[0].pageY;
-  mouseMove(event);
-}
+
 function mouseDown(event) {
   if (!hasInteracted) {
     window.app.start();
     interactionGate.style.display = "none";
     hasInteracted = true;
+    interactionCallback();
   } else {
     window.app.touchStart(event);
   }
@@ -35,42 +72,11 @@ function touchStart(event) {
   event.pageY = event.changedTouches[0].pageY;
   mouseDown(event);
 }
-function mouseUp(event) {
-  window.app.touchEnd();
-}
-function touchEnd(event) {
-  mouseUp(event);
-}
-function onDocumentKeyPress(event) {
-  switch (event.code) {
-    case "KeyC":
-      window.app.clear();
-      break;
-    case "KeyM":
-      window.app.toggleMute();
-      break;
-    case "Space":
-      window.app.togglePaused();
-      break;
-    default:
-      break;
-  }
-}
-function windowResize(event) {
-  window.app.resize(window.innerWidth, window.innerHeight);
-}
-
 if (isMobile) {
-  document.addEventListener("touchmove", touchMove, false);
   document.addEventListener("touchstart", touchStart, false);
-  document.addEventListener("touchend", touchEnd, false);
 } else {
-  document.addEventListener("mousemove", mouseMove, false);
   document.addEventListener("mousedown", mouseDown, false);
-  document.addEventListener("mouseup", mouseUp, false);
-  document.addEventListener("keypress", onDocumentKeyPress, false);
 }
-window.onresize = windowResize;
 
 var canvas = document.getElementById("app");
 canvas.addEventListener("touchmove", function(event) {
