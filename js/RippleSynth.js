@@ -52,10 +52,11 @@ RippleSynth.prototype.start = function() {
   Tone.context.resume();
 };
 
-RippleSynth.prototype.playRow = function(row) { // TODO relative
-  var note = this.scale.notes[(row) % this.scale.notes.length];
-  var octave = Math.floor(row / this.scale.notes.length) + 3;
-  octave += this.scale.octaves[(row) % this.scale.notes.length];
+RippleSynth.prototype.playRow = function(row, scale) { // TODO relative
+  var s = scale || this.scale;
+  var note = s.notes[(row) % s.notes.length];
+  var octave = Math.floor(row / s.notes.length) + 3;
+  octave += s.octaves[(row) % s.notes.length];
   // Duration of an 8th note
   this.triggerAttackRelease(note + octave, "16n");
 };

@@ -19,7 +19,6 @@ function Application(selector, width, height, options) {
   var currentScaleName = sample(Object.keys(Scales));
   var currentScale = Scales[currentScaleName];
   var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes);
-  toneMatrix.armButton(0, random(0, options.numNotes - 1)); // Arm random button
   scene.add(toneMatrix);
 
   var scaleChooser = new ScaleChooser(Scales, currentScaleName);
@@ -37,10 +36,10 @@ function Application(selector, width, height, options) {
   function onBeat() {
     toneMatrix.activateColumn(transport.position);
     if (!muted) {
-      var rowsToPlay = toneMatrix.getActiveNotesInColumn(transport.position);
+      var notesToPlay = toneMatrix.getActiveNotesInColumn(transport.position);
       if (!window.app.muted) {
-        rowsToPlay.forEach(function(row) {
-          window.app.synth.playRow(row);
+        notesToPlay.forEach(function(note) {
+          window.app.synth.playRow(note.row, note.scale);
         });
       }
     }
@@ -52,6 +51,7 @@ function Application(selector, width, height, options) {
     currentTime: currentTime,
     toneMatrix: toneMatrix,
     downsample: downsample,
+    numNotes: options.numNotes,
     raycaster: raycaster,
     transport: transport,
     startTime: startTime,
@@ -82,6 +82,7 @@ Application.prototype.init = function() {
   this.knobPanel = knobPanel;
 
   this.setScale(this.currentScale);
+  this.toneMatrix.armButton(0, random(0, this.numNotes - 1)); // Arm random button
   this.resize(this.width, this.height);
 };
 
@@ -92,10 +93,11 @@ Application.prototype.render = function() {
 
 Application.prototype.setScale = function(newScale) {
   this.currentScale = newScale;
-  this.toneMatrix.setActiveColor({
-    buttonColor: new THREE.Color(this.currentScale.color),
-    shadowColor: new THREE.Color(this.currentScale.ripple_color),
-  });
+  this.toneMatrix.setCurrentScale(
+    new THREE.Color(this.currentScale.color),
+    new THREE.Color(this.currentScale.ripple_color),
+    this.currentScale
+  );
   this.synth.scale = this.currentScale;
   this.knobPanel.setColor(new THREE.Color(this.currentScale.color));
 };
