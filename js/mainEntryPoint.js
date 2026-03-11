@@ -8,6 +8,7 @@ import Stats from "../node_modules/stats.js";
 import Application from "./Application";
 import {Constants} from "./AppData";
 
+document.body.style.backgroundColor = Constants.BACKGROUND_COLOR;
 var isMobile = (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 var hasInteracted = false;
 var interactionGate = document.getElementById("interactionGate");

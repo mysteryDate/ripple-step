@@ -4,10 +4,11 @@ var Settings = {
 };
 
 var Constants = {
-  BASE_COLOR: 0x000000,
+  BASE_COLOR: "#1c1a1a",
+  TONE_MATRIX_BACKGROUND: "#030303",
   MIN_UI_PADDING: 0.2,
-  BACKGROUND_COLOR: 0x0f0f0f,
-  SECONDARY_BASE_COLOR: 0xaaaaaa,
+  BACKGROUND_COLOR: "#000000",
+  SECONDARY_BASE_COLOR: "#aaaaaa",
   NUM_STEPS: 16,
   NUM_NOTES: 16,
   SPACING_RATIO: 1/10,
@@ -89,48 +90,48 @@ var Scales = {
     "relative_octaves": [0, 0, 0, 0, 0],
     "notes": ["F", "G", "A", "C", "D"],
     "octaves": [0, 0, 0, 1, 1],
-    "color": 0xbf4944,
-    "ripple_color": 0xff0000, // red
+    "color": "#bf4944",
+    "ripple_color": "#ff0000", // red
   },
   "I": {
     "notes": ["C", "D", "E", "G", "A"],
     "octaves": [0, 0, 0, 0, 0],
     "relative_notes": ["C", "D", "E", "G", "A"],
     "relative_octaves": [0, 0, 0, 0, 0],
-    "color": 0xc3c045,
-    "ripple_color": 0xffff00, // yellow
+    "color": "#c3c045",
+    "ripple_color": "#ffff00", // yellow
   },
   "V": {
     "relative_notes": ["B", "D", "F", "G", "A"],
     "relative_octaves": [-1, 0, 0, 0, 0],
     "notes": ["G", "A", "B", "D", "F"],
     "octaves": [-1, -1, -1, 0, 0],
-    "color": 0x3bc34c,
-    "ripple_color": 0x00ff00, // green
+    "color": "#3bc34c",
+    "ripple_color": "#00ff00", // green
   },
   "ii": {
     "relative_notes": ["B", "D", "E", "F", "A"],
     "relative_octaves": [-1, 0, 0, 0, 0],
     "notes": ["D", "E", "F", "A", "B"],
     "octaves": [0, 0, 0, 0, 0],
-    "color": 0x43a5bf,
-    "ripple_color": 0x00ffff, // cyan
+    "color": "#43a5bf",
+    "ripple_color": "#00ffff", // cyan
   },
   "vi": {
     "relative_notes": ["B", "C", "E", "F", "A"],
     "relative_octaves": [-1, 0, 0, 0, 0],
     "notes": ["A", "B", "C", "E", "F"],
     "octaves": [-1, -1, 0, 0, 0],
-    "color": 0x5455b7,
-    "ripple_color": 0x0000ff, // blue
+    "color": "#5455b7",
+    "ripple_color": "#0000ff", // blue
   },
   "iii": {
     "relative_notes": ["B", "C", "E", "F", "G"],
     "relative_octaves": [-1, 0, 0, 0, 0],
     "notes": ["E", "F", "G", "B", "C"],
     "octaves": [0, 0, 0, 0, 1],
-    "color": 0x8a49bd,
-    "ripple_color": 0xff00ff, // magenta
+    "color": "#8a49bd",
+    "ripple_color": "#ff00ff", // magenta
   },
 };
 

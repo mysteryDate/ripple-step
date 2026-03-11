@@ -89,7 +89,7 @@ Application.prototype.init = function() {
   this.knobPanel = knobPanel;
 
   this.setScale(this.currentScale);
-  this.toneMatrix.armButton(0, random(0, this.numNotes - 1)); // Arm random button
+  this.toneMatrix.armButton(8, random(this.numNotes / 4, this.numNotes * 0.75)); // Arm random button
   this.resize(this.width, this.height);
 };
 

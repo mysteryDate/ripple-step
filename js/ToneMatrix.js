@@ -220,7 +220,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   var keyMaterial = makeKeyMaterial({
     numHorizontalNotes: numHorizontalSteps,
     numVerticalNotes: numVerticalSteps,
-    baseColor: Constants.BASE_COLOR,
+    baseColor: Constants.TONE_MATRIX_BACKGROUND,
   });
   this.add(new THREE.Mesh(keyGeometry, keyMaterial));
 
