@@ -159,7 +159,6 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   THREE.Group.call(this);
   // Some hacky debouncing
   var arming = true;
-  console.log("hi");
   var touchActive = false;
 
   var keyGeometry = (function makeKeyGeometry() {

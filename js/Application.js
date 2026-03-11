@@ -232,9 +232,9 @@ Application.prototype.update = function() {
     if (release < THREE.Math.lerp(minRelease, maxRelease, firstStop)) {
       dampingValue = THREE.Math.mapLinear(release, minRelease, THREE.Math.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
     } else if (release === Controls.Envelope.release.maxValue) {
-      dampingValue = 0.999;
+      dampingValue = 0.9999;
     } else {
-      dampingValue = THREE.Math.mapLinear(release, THREE.Math.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.999);
+      dampingValue = THREE.Math.mapLinear(release, THREE.Math.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.9999);
     }
     return dampingValue;
   })();
