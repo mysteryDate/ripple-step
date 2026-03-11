@@ -20,6 +20,7 @@ var Constants = {
 
 var Controls = {
   TEMPO: 120,
+  TEMPO_RATIO: Math.sqrt(2), // Each scale's tempo = TEMPO * TEMPO_RATIO^(scale.tempo_exponent)
   SWING: 0,
   NUM_NOTES_BEFORE_KNOBS_DISPLAY: 3,
   // NUM_NOTES_BEFORE_KNOBS_DISPLAY: 0,
@@ -92,6 +93,7 @@ var Scales = {
     "octaves": [0, 0, 0, 1, 1],
     "color": "#bf4944",
     "ripple_color": "#ff0000", // red
+    "tempo_exponent": -2,
   },
   "I": {
     "notes": ["C", "D", "E", "G", "A"],
@@ -100,6 +102,7 @@ var Scales = {
     "relative_octaves": [0, 0, 0, 0, 0],
     "color": "#c3c045",
     "ripple_color": "#ffff00", // yellow
+    "tempo_exponent": -1,
   },
   "V": {
     "relative_notes": ["B", "D", "F", "G", "A"],
@@ -108,6 +111,7 @@ var Scales = {
     "octaves": [-1, -1, -1, 0, 0],
     "color": "#3bc34c",
     "ripple_color": "#00ff00", // green
+    "tempo_exponent": 0,
   },
   "ii": {
     "relative_notes": ["B", "D", "E", "F", "A"],
@@ -116,6 +120,7 @@ var Scales = {
     "octaves": [0, 0, 0, 0, 0],
     "color": "#43a5bf",
     "ripple_color": "#00ffff", // cyan
+    "tempo_exponent": 1,
   },
   "vi": {
     "relative_notes": ["B", "C", "E", "F", "A"],
@@ -124,6 +129,7 @@ var Scales = {
     "octaves": [-1, -1, 0, 0, 0],
     "color": "#5455b7",
     "ripple_color": "#0000ff", // blue
+    "tempo_exponent": 2,
   },
   "iii": {
     "relative_notes": ["B", "C", "E", "F", "G"],
@@ -132,6 +138,7 @@ var Scales = {
     "octaves": [0, 0, 0, 0, 1],
     "color": "#8a49bd",
     "ripple_color": "#ff00ff", // magenta
+    "tempo_exponent": 3,
   },
 };
 

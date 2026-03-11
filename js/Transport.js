@@ -9,6 +9,7 @@ function Transport(options) {
   this.position = this.previousPosition;
   this.distanceFromBeat = 0;
   this.swing = (options.swing === undefined) ? 0 : options.swing;
+  this.tempoMultiplier = (options.tempoMultiplier === undefined) ? 1 : options.tempoMultiplier;
 
   this.start = function() {
     this.startTime = performance.now();
@@ -31,7 +32,7 @@ Transport.prototype.update = function(beatCallback) {
     return;
   }
   var secondsSinceStart = (performance.now() - this.startTime) / 1000;
-  var numBeatsPassed = Controls.TEMPO * secondsSinceStart / 60;
+  var numBeatsPassed = Controls.TEMPO * this.tempoMultiplier * secondsSinceStart / 60;
   var floatPosition = numBeatsPassed * (1/4 / Constants.STEP_VALUE) + this.startPosition;
   if (Math.floor(floatPosition) % 2 === 1) {
     floatPosition += this.swing;

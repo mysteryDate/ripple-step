@@ -11,24 +11,26 @@ function makeKeyMaterial(options) {
       u_numHorizontalNotes: {value: options.numHorizontalNotes},
       u_baseColor: {value: new THREE.Color(options.baseColor)},
       u_numVerticalNotes: {value: options.numVerticalNotes},
-      u_activeColumn: {value: -1},
       u_rippleTex: {value: null},
       u_muted: {value: false},
     },
     vertexShader: `
       attribute vec2 relativePosition;
       attribute float isArmed;
+      attribute float isActive;
       attribute vec3 buttonColor;
       uniform float u_numHorizontalNotes;
       uniform float u_numVerticalNotes;
       varying vec2 v_relativePosition;
       varying vec2 v_uv;
       varying float v_armed;
+      varying float v_active;
       varying vec3 v_buttonColor;
       ${Materials.Include.map}
       void main() {
         v_uv = uv;
         v_armed = isArmed;
+        v_active = isActive;
         v_relativePosition = relativePosition;
         v_buttonColor = buttonColor;
 
@@ -43,11 +45,11 @@ function makeKeyMaterial(options) {
       uniform vec3 u_baseColor;
       uniform float u_numHorizontalNotes;
       uniform float u_numVerticalNotes;
-      uniform float u_activeColumn;
       uniform float u_muted;
       varying vec2 v_relativePosition;
       varying vec2 v_uv;
       varying float v_armed;
+      varying float v_active;
       varying vec3 v_buttonColor;
 
       float rectangleSDF(vec2 st, vec2 s) {
@@ -63,8 +65,7 @@ function makeKeyMaterial(options) {
       void main() {
         vec3 col = mix(v_buttonColor, v_buttonColor * MUTE_COLOR_VALUE, u_muted);
         col = mix(u_baseColor, col, v_armed);
-        float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
-        col = mix(col, vec3(1.0), isColumnActive * v_armed);
+        col = mix(col, vec3(1.0), v_active);
 
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / vec2(u_numHorizontalNotes, u_numVerticalNotes)).rgb;
         col += rippleTex * rippleTex;
@@ -86,21 +87,23 @@ function makeShadowKeyMaterial(options) {
     uniforms: {
       u_numHorizontalNotes: {value: options.numHorizontalNotes},
       u_numVerticalNotes: {value: options.numVerticalNotes},
-      u_activeColumn: {value: -1},
       u_muted: {value: false},
     },
     vertexShader: `
       attribute vec2 relativePosition;
       attribute float isArmed;
+      attribute float isActive;
       attribute vec3 buttonShadowColor;
       uniform float u_numHorizontalNotes;
       uniform float u_numVerticalNotes;
       varying vec2 v_relativePosition;
       varying float v_armed;
+      varying float v_active;
       varying vec3 v_shadowColor;
       ${Materials.Include.map}
       void main() {
         v_armed = isArmed;
+        v_active = isActive;
         v_relativePosition = relativePosition;
         v_shadowColor = buttonShadowColor;
         vec2 offset = map(relativePosition, vec2(0.0), vec2(u_numHorizontalNotes, u_numVerticalNotes), vec2(0.0), vec2(1.0));
@@ -110,16 +113,15 @@ function makeShadowKeyMaterial(options) {
     `,
     fragmentShader: `
       uniform float u_muted;
-      uniform float u_activeColumn;
       varying vec2 v_relativePosition;
       varying float v_armed;
+      varying float v_active;
       varying vec3 v_shadowColor;
       #define MUTE_COLOR_VALUE ${Constants.MUTE_COLOR_VALUE.toFixed(3)}
       void main() {
         vec3 col = mix(v_shadowColor, v_shadowColor * MUTE_COLOR_VALUE, u_muted);
 
-        float isColumnActive = 1.0 - step(0.1, abs(u_activeColumn - v_relativePosition.x));
-        float opacity = v_armed * isColumnActive;
+        float opacity = v_active;
 
         gl_FragColor = vec4(col, opacity);
       }
@@ -189,6 +191,7 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
   var numButtons = numHorizontalSteps * numVerticalSteps;
   var relativePositions = new THREE.InstancedBufferAttribute(new Float32Array(numButtons * 2), 2, 1);
   var armedBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons), 1, 1); // 0 = inactive, 1 = armed
+  var activeBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons), 1, 1); // 0 = inactive, 1 = playing
   var colorBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons * 3), 3, 1);
   var shadowColorBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons * 3), 3, 1);
 
@@ -211,10 +214,12 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     }
   }
   armedBuffer.setDynamic(true);
+  activeBuffer.setDynamic(true);
   colorBuffer.setDynamic(true);
   shadowColorBuffer.setDynamic(true);
   keyGeometry.addAttribute("relativePosition", relativePositions);
   keyGeometry.addAttribute("isArmed", armedBuffer);
+  keyGeometry.addAttribute("isActive", activeBuffer);
   keyGeometry.addAttribute("buttonColor", colorBuffer);
   keyGeometry.addAttribute("buttonShadowColor", shadowColorBuffer);
   var keyMaterial = makeKeyMaterial({
@@ -282,6 +287,29 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     rippleizer.damping.value = newDamping;
   }
 
+  // Set per-button active state based on each scale's transport position
+  // scaleColumnMap: Map<scaleObject, columnPosition>
+  function activateByScale(scaleColumnMap) {
+    for (var i = 0; i < buttons.length; i++) {
+      var btn = buttons[i];
+      var active = 0;
+      if (btn.isArmed() && btn.scale && scaleColumnMap.has(btn.scale)) {
+        if (scaleColumnMap.get(btn.scale) === btn.column) {
+          active = 1;
+        }
+      }
+      activeBuffer.setX(i, active);
+    }
+    activeBuffer.needsUpdate = true;
+  }
+
+  function deactivateAll() {
+    for (var i = 0; i < buttons.length; i++) {
+      activeBuffer.setX(i, 0);
+    }
+    activeBuffer.needsUpdate = true;
+  }
+
   function render(renderer) {
     rippleizer.render(renderer);
     setButtonUniform("u_rippleTex", rippleizer.getActiveTexture());
@@ -291,7 +319,9 @@ function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
     getActiveNotesInColumn: getActiveNotesInColumn,
     setButtonUniform: setButtonUniform,
     setCurrentScale: setCurrentScale,
+    activateByScale: activateByScale,
     uvToButtonIndex: uvToButtonIndex,
+    deactivateAll: deactivateAll,
     touchActive: touchActive,
     shadowGroup: shadowGroup,
     clickScreen: clickScreen,
@@ -334,8 +364,8 @@ ToneMatrix.prototype.touchEnd = function() {
   this.touchActive = false;
 };
 
-ToneMatrix.prototype.deactivateColumns = function(num) {
-  this.setButtonUniform("u_activeColumn", -1);
+ToneMatrix.prototype.deactivateColumns = function() {
+  this.deactivateAll();
 };
 
 
@@ -345,10 +375,6 @@ ToneMatrix.prototype.mute = function(value) {
 
 ToneMatrix.prototype.setRippleTexture = function(texture) {
   this.setButtonUniform("u_rippleTex", texture);
-};
-
-ToneMatrix.prototype.activateColumn = function(num) {
-  this.setButtonUniform("u_activeColumn", num);
 };
 
 export default ToneMatrix;

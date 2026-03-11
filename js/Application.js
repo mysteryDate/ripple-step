@@ -30,7 +30,14 @@ function Application(selector, width, height, options) {
   var scaleChooser = new ScaleChooser(Scales, currentScaleName);
   scene.add(scaleChooser);
 
-  var transport = new Transport();
+  // One transport per scale, each with its own tempo multiplier
+  var transports = {};
+  Object.keys(Scales).forEach(function(scaleName) {
+    transports[scaleName] = new Transport({
+      tempoMultiplier: Math.pow(Controls.TEMPO_RATIO, Scales[scaleName].tempo_exponent),
+    });
+  });
+
   var raycaster = new THREE.Raycaster();
 
   var paused = false;
@@ -38,31 +45,18 @@ function Application(selector, width, height, options) {
   var startTime = null;
   var currentTime = null;
 
-  // Things to execute on the frame of a beat
-  function onBeat() {
-    toneMatrix.activateColumn(transport.position);
-    if (!muted) {
-      var notesToPlay = toneMatrix.getActiveNotesInColumn(transport.position);
-      if (!window.app.muted) {
-        notesToPlay.forEach(function(note) {
-          window.app.synth.playRow(note.row, note.scale);
-        });
-      }
-    }
-  }
-
   Object.assign(this, {
     scaleChooser: scaleChooser,
+    currentScaleName: currentScaleName,
     currentScale: currentScale,
     currentTime: currentTime,
     toneMatrix: toneMatrix,
     downsample: downsample,
     numNotes: options.numNotes,
     raycaster: raycaster,
-    transport: transport,
+    transports: transports,
     startTime: startTime,
     renderer: renderer,
-    onBeat: onBeat,
     camera: camera,
     paused: paused,
     height: height,
@@ -100,6 +94,12 @@ Application.prototype.render = function() {
 
 Application.prototype.setScale = function(newScale) {
   this.currentScale = newScale;
+  var self = this;
+  Object.keys(Scales).forEach(function(name) {
+    if (Scales[name] === newScale) {
+      self.currentScaleName = name;
+    }
+  });
   this.toneMatrix.setCurrentScale(
     new THREE.Color(this.currentScale.color),
     new THREE.Color(this.currentScale.ripple_color),
@@ -212,7 +212,10 @@ Application.prototype.toggleMute = function() {
 };
 
 Application.prototype.togglePaused = function() {
-  this.transport.togglePaused();
+  var self = this;
+  Object.keys(this.transports).forEach(function(name) {
+    self.transports[name].togglePaused();
+  });
   if (this.paused) {
     this.toneMatrix.deactivateColumns();
   }
@@ -221,16 +224,45 @@ Application.prototype.togglePaused = function() {
 
 Application.prototype.start = function() {
   this.synth.start();
-  this.transport.start();
+  var self = this;
+  Object.keys(this.transports).forEach(function(name) {
+    self.transports[name].start();
+  });
 };
 
 Application.prototype.update = function() {
   this.currentTime = performance.now();
-  this.transport.update(this.onBeat);
+  var self = this;
+
+  // Tick each scale's transport independently
+  Object.keys(this.transports).forEach(function(scaleName) {
+    var transport = self.transports[scaleName];
+    transport.update(function() {
+      if (!self.muted && !window.app.muted) {
+        var notes = self.toneMatrix.getActiveNotesInColumn(transport.position);
+        notes.forEach(function(note) {
+          if (note.scale === Scales[scaleName]) {
+            window.app.synth.playRow(note.row, note.scale);
+          }
+        });
+      }
+    });
+  });
+
+  // Set per-button active state based on each scale's transport position
+  var scaleColumnMap = new Map();
+  Object.keys(this.transports).forEach(function(scaleName) {
+    scaleColumnMap.set(Scales[scaleName], self.transports[scaleName].position);
+  });
+  this.toneMatrix.activateByScale(scaleColumnMap);
+
   this.scaleChooser.update(this.currentTime);
 
   // TODO have more robust control infrastructure
-  this.transport.swing = this.synth.getControl("swing");
+  var swingValue = this.synth.getControl("swing");
+  Object.keys(this.transports).forEach(function(name) {
+    self.transports[name].swing = swingValue;
+  });
 
   // TODO, this is hideous
   var newDamping = (function getRelease() {
