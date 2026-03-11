@@ -3,6 +3,8 @@ import {Constants} from "./AppData"; // TODO pass in as options
 import Materials from "./Materials";
 import Rippleizer from "./Rippleizer";
 
+var bgColor = new THREE.Color(Constants.BACKGROUND_COLOR);
+
 function makeKeyMaterial(options) {
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -68,7 +70,9 @@ function makeKeyMaterial(options) {
         col += rippleTex * rippleTex;
 
         float rect = squareSDF(v_uv);
-        col *= 1.0 - step(1.0 - ${Constants.SPACING_RATIO.toFixed(3)}, rect);
+        float isGap = step(1.0 - ${Constants.SPACING_RATIO.toFixed(3)}, rect);
+        vec3 bgCol = vec3(${bgColor.r.toFixed(3)}, ${bgColor.g.toFixed(3)}, ${bgColor.b.toFixed(3)});
+        col = mix(col, bgCol, isGap);
 
         gl_FragColor = vec4(col, 1.0);
       }

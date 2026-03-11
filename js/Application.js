@@ -16,6 +16,12 @@ function Application(selector, width, height, options) {
   var scene = new THREE.Scene();
   var camera = new THREE.OrthographicCamera();
 
+  var bgGeometry = new THREE.PlaneBufferGeometry(1, 1);
+  var bgMaterial = new THREE.MeshBasicMaterial({color: Constants.BACKGROUND_COLOR});
+  var bgPlane = new THREE.Mesh(bgGeometry, bgMaterial);
+  bgPlane.position.z = -10;
+  scene.add(bgPlane);
+
   var currentScaleName = sample(Object.keys(Scales));
   var currentScale = Scales[currentScaleName];
   var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes);
@@ -63,6 +69,7 @@ function Application(selector, width, height, options) {
     muted: muted,
     scene: scene,
     width: width,
+    bgPlane: bgPlane,
   });
 }
 
@@ -111,6 +118,9 @@ Application.prototype.resize = function(width, height) {
   this.camera.bottom = -height/2;
   this.camera.position.set(width/2, height/2, 50);
   this.camera.updateProjectionMatrix();
+
+  this.bgPlane.scale.set(width, height, 1);
+  this.bgPlane.position.set(width/2, height/2, -10);
 
   var toneMatrixSize = Math.min(width, height);
   var aspectRatio = width/height;

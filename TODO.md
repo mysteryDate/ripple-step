@@ -20,3 +20,7 @@ Maybe
 - [ ] Good inspo: https://musiclab.chromeexperiments.com/Rhythm/
 - [ ] Full screen?
 - [ ] Midi
+
+
+Fewer colors, each selects a voice.
+A separate controller to transpose the voice into the different scales

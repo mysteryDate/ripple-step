@@ -6,7 +6,7 @@ var rtOptions = {
   depthBuffer: false,
   stencilBuffer: false,
 };
-var RENDER_TEXTURE_RESOLUTION = 256;
+var RENDER_TEXTURE_RESOLUTION = 512;
 // For off-screen, ripple renders
 function makeShadowScene(group) {
   var shadowGroup = group; // TODO, find a way to clone this, law of demeter and all
@@ -27,7 +27,7 @@ function makeShadowScene(group) {
   return scene;
 }
 
-var RATIO = 0.4; // TODO
+var RATIO = 0.2;
 function Rippleizer(group) {
   var rippleMaterial = Materials.ripple();
   var shadowScene = makeShadowScene(group);

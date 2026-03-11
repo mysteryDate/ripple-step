@@ -4,8 +4,9 @@ var Settings = {
 };
 
 var Constants = {
-  BASE_COLOR: 0x1d1e26,
+  BASE_COLOR: 0x000000,
   MIN_UI_PADDING: 0.2,
+  BACKGROUND_COLOR: 0x0f0f0f,
   SECONDARY_BASE_COLOR: 0xaaaaaa,
   NUM_STEPS: 16,
   NUM_NOTES: 16,
