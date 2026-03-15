@@ -84,6 +84,12 @@ window.onload = function() {
   window.setTimeout(function() {
     mixpanel.track("App Started");
   }, 0);
+
+  if (new URLSearchParams(window.location.search).has("skipGate")) {
+    interactionGate.style.display = "none";
+    hasInteracted = true;
+    interactionCallback();
+  }
 };
 
 function mouseDown(event) {
