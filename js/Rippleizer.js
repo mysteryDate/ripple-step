@@ -6,7 +6,7 @@ var rtOptions = {
   depthBuffer: false,
   stencilBuffer: false,
 };
-var RENDER_TEXTURE_RESOLUTION = 512;
+var RENDER_TEXTURE_RESOLUTION = 256;
 // For off-screen, ripple renders
 function makeShadowScene(group) {
   var shadowGroup = group; // TODO, find a way to clone this, law of demeter and all
@@ -29,7 +29,7 @@ function makeShadowScene(group) {
   return scene;
 }
 
-var RATIO = 0.2;
+var RATIO = 0.4;
 function Rippleizer(group) {
   var rippleMaterial = Materials.ripple();
   var shadowScene = makeShadowScene(group);
@@ -41,8 +41,10 @@ function Rippleizer(group) {
   var finalTarget = mainTarget.clone();
   rippleMaterial.uniforms.u_texelSize.value = new Vector2(1/subTextureResolution, 1/subTextureResolution);
 
-  function render(renderer) {
-    shadowScene.render(renderer);
+  function render(renderer, shadowDirty) {
+    if (shadowDirty !== false) {
+      shadowScene.render(renderer);
+    }
     rippleMaterial.uniforms.u_mainTex.value = mainTarget.texture;
     rippleMaterial.uniforms.u_backTex.value = backTarget.texture;
     blitTexture(renderer, rippleMaterial, finalTarget);

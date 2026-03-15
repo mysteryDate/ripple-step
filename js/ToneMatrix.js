@@ -241,6 +241,7 @@ class ToneMatrix extends Group {
     shadowGroup.add(new Mesh(keyGeometry, shadowKeyMaterial));
     shadowGroup.add(clickScreen.clone()); // So that it has a proper BB
     var rippleizer = new Rippleizer(shadowGroup);
+    var shadowDirty = true;
 
     function setButtonUniform(uniformName, value, shadowValue) {
       keyMaterial.uniforms[uniformName].value = value;
@@ -280,11 +281,13 @@ class ToneMatrix extends Group {
       return activeNotesInColumn;
     }
 
+    var _uvResult = new Vector2();
     function uvToButtonIndex(uv) {
-      var result = uv.clone().multiply(new Vector2(numHorizontalSteps, numVerticalSteps));
-      result.x = Math.floor(result.x);
-      result.y = Math.floor(result.y);
-      return result;
+      _uvResult.set(
+        Math.floor(uv.x * numHorizontalSteps),
+        Math.floor(uv.y * numVerticalSteps)
+      );
+      return _uvResult;
     }
 
     function setDamping(newDamping) {
@@ -294,6 +297,7 @@ class ToneMatrix extends Group {
     // Set per-button active state based on each scale's transport position
     // scaleColumnMap: Map<scaleObject, columnPosition>
     function activateByScale(scaleColumnMap) {
+      var changed = false;
       for (var i = 0; i < buttons.length; i++) {
         var btn = buttons[i];
         var active = 0;
@@ -302,20 +306,34 @@ class ToneMatrix extends Group {
             active = 1;
           }
         }
-        activeBuffer.setX(i, active);
+        if (activeBuffer.getX(i) !== active) {
+          activeBuffer.setX(i, active);
+          changed = true;
+        }
       }
-      activeBuffer.needsUpdate = true;
+      if (changed) {
+        activeBuffer.needsUpdate = true;
+        shadowDirty = true;
+      }
     }
 
     function deactivateAll() {
+      var changed = false;
       for (var i = 0; i < buttons.length; i++) {
-        activeBuffer.setX(i, 0);
+        if (activeBuffer.getX(i) !== 0) {
+          activeBuffer.setX(i, 0);
+          changed = true;
+        }
       }
-      activeBuffer.needsUpdate = true;
+      if (changed) {
+        activeBuffer.needsUpdate = true;
+        shadowDirty = true;
+      }
     }
 
     function render(renderer) {
-      rippleizer.render(renderer);
+      rippleizer.render(renderer, shadowDirty);
+      shadowDirty = false;
       setButtonUniform("u_rippleTex", rippleizer.getActiveTexture());
     }
 

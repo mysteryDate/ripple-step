@@ -11,6 +11,8 @@ import RippleSynth from "./RippleSynth";
 import ControlPanel from "./ControlPanel";
 import Transport from "./Transport";
 
+var _mouse = new Vector2();
+
 function Application(selector, width, height, options) {
   var canvas = document.querySelector(selector);
   var downsample = (options.isMobile === true) ? Settings.MOBILE_DOWNSAMPLE : Settings.DESKTOP_DOWNSAMPLE;
@@ -44,6 +46,7 @@ function Application(selector, width, height, options) {
     });
   });
 
+  var transportNames = Object.keys(Scales);
   var raycaster = new Raycaster();
 
   var paused = false;
@@ -60,6 +63,7 @@ function Application(selector, width, height, options) {
     downsample: downsample,
     numNotes: options.numNotes,
     raycaster: raycaster,
+    transportNames: transportNames,
     transports: transports,
     startTime: startTime,
     renderer: renderer,
@@ -196,20 +200,18 @@ Application.prototype.resize = function(width, height) {
 
 // TODO store interactables in array
 Application.prototype.touchStart = function(event) {
-  var mouse = new Vector2();
-  mouse.x = (event.pageX / this.width) * 2 - 1;
-  mouse.y = -(event.pageY / this.height) * 2 + 1;
-  this.raycaster.setFromCamera(mouse, this.camera);
+  _mouse.x = (event.pageX / this.width) * 2 - 1;
+  _mouse.y = -(event.pageY / this.height) * 2 + 1;
+  this.raycaster.setFromCamera(_mouse, this.camera);
   this.toneMatrix.touchStart(this.raycaster);
   this.scaleChooser.touchStart(this.raycaster);
   this.knobPanel.touchStart(this.raycaster, event);
 };
 
 Application.prototype.touch = function(event) {
-  var mouse = new Vector2();
-  mouse.x = (event.pageX / this.width) * 2 - 1;
-  mouse.y = -(event.pageY / this.height) * 2 + 1;
-  this.raycaster.setFromCamera(mouse, this.camera);
+  _mouse.x = (event.pageX / this.width) * 2 - 1;
+  _mouse.y = -(event.pageY / this.height) * 2 + 1;
+  this.raycaster.setFromCamera(_mouse, this.camera);
   this.toneMatrix.touch(this.raycaster);
   this.knobPanel.touch(this.raycaster, event);
   this.scaleChooser.touch(this.raycaster);
@@ -234,7 +236,7 @@ Application.prototype.toggleMute = function() {
 
 Application.prototype.togglePaused = function() {
   var self = this;
-  Object.keys(this.transports).forEach(function(name) {
+  this.transportNames.forEach(function(name) {
     self.transports[name].togglePaused();
   });
   if (this.paused) {
@@ -246,7 +248,7 @@ Application.prototype.togglePaused = function() {
 Application.prototype.start = function() {
   this.synth.start();
   var self = this;
-  Object.keys(this.transports).forEach(function(name) {
+  this.transportNames.forEach(function(name) {
     self.transports[name].start(self.initialColumn);
   });
 };
@@ -256,7 +258,7 @@ Application.prototype.update = function() {
   var self = this;
 
   // Tick each scale's transport independently
-  Object.keys(this.transports).forEach(function(scaleName) {
+  this.transportNames.forEach(function(scaleName) {
     var transport = self.transports[scaleName];
     transport.update(function() {
       if (!self.muted && !window.app.muted) {
@@ -272,7 +274,7 @@ Application.prototype.update = function() {
 
   // Set per-button active state based on each scale's transport position
   var scaleColumnMap = new Map();
-  Object.keys(this.transports).forEach(function(scaleName) {
+  this.transportNames.forEach(function(scaleName) {
     scaleColumnMap.set(Scales[scaleName], self.transports[scaleName].position);
   });
   this.toneMatrix.activateByScale(scaleColumnMap);
@@ -281,7 +283,7 @@ Application.prototype.update = function() {
 
   // TODO have more robust control infrastructure
   var swingValue = this.synth.getControl("swing");
-  Object.keys(this.transports).forEach(function(name) {
+  this.transportNames.forEach(function(name) {
     self.transports[name].swing = swingValue;
   });
 
