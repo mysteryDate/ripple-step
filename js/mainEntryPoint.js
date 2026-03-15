@@ -61,9 +61,27 @@ function interactionCallback() {
     document.addEventListener("keypress", onDocumentKeyPress, false);
   }
   window.onresize = windowResize;
+  var showFps = new URLSearchParams(window.location.search).has("fps");
+  var fpsEl = null;
+  var frameCount = 0;
+  var lastFpsTime = performance.now();
+  if (showFps) {
+    fpsEl = document.createElement("div");
+    fpsEl.style.cssText = "position:fixed;top:4px;left:4px;color:#0f0;font:12px monospace;z-index:9999;pointer-events:none";
+    document.body.appendChild(fpsEl);
+  }
   function update() {
     window.app.update();
     window.app.render();
+    if (showFps) {
+      frameCount++;
+      var now = performance.now();
+      if (now - lastFpsTime >= 1000) {
+        fpsEl.textContent = Math.round(frameCount * 1000 / (now - lastFpsTime)) + " fps";
+        frameCount = 0;
+        lastFpsTime = now;
+      }
+    }
     requestAnimationFrame(update);
   }
   window.setTimeout(function() {
