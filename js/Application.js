@@ -1,7 +1,7 @@
 import {
   WebGLRenderer, Scene, OrthographicCamera, PlaneGeometry,
   MeshBasicMaterial, Mesh, Color, Raycaster, Vector2, MathUtils,
-  ColorManagement
+  ColorManagement, LinearSRGBColorSpace
 } from "three";
 
 import {Constants, Scales, Settings, Controls} from "./AppData";
@@ -16,6 +16,7 @@ function Application(selector, width, height, options) {
   var downsample = (options.isMobile === true) ? Settings.MOBILE_DOWNSAMPLE : Settings.DESKTOP_DOWNSAMPLE;
   ColorManagement.enabled = false;
   var renderer = new WebGLRenderer({canvas: canvas, antialias: true});
+  renderer.outputColorSpace = LinearSRGBColorSpace;
   renderer.setPixelRatio(window.devicePixelRatio/downsample);
   var scene = new Scene();
   var camera = new OrthographicCamera();
