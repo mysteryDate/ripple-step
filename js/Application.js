@@ -1,6 +1,7 @@
 import {
   WebGLRenderer, Scene, OrthographicCamera, PlaneGeometry,
-  MeshBasicMaterial, Mesh, Color, Raycaster, Vector2, MathUtils
+  MeshBasicMaterial, Mesh, Color, Raycaster, Vector2, MathUtils,
+  ColorManagement
 } from "three";
 
 import {Constants, Scales, Settings, Controls} from "./AppData";
@@ -13,6 +14,7 @@ import Transport from "./Transport";
 function Application(selector, width, height, options) {
   var canvas = document.querySelector(selector);
   var downsample = (options.isMobile === true) ? Settings.MOBILE_DOWNSAMPLE : Settings.DESKTOP_DOWNSAMPLE;
+  ColorManagement.enabled = false;
   var renderer = new WebGLRenderer({canvas: canvas, antialias: true});
   renderer.setPixelRatio(window.devicePixelRatio/downsample);
   var scene = new Scene();
