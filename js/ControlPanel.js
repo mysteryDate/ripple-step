@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
+import {Group, Vector2, MathUtils} from "three";
 import Knob from "./Knob";
 import {Constants} from "./AppData";
 
@@ -16,17 +16,17 @@ function sizeAndPositionKnobs(knobGroup, width, height) {
     if (numKnobs > 1) {
       if (layout === "horizontal") {
         var panelWidth = 2 * knobRadius * numKnobs;
-        knob.position.x = THREE.Math.mapLinear(i, 0, numKnobs - 1, -panelWidth/2 + knobRadius, panelWidth/2 - knobRadius);
+        knob.position.x = MathUtils.mapLinear(i, 0, numKnobs - 1, -panelWidth/2 + knobRadius, panelWidth/2 - knobRadius);
       } else {
         var panelHeight = 2 * knobRadius * numKnobs;
-        knob.position.y = THREE.Math.mapLinear(i, 0, numKnobs - 1, panelHeight/2 - knobRadius, -panelHeight/2 + knobRadius);
+        knob.position.y = MathUtils.mapLinear(i, 0, numKnobs - 1, panelHeight/2 - knobRadius, -panelHeight/2 + knobRadius);
       }
     }
   });
 }
 
 function makeKnobs(knobOptions, getter, setter) {
-  var knobGroup = new THREE.Group();
+  var knobGroup = new Group();
   var numKnobs = knobOptions.length;
   for (var i = 0; i < numKnobs; i++) {
     var knob = new Knob(Object.assign(knobOptions[i], {
@@ -39,42 +39,43 @@ function makeKnobs(knobOptions, getter, setter) {
   return knobGroup;
 }
 
-function ControlPanel(options) {
-  THREE.Group.call(this);
-  var knobOptions = options.knobs || [];
+class ControlPanel extends Group {
+  constructor(options) {
+    super();
+    var knobOptions = options.knobs || [];
 
-  var knobGroup = makeKnobs(knobOptions, options.getter, options.setter);
-  this.add(knobGroup);
+    var knobGroup = makeKnobs(knobOptions, options.getter, options.setter);
+    this.add(knobGroup);
 
-  this.touch = function(raycaster, event) {
-    knobGroup.children.forEach(function(knob) {
-      knob.touch(new THREE.Vector2(event.pageX, -event.pageY)); // TODO why redo this?
-      options.setter(knob.control, knob.getValue());
-    });
-  };
+    this.touch = function(raycaster, event) {
+      knobGroup.children.forEach(function(knob) {
+        knob.touch(new Vector2(event.pageX, -event.pageY)); // TODO why redo this?
+        options.setter(knob.control, knob.getValue());
+      });
+    };
 
-  this.touchStart = function(raycaster, event) {
-    knobGroup.children.forEach(function(knob) {
-      knob.touchStart(raycaster, new THREE.Vector2(event.pageX, -event.pageY)); // TODO why redo this?
-    });
-  };
+    this.touchStart = function(raycaster, event) {
+      knobGroup.children.forEach(function(knob) {
+        knob.touchStart(raycaster, new Vector2(event.pageX, -event.pageY)); // TODO why redo this?
+      });
+    };
 
-  this.touchEnd = function(raycaster) {
-    knobGroup.children.forEach(function(knob) {
-      knob.touchEnd();
-    });
-  };
+    this.touchEnd = function(raycaster) {
+      knobGroup.children.forEach(function(knob) {
+        knob.touchEnd();
+      });
+    };
 
-  this.setColor = function(color) {
-    knobGroup.children.forEach(function(knob) {
-      knob.setColor(color);
-    });
-  };
+    this.setColor = function(color) {
+      knobGroup.children.forEach(function(knob) {
+        knob.setColor(color);
+      });
+    };
 
-  this.resize = function(width, height) {
-    sizeAndPositionKnobs(knobGroup, width, height);
-  };
+    this.resize = function(width, height) {
+      sizeAndPositionKnobs(knobGroup, width, height);
+    };
+  }
 }
-ControlPanel.prototype = Object.create(THREE.Object3D.prototype);
 
 export default ControlPanel;

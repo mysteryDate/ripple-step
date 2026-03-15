@@ -1,5 +1,3 @@
-import underscore from "underscore";
-
 import Textures from "./Textures";
 import Materials from "./Materials";
 import {Constants} from "./AppData";
@@ -8,7 +6,6 @@ import {Constants} from "./AppData";
 // refer to from the testbed script.
 
 export {
-  underscore,
   Textures,
   Materials,
   Constants

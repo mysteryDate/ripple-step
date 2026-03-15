@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
+import {ShaderMaterial, Vector2, Color} from "three";
 
 var Materials = {};
 
@@ -25,13 +25,13 @@ Materials.ripple = function(options) {
     height: 512,
   };
   options = Object.assign({}, defaultOptions, options);
-  return new THREE.ShaderMaterial({
+  return new ShaderMaterial({
     name: "ripple",
     uniforms: {
       u_mainTex: {value: null}, // Texture of the current frame
       u_backTex: {value: null}, // Texture of the previous frame
       u_sceneTex: {value: null}, // New additions from the scene
-      u_texelSize: {value: new THREE.Vector2(1/options.width, 1/options.height)},
+      u_texelSize: {value: new Vector2(1/options.width, 1/options.height)},
       u_damping: {value: 0.999},
       u_speed: {value: 1.0},
     },
@@ -78,11 +78,11 @@ Materials.ripple = function(options) {
 };
 
 Materials.indicatorLight = function() {
-  return new THREE.ShaderMaterial({
+  return new ShaderMaterial({
     name: "indicator light",
     transparent: true,
     uniforms: {
-      u_color: {value: new THREE.Color(0xff00ff)},
+      u_color: {value: new Color(0xff00ff)},
       u_currentRotation: {value: 0.0},
     },
     vertexShader: `

@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
+import {Scene, Box3, Vector3, OrthographicCamera, WebGLRenderTarget, Vector2} from "three";
 import Materials from "./Materials";
 import {blitTexture} from "./Graphics";
 
@@ -10,18 +10,20 @@ var RENDER_TEXTURE_RESOLUTION = 512;
 // For off-screen, ripple renders
 function makeShadowScene(group) {
   var shadowGroup = group; // TODO, find a way to clone this, law of demeter and all
-  var scene = new THREE.Scene();
+  var scene = new Scene();
   scene.add(shadowGroup);
-  var boundingBox = new THREE.Box3().setFromObject(shadowGroup);
-  var bbSize = boundingBox.getSize();
-  var camera = new THREE.OrthographicCamera(-bbSize.x/2, bbSize.x/2, bbSize.y/2, -bbSize.y/2, 0.1, 100);
-  var target = new THREE.WebGLRenderTarget(RENDER_TEXTURE_RESOLUTION, RENDER_TEXTURE_RESOLUTION, rtOptions);
-  camera.position.copy(boundingBox.getCenter());
+  var boundingBox = new Box3().setFromObject(shadowGroup);
+  var bbSize = boundingBox.getSize(new Vector3());
+  var camera = new OrthographicCamera(-bbSize.x/2, bbSize.x/2, bbSize.y/2, -bbSize.y/2, 0.1, 100);
+  var target = new WebGLRenderTarget(RENDER_TEXTURE_RESOLUTION, RENDER_TEXTURE_RESOLUTION, rtOptions);
+  camera.position.copy(boundingBox.getCenter(new Vector3()));
   camera.position.z = 10;
 
   scene.texture = target.texture;
   scene.render = function(renderer) {
-    renderer.render(scene, camera, target);
+    renderer.setRenderTarget(target);
+    renderer.render(scene, camera);
+    renderer.setRenderTarget(null);
   };
 
   return scene;
@@ -34,10 +36,10 @@ function Rippleizer(group) {
   rippleMaterial.uniforms.u_sceneTex.value = shadowScene.texture;
 
   var subTextureResolution = RATIO * RENDER_TEXTURE_RESOLUTION;
-  var mainTarget = new THREE.WebGLRenderTarget(subTextureResolution, subTextureResolution, rtOptions);
+  var mainTarget = new WebGLRenderTarget(subTextureResolution, subTextureResolution, rtOptions);
   var backTarget = mainTarget.clone();
   var finalTarget = mainTarget.clone();
-  rippleMaterial.uniforms.u_texelSize.value = new THREE.Vector2(1/subTextureResolution, 1/subTextureResolution);
+  rippleMaterial.uniforms.u_texelSize.value = new Vector2(1/subTextureResolution, 1/subTextureResolution);
 
   function render(renderer) {
     shadowScene.render(renderer);

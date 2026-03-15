@@ -1,11 +1,11 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
+import {Group, ShaderMaterial, Color, Mesh, PlaneGeometry} from "three";
 import {Constants} from "./AppData";
 
 function makeChooserMaterial(color) {
-  return new THREE.ShaderMaterial({
+  return new ShaderMaterial({
     uniforms: {
-      u_color: {value: new THREE.Color(color)},
-      u_baseColor: {value: new THREE.Color(Constants.BASE_COLOR)},
+      u_color: {value: new Color(color)},
+      u_baseColor: {value: new Color(Constants.BASE_COLOR)},
       u_mouseOver: {value: false},
       u_selected: {value: false},
       u_time: {value: 0.0},
@@ -32,24 +32,25 @@ function makeChooserMaterial(color) {
   });
 }
 
-function ScaleChooser(scales, currentScale) {
-  THREE.Group.call(this);
-  Object.keys(scales).forEach(function(scale, index) {
-    var pickerKey = new THREE.Mesh(
-      new THREE.PlaneBufferGeometry(1, 1),
-      makeChooserMaterial(scales[scale].color)
-    );
-    this.add(pickerKey);
-    pickerKey.position.set(index * ((1 + Constants.SPACING_RATIO)), 0, 0);
-    pickerKey.position.x -= (Object.keys(scales).length/2 - 0.5) * (1 + Constants.SPACING_RATIO); // Center it
-    pickerKey.scaleName = scale;
-    if (scale === currentScale) {
-      pickerKey.material.uniforms.u_selected.value = true;
-    }
-  }.bind(this));
-  this.scales = scales;
+class ScaleChooser extends Group {
+  constructor(scales, currentScale) {
+    super();
+    Object.keys(scales).forEach(function(scale, index) {
+      var pickerKey = new Mesh(
+        new PlaneGeometry(1, 1),
+        makeChooserMaterial(scales[scale].color)
+      );
+      this.add(pickerKey);
+      pickerKey.position.set(index * ((1 + Constants.SPACING_RATIO)), 0, 0);
+      pickerKey.position.x -= (Object.keys(scales).length/2 - 0.5) * (1 + Constants.SPACING_RATIO); // Center it
+      pickerKey.scaleName = scale;
+      if (scale === currentScale) {
+        pickerKey.material.uniforms.u_selected.value = true;
+      }
+    }.bind(this));
+    this.scales = scales;
+  }
 }
-ScaleChooser.prototype = Object.create(THREE.Object3D.prototype);
 
 ScaleChooser.prototype.touchStart = function(raycaster) {
   var clickedScale = raycaster.intersectObjects(this.children)[0];

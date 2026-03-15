@@ -1,4 +1,4 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
+import {Texture} from "three";
 
 function AssetLoadError(message) {
   this.message = message;
@@ -9,7 +9,7 @@ AssetLoadError.prototype = new Error();
 var _textureCache = {};
 
 var createTexture = function(filename, src) {
-  var tex = new THREE.Texture(new Image());
+  var tex = new Texture(new Image());
 
   tex.image.onload = function() {
     tex.needsUpdate = true;
@@ -25,7 +25,7 @@ var createTexture = function(filename, src) {
   };
 };
 
-// get returns a THREE.Texture immediately, but also can accept a callback that
+// get returns a Texture immediately, but also can accept a callback that
 // will be called when the texture is actually loaded. Use the callback when you
 // want to, for example, prevent rendering a mesh with a not-yet-loaded texture.
 // The callback will be called with (err, texture).
@@ -100,4 +100,3 @@ export default {
   promise,
   loadAll,
 };
-// export default Textures;

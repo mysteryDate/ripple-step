@@ -1,11 +1,10 @@
 // export some globals for debugging
-// import * as THREE from "../node_modules/three/build/three.min.js";
+// import * as THREE from "three";
 // import Tone from "../node_modules/Tone/build/Tone.min.js";
 // window.Tone = Tone;
 // window.THREE = THREE;
 
 import Tone from "../node_modules/Tone/build/Tone.min.js";
-import Stats from "../node_modules/stats.js";
 import Application from "./Application";
 import {Constants} from "./AppData";
 
@@ -70,9 +69,7 @@ function interactionCallback() {
     document.addEventListener("keypress", onDocumentKeyPress, false);
   }
   window.onresize = windowResize;
-  var stats = new Stats();
   function update() {
-    stats.update();
     window.app.update();
     window.app.render();
     requestAnimationFrame(update);

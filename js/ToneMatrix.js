@@ -1,15 +1,19 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
+import {
+  Color, ShaderMaterial, InstancedBufferGeometry, BufferAttribute,
+  InstancedBufferAttribute, DynamicDrawUsage, Mesh, Group, PlaneGeometry,
+  MeshBasicMaterial, Vector2
+} from "three";
 import {Constants} from "./AppData"; // TODO pass in as options
 import Materials from "./Materials";
 import Rippleizer from "./Rippleizer";
 
-var bgColor = new THREE.Color(Constants.BACKGROUND_COLOR);
+var bgColor = new Color(Constants.BACKGROUND_COLOR);
 
 function makeKeyMaterial(options) {
-  return new THREE.ShaderMaterial({
+  return new ShaderMaterial({
     uniforms: {
       u_numHorizontalNotes: {value: options.numHorizontalNotes},
-      u_baseColor: {value: new THREE.Color(options.baseColor)},
+      u_baseColor: {value: new Color(options.baseColor)},
       u_numVerticalNotes: {value: options.numVerticalNotes},
       u_rippleTex: {value: null},
       u_muted: {value: false},
@@ -82,7 +86,7 @@ function makeKeyMaterial(options) {
 }
 
 function makeShadowKeyMaterial(options) {
-  return new THREE.ShaderMaterial({
+  return new ShaderMaterial({
     transparent: true,
     uniforms: {
       u_numHorizontalNotes: {value: options.numHorizontalNotes},
@@ -159,181 +163,181 @@ function MatrixButton(column, row, buttonIndex, armedBuffer, colorBuffer, shadow
     return armed;
   };
 }
-MatrixButton.prototype = Object.create(THREE.Mesh.prototype);
 
-function ToneMatrix(numHorizontalSteps, numVerticalSteps) {
-  THREE.Group.call(this);
-  // Some hacky debouncing
-  var arming = true;
-  var touchActive = false;
+class ToneMatrix extends Group {
+  constructor(numHorizontalSteps, numVerticalSteps) {
+    super();
+    // Some hacky debouncing
+    var arming = true;
+    var touchActive = false;
 
-  var keyGeometry = (function makeKeyGeometry() {
-    var w = numHorizontalSteps;
-    var h = numVerticalSteps;
-    /* Copied from PlaneBufferGeometry
-    0 ----- 1
-    |       |
-    |       |
-    2 ----- 3
-    */
-    var positions = [0, 1/h, 0, 1/w, 1/h, 0, 0, 0, 0, 1/w, 0, 0];
-    var indices = [0, 2, 1, 2, 3, 1];
-    var uvs = [0, 1, 1, 1, 0, 0, 1, 0];
+    var keyGeometry = (function makeKeyGeometry() {
+      var w = numHorizontalSteps;
+      var h = numVerticalSteps;
+      /* Copied from PlaneBufferGeometry
+      0 ----- 1
+      |       |
+      |       |
+      2 ----- 3
+      */
+      var positions = [0, 1/h, 0, 1/w, 1/h, 0, 0, 0, 0, 1/w, 0, 0];
+      var indices = [0, 2, 1, 2, 3, 1];
+      var uvs = [0, 1, 1, 1, 0, 0, 1, 0];
 
-    var g = new THREE.InstancedBufferGeometry();
-    g.addAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
-    g.setIndex(indices);
-    g.addAttribute("uv", new THREE.BufferAttribute(new Float32Array(uvs), 2));
-    return g;
-  })();
-  var buttons = [];
-  var columns = [];
-  var numButtons = numHorizontalSteps * numVerticalSteps;
-  var relativePositions = new THREE.InstancedBufferAttribute(new Float32Array(numButtons * 2), 2, 1);
-  var armedBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons), 1, 1); // 0 = inactive, 1 = armed
-  var activeBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons), 1, 1); // 0 = inactive, 1 = playing
-  var colorBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons * 3), 3, 1);
-  var shadowColorBuffer = new THREE.InstancedBufferAttribute(new Float32Array(numButtons * 3), 3, 1);
+      var g = new InstancedBufferGeometry();
+      g.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
+      g.setIndex(indices);
+      g.setAttribute("uv", new BufferAttribute(new Float32Array(uvs), 2));
+      return g;
+    })();
+    var buttons = [];
+    var columns = [];
+    var numButtons = numHorizontalSteps * numVerticalSteps;
+    var relativePositions = new InstancedBufferAttribute(new Float32Array(numButtons * 2), 2);
+    var armedBuffer = new InstancedBufferAttribute(new Float32Array(numButtons), 1); // 0 = inactive, 1 = armed
+    var activeBuffer = new InstancedBufferAttribute(new Float32Array(numButtons), 1); // 0 = inactive, 1 = playing
+    var colorBuffer = new InstancedBufferAttribute(new Float32Array(numButtons * 3), 3);
+    var shadowColorBuffer = new InstancedBufferAttribute(new Float32Array(numButtons * 3), 3);
 
-  // Current scale state for newly armed buttons
-  var currentButtonColor = new THREE.Color(0xffffff);
-  var currentShadowColor = new THREE.Color(0xffffff);
-  var currentScale = null;
+    // Current scale state for newly armed buttons
+    var currentButtonColor = new Color(0xffffff);
+    var currentShadowColor = new Color(0xffffff);
+    var currentScale = null;
 
-  var shadowGroup = new THREE.Group();
-  var buttonIndex = 0;
-  for (var col = 0; col < numHorizontalSteps; col++) {
-    columns.push([]);
-    for (var row = 0; row < numVerticalSteps; row++) {
-      var button = new MatrixButton(col, row, buttonIndex, armedBuffer, colorBuffer, shadowColorBuffer);
-      relativePositions.setXY(buttonIndex, col, row);
-      armedBuffer.setX(buttonIndex, 0); // Set all to inactive
-      buttons.push(button);
-      columns[col].push(button);
-      buttonIndex++;
-    }
-  }
-  armedBuffer.setDynamic(true);
-  activeBuffer.setDynamic(true);
-  colorBuffer.setDynamic(true);
-  shadowColorBuffer.setDynamic(true);
-  keyGeometry.addAttribute("relativePosition", relativePositions);
-  keyGeometry.addAttribute("isArmed", armedBuffer);
-  keyGeometry.addAttribute("isActive", activeBuffer);
-  keyGeometry.addAttribute("buttonColor", colorBuffer);
-  keyGeometry.addAttribute("buttonShadowColor", shadowColorBuffer);
-  var keyMaterial = makeKeyMaterial({
-    numHorizontalNotes: numHorizontalSteps,
-    numVerticalNotes: numVerticalSteps,
-    baseColor: Constants.TONE_MATRIX_BACKGROUND,
-  });
-  this.add(new THREE.Mesh(keyGeometry, keyMaterial));
-
-  // Because the instanced buffer geometries don't have true bounding boxes
-  var clickScreen = new THREE.Mesh(new THREE.PlaneBufferGeometry(), new THREE.MeshBasicMaterial({transparent: true, opacity: 0}));
-  this.add(clickScreen);
-
-  var shadowKeyMaterial = makeShadowKeyMaterial({numHorizontalNotes: numHorizontalSteps, numVerticalNotes: numVerticalSteps});
-  shadowGroup.add(new THREE.Mesh(keyGeometry, shadowKeyMaterial));
-  shadowGroup.add(clickScreen.clone()); // So that it has a proper BB
-  var rippleizer = new Rippleizer(shadowGroup);
-
-  function setButtonUniform(uniformName, value, shadowValue) {
-    keyMaterial.uniforms[uniformName].value = value;
-    if (shadowValue === undefined) shadowValue = value;
-    if (shadowKeyMaterial.uniforms[uniformName] !== undefined) {
-      shadowKeyMaterial.uniforms[uniformName].value = shadowValue;
-    }
-  }
-
-  function setCurrentScale(color, shadowColor, scale) {
-    currentButtonColor = color;
-    currentShadowColor = shadowColor;
-    currentScale = scale;
-  }
-
-  function armButton(x, y) {
-    columns[x][y].arm(currentButtonColor, currentShadowColor, currentScale);
-  }
-
-  function getButton(x, y) {
-    return columns[x][y];
-  }
-
-  function clear() {
-    buttons.forEach(function(btn) {
-      btn.disarm();
-    });
-  }
-
-  function getActiveNotesInColumn(columnNum) {
-    var activeNotesInColumn = [];
-    columns[columnNum].forEach(function(btn) {
-      if (btn.isArmed()) {
-        activeNotesInColumn.push({row: btn.row, scale: btn.scale});
+    var shadowGroup = new Group();
+    var buttonIndex = 0;
+    for (var col = 0; col < numHorizontalSteps; col++) {
+      columns.push([]);
+      for (var row = 0; row < numVerticalSteps; row++) {
+        var button = new MatrixButton(col, row, buttonIndex, armedBuffer, colorBuffer, shadowColorBuffer);
+        relativePositions.setXY(buttonIndex, col, row);
+        armedBuffer.setX(buttonIndex, 0); // Set all to inactive
+        buttons.push(button);
+        columns[col].push(button);
+        buttonIndex++;
       }
+    }
+    armedBuffer.setUsage(DynamicDrawUsage);
+    activeBuffer.setUsage(DynamicDrawUsage);
+    colorBuffer.setUsage(DynamicDrawUsage);
+    shadowColorBuffer.setUsage(DynamicDrawUsage);
+    keyGeometry.setAttribute("relativePosition", relativePositions);
+    keyGeometry.setAttribute("isArmed", armedBuffer);
+    keyGeometry.setAttribute("isActive", activeBuffer);
+    keyGeometry.setAttribute("buttonColor", colorBuffer);
+    keyGeometry.setAttribute("buttonShadowColor", shadowColorBuffer);
+    var keyMaterial = makeKeyMaterial({
+      numHorizontalNotes: numHorizontalSteps,
+      numVerticalNotes: numVerticalSteps,
+      baseColor: Constants.TONE_MATRIX_BACKGROUND,
     });
-    return activeNotesInColumn;
-  }
+    this.add(new Mesh(keyGeometry, keyMaterial));
 
-  function uvToButtonIndex(uv) {
-    var result = uv.clone().multiply(new THREE.Vector2(numHorizontalSteps, numVerticalSteps));
-    result.x = Math.floor(result.x);
-    result.y = Math.floor(result.y);
-    return result;
-  }
+    // Because the instanced buffer geometries don't have true bounding boxes
+    var clickScreen = new Mesh(new PlaneGeometry(), new MeshBasicMaterial({transparent: true, opacity: 0}));
+    this.add(clickScreen);
 
-  function setDamping(newDamping) {
-    rippleizer.damping.value = newDamping;
-  }
+    var shadowKeyMaterial = makeShadowKeyMaterial({numHorizontalNotes: numHorizontalSteps, numVerticalNotes: numVerticalSteps});
+    shadowGroup.add(new Mesh(keyGeometry, shadowKeyMaterial));
+    shadowGroup.add(clickScreen.clone()); // So that it has a proper BB
+    var rippleizer = new Rippleizer(shadowGroup);
 
-  // Set per-button active state based on each scale's transport position
-  // scaleColumnMap: Map<scaleObject, columnPosition>
-  function activateByScale(scaleColumnMap) {
-    for (var i = 0; i < buttons.length; i++) {
-      var btn = buttons[i];
-      var active = 0;
-      if (btn.isArmed() && btn.scale && scaleColumnMap.has(btn.scale)) {
-        if (scaleColumnMap.get(btn.scale) === btn.column) {
-          active = 1;
+    function setButtonUniform(uniformName, value, shadowValue) {
+      keyMaterial.uniforms[uniformName].value = value;
+      if (shadowValue === undefined) shadowValue = value;
+      if (shadowKeyMaterial.uniforms[uniformName] !== undefined) {
+        shadowKeyMaterial.uniforms[uniformName].value = shadowValue;
+      }
+    }
+
+    function setCurrentScale(color, shadowColor, scale) {
+      currentButtonColor = color;
+      currentShadowColor = shadowColor;
+      currentScale = scale;
+    }
+
+    function armButton(x, y) {
+      columns[x][y].arm(currentButtonColor, currentShadowColor, currentScale);
+    }
+
+    function getButton(x, y) {
+      return columns[x][y];
+    }
+
+    function clear() {
+      buttons.forEach(function(btn) {
+        btn.disarm();
+      });
+    }
+
+    function getActiveNotesInColumn(columnNum) {
+      var activeNotesInColumn = [];
+      columns[columnNum].forEach(function(btn) {
+        if (btn.isArmed()) {
+          activeNotesInColumn.push({row: btn.row, scale: btn.scale});
         }
+      });
+      return activeNotesInColumn;
+    }
+
+    function uvToButtonIndex(uv) {
+      var result = uv.clone().multiply(new Vector2(numHorizontalSteps, numVerticalSteps));
+      result.x = Math.floor(result.x);
+      result.y = Math.floor(result.y);
+      return result;
+    }
+
+    function setDamping(newDamping) {
+      rippleizer.damping.value = newDamping;
+    }
+
+    // Set per-button active state based on each scale's transport position
+    // scaleColumnMap: Map<scaleObject, columnPosition>
+    function activateByScale(scaleColumnMap) {
+      for (var i = 0; i < buttons.length; i++) {
+        var btn = buttons[i];
+        var active = 0;
+        if (btn.isArmed() && btn.scale && scaleColumnMap.has(btn.scale)) {
+          if (scaleColumnMap.get(btn.scale) === btn.column) {
+            active = 1;
+          }
+        }
+        activeBuffer.setX(i, active);
       }
-      activeBuffer.setX(i, active);
+      activeBuffer.needsUpdate = true;
     }
-    activeBuffer.needsUpdate = true;
-  }
 
-  function deactivateAll() {
-    for (var i = 0; i < buttons.length; i++) {
-      activeBuffer.setX(i, 0);
+    function deactivateAll() {
+      for (var i = 0; i < buttons.length; i++) {
+        activeBuffer.setX(i, 0);
+      }
+      activeBuffer.needsUpdate = true;
     }
-    activeBuffer.needsUpdate = true;
-  }
 
-  function render(renderer) {
-    rippleizer.render(renderer);
-    setButtonUniform("u_rippleTex", rippleizer.getActiveTexture());
-  }
+    function render(renderer) {
+      rippleizer.render(renderer);
+      setButtonUniform("u_rippleTex", rippleizer.getActiveTexture());
+    }
 
-  Object.assign(this, {
-    getActiveNotesInColumn: getActiveNotesInColumn,
-    setButtonUniform: setButtonUniform,
-    setCurrentScale: setCurrentScale,
-    activateByScale: activateByScale,
-    uvToButtonIndex: uvToButtonIndex,
-    deactivateAll: deactivateAll,
-    touchActive: touchActive,
-    shadowGroup: shadowGroup,
-    clickScreen: clickScreen,
-    setDamping: setDamping,
-    getButton: getButton,
-    armButton: armButton,
-    render: render,
-    arming: arming,
-    clear: clear,
-  });
+    Object.assign(this, {
+      getActiveNotesInColumn: getActiveNotesInColumn,
+      setButtonUniform: setButtonUniform,
+      setCurrentScale: setCurrentScale,
+      activateByScale: activateByScale,
+      uvToButtonIndex: uvToButtonIndex,
+      deactivateAll: deactivateAll,
+      touchActive: touchActive,
+      shadowGroup: shadowGroup,
+      clickScreen: clickScreen,
+      setDamping: setDamping,
+      getButton: getButton,
+      armButton: armButton,
+      render: render,
+      arming: arming,
+      clear: clear,
+    });
+  }
 }
-ToneMatrix.prototype = Object.create(THREE.Object3D.prototype);
 
 ToneMatrix.prototype.touch = function(raycaster) {
   var intersection = raycaster.intersectObject(this.clickScreen)[0];

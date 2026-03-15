@@ -1,15 +1,17 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
+import {OrthographicCamera, Scene, Mesh, PlaneGeometry} from "three";
 
 // Render a texture with a particular shader, useful for blurs
 var blitTexture = (function() {
-  var blitCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  var subScene = new THREE.Scene();
-  var quad = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), null);
+  var blitCamera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  var subScene = new Scene();
+  var quad = new Mesh(new PlaneGeometry(2, 2), null);
   subScene.add(quad);
 
   return function bt(renderer, material, target) {
     quad.material = material;
-    renderer.render(subScene, blitCamera, target);
+    renderer.setRenderTarget(target);
+    renderer.render(subScene, blitCamera);
+    renderer.setRenderTarget(null);
     quad.material = null;
   };
 })();

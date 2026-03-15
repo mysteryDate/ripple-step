@@ -1,5 +1,7 @@
-import * as THREE from "../node_modules/three/build/three.min.js";
-import {sample, random} from "../node_modules/underscore";
+import {
+  WebGLRenderer, Scene, OrthographicCamera, PlaneGeometry,
+  MeshBasicMaterial, Mesh, Color, Raycaster, Vector2, MathUtils
+} from "three";
 
 import {Constants, Scales, Settings, Controls} from "./AppData";
 import ToneMatrix from "./ToneMatrix";
@@ -11,18 +13,19 @@ import Transport from "./Transport";
 function Application(selector, width, height, options) {
   var canvas = document.querySelector(selector);
   var downsample = (options.isMobile === true) ? Settings.MOBILE_DOWNSAMPLE : Settings.DESKTOP_DOWNSAMPLE;
-  var renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
+  var renderer = new WebGLRenderer({canvas: canvas, antialias: true});
   renderer.setPixelRatio(window.devicePixelRatio/downsample);
-  var scene = new THREE.Scene();
-  var camera = new THREE.OrthographicCamera();
+  var scene = new Scene();
+  var camera = new OrthographicCamera();
 
-  var bgGeometry = new THREE.PlaneBufferGeometry(1, 1);
-  var bgMaterial = new THREE.MeshBasicMaterial({color: Constants.BACKGROUND_COLOR});
-  var bgPlane = new THREE.Mesh(bgGeometry, bgMaterial);
+  var bgGeometry = new PlaneGeometry(1, 1);
+  var bgMaterial = new MeshBasicMaterial({color: Constants.BACKGROUND_COLOR});
+  var bgPlane = new Mesh(bgGeometry, bgMaterial);
   bgPlane.position.z = -10;
   scene.add(bgPlane);
 
-  var currentScaleName = sample(Object.keys(Scales));
+  var scaleKeys = Object.keys(Scales);
+  var currentScaleName = scaleKeys[Math.floor(Math.random() * scaleKeys.length)];
   var currentScale = Scales[currentScaleName];
   var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes);
   scene.add(toneMatrix);
@@ -38,7 +41,7 @@ function Application(selector, width, height, options) {
     });
   });
 
-  var raycaster = new THREE.Raycaster();
+  var raycaster = new Raycaster();
 
   var paused = false;
   var muted = false;
@@ -83,7 +86,9 @@ Application.prototype.init = function() {
   this.knobPanel = knobPanel;
 
   this.setScale(this.currentScale);
-  this.toneMatrix.armButton(8, random(this.numNotes / 4, this.numNotes * 0.75)); // Arm random button
+  var minRow = Math.floor(this.numNotes / 4);
+  var maxRow = Math.floor(this.numNotes * 0.75);
+  this.toneMatrix.armButton(8, Math.floor(Math.random() * (maxRow - minRow + 1)) + minRow);
   this.resize(this.width, this.height);
 };
 
@@ -101,12 +106,12 @@ Application.prototype.setScale = function(newScale) {
     }
   });
   this.toneMatrix.setCurrentScale(
-    new THREE.Color(this.currentScale.color),
-    new THREE.Color(this.currentScale.ripple_color),
+    new Color(this.currentScale.color),
+    new Color(this.currentScale.ripple_color),
     this.currentScale
   );
   this.synth.scale = this.currentScale;
-  this.knobPanel.setColor(new THREE.Color(this.currentScale.color));
+  this.knobPanel.setColor(new Color(this.currentScale.color));
 };
 
 Application.prototype.resize = function(width, height) {
@@ -175,7 +180,7 @@ Application.prototype.resize = function(width, height) {
 
 // TODO store interactables in array
 Application.prototype.touchStart = function(event) {
-  var mouse = new THREE.Vector2();
+  var mouse = new Vector2();
   mouse.x = (event.pageX / this.width) * 2 - 1;
   mouse.y = -(event.pageY / this.height) * 2 + 1;
   this.raycaster.setFromCamera(mouse, this.camera);
@@ -185,7 +190,7 @@ Application.prototype.touchStart = function(event) {
 };
 
 Application.prototype.touch = function(event) {
-  var mouse = new THREE.Vector2();
+  var mouse = new Vector2();
   mouse.x = (event.pageX / this.width) * 2 - 1;
   mouse.y = -(event.pageY / this.height) * 2 + 1;
   this.raycaster.setFromCamera(mouse, this.camera);
@@ -206,8 +211,8 @@ Application.prototype.clear = function() {
 Application.prototype.toggleMute = function() {
   this.muted = !this.muted;
   this.toneMatrix.mute(this.muted);
-  this.knobPanel.setColor(new THREE.Color(this.currentScale.color).multiplyScalar(
-    THREE.Math.lerp(1.0, Constants.MUTE_COLOR_VALUE, this.muted)
+  this.knobPanel.setColor(new Color(this.currentScale.color).multiplyScalar(
+    MathUtils.lerp(1.0, Constants.MUTE_COLOR_VALUE, this.muted)
   )); // TODO set damping
 };
 
@@ -271,12 +276,12 @@ Application.prototype.update = function() {
     var maxRelease = Controls.Envelope.release.maxValue;
     var dampingValue;
     var firstStop = 0.05;
-    if (release < THREE.Math.lerp(minRelease, maxRelease, firstStop)) {
-      dampingValue = THREE.Math.mapLinear(release, minRelease, THREE.Math.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
+    if (release < MathUtils.lerp(minRelease, maxRelease, firstStop)) {
+      dampingValue = MathUtils.mapLinear(release, minRelease, MathUtils.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
     } else if (release === Controls.Envelope.release.maxValue) {
       dampingValue = 0.9999;
     } else {
-      dampingValue = THREE.Math.mapLinear(release, THREE.Math.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.9999);
+      dampingValue = MathUtils.mapLinear(release, MathUtils.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.9999);
     }
     return dampingValue;
   })();
