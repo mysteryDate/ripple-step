@@ -11,8 +11,14 @@ function Transport(options) {
   this.swing = (options.swing === undefined) ? 0 : options.swing;
   this.tempoMultiplier = (options.tempoMultiplier === undefined) ? 1 : options.tempoMultiplier;
 
-  this.start = function() {
-    this.startTime = performance.now();
+  this.start = function(startColumn) {
+    if (startColumn !== undefined) {
+      this.startPosition = (startColumn - 1 + Constants.NUM_STEPS) % Constants.NUM_STEPS;
+      this.previousPosition = this.startPosition;
+      this.position = this.startPosition;
+    }
+    var oneStepSeconds = 240 * Constants.STEP_VALUE / (Controls.TEMPO * this.tempoMultiplier);
+    this.startTime = performance.now() - oneStepSeconds * 1000;
     this.paused = false;
   };
 

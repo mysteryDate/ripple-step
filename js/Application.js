@@ -88,7 +88,8 @@ Application.prototype.init = function() {
   this.setScale(this.currentScale);
   var minRow = Math.floor(this.numNotes / 4);
   var maxRow = Math.floor(this.numNotes * 0.75);
-  this.toneMatrix.armButton(8, Math.floor(Math.random() * (maxRow - minRow + 1)) + minRow);
+  this.initialColumn = 8;
+  this.toneMatrix.armButton(this.initialColumn, Math.floor(Math.random() * (maxRow - minRow + 1)) + minRow);
   this.resize(this.width, this.height);
 };
 
@@ -231,7 +232,7 @@ Application.prototype.start = function() {
   this.synth.start();
   var self = this;
   Object.keys(this.transports).forEach(function(name) {
-    self.transports[name].start();
+    self.transports[name].start(self.initialColumn);
   });
 };
 
