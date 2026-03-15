@@ -11,6 +11,22 @@ npm run dev:server
 
 This starts webpack-dev-server at [http://localhost:8080](http://localhost:8080). The app is available at both `/index.html` (production entry) and `/dev.html` (testbed entry).
 
+## Mobile Device Testing
+
+To access the dev server from a mobile device on the same Wi-Fi network:
+
+1. Start the dev server with `--host 0.0.0.0` so it listens on all interfaces:
+   ```bash
+   npx webpack-dev-server --host 0.0.0.0
+   ```
+2. Find your local IP address:
+   ```bash
+   ipconfig   # Windows — look for "IPv4 Address" under your Wi-Fi adapter
+   ```
+3. On your phone's browser, go to `http://<your-ip>:8080`
+
+If it doesn't connect, you may need to allow port 8080 through Windows Firewall.
+
 ## Build & Deploy
 
 The site is hosted on GitHub Pages from the `main` branch. The root `index.html` loads `dist/app.bundle.js` directly, so the built bundle is committed to the repo.

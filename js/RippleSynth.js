@@ -49,7 +49,6 @@ RippleSynth.prototype.setVolume = function(newVolume) {
 
 RippleSynth.prototype.start = function() {
   this.toMaster();
-  Tone.context.resume();
 };
 
 RippleSynth.prototype.playRow = function(row, scale) { // TODO relative

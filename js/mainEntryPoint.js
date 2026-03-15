@@ -4,6 +4,7 @@
 // window.Tone = Tone;
 // window.THREE = THREE;
 
+import Tone from "../node_modules/Tone/build/Tone.min.js";
 import Stats from "../node_modules/stats.js";
 import Application from "./Application";
 import {Constants} from "./AppData";
@@ -15,6 +16,11 @@ var interactionGate = document.getElementById("interactionGate");
 
 // HANDLERS
 function interactionCallback() {
+  // Mobile Chrome won't resume an AudioContext that was created outside a user
+  // gesture. Replace Tone's context with a fresh one created inside the tap handler.
+  var freshContext = new (window.AudioContext || window.webkitAudioContext)();
+  Tone.setContext(freshContext);
+
   window.app = new Application("#app", window.innerWidth, window.innerHeight, {
     numSteps: Constants.NUM_STEPS,
     numNotes: Constants.NUM_NOTES,
