@@ -52,6 +52,12 @@ class ScaleChooser extends Group {
   }
 }
 
+ScaleChooser.prototype.selectScale = function(scaleName) {
+  this.children.forEach(function(key) {
+    key.material.uniforms.u_selected.value = (key.scaleName === scaleName);
+  });
+};
+
 ScaleChooser.prototype.touchStart = function(raycaster) {
   var clickedScale = raycaster.intersectObjects(this.children)[0];
   if (clickedScale !== undefined) {

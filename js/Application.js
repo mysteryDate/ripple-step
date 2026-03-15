@@ -85,11 +85,22 @@ Application.prototype.init = function() {
   this.synth = synth;
   this.knobPanel = knobPanel;
 
-  this.setScale(this.currentScale);
+  // Arm the initial note in a random scale color, then switch to a different scale
+  var scaleKeys = Object.keys(Scales);
+  var noteScaleIndex = Math.floor(Math.random() * scaleKeys.length);
+  var noteScale = Scales[scaleKeys[noteScaleIndex]];
+  this.setScale(noteScale);
+
   var minRow = Math.floor(this.numNotes / 4);
   var maxRow = Math.floor(this.numNotes * 0.75);
   this.initialColumn = 8;
   this.toneMatrix.armButton(this.initialColumn, Math.floor(Math.random() * (maxRow - minRow + 1)) + minRow);
+
+  // Switch to a different scale for the chooser/UI
+  var uiScaleIndex = (noteScaleIndex + 1 + Math.floor(Math.random() * (scaleKeys.length - 1))) % scaleKeys.length;
+  this.setScale(Scales[scaleKeys[uiScaleIndex]]);
+  this.scaleChooser.selectScale(scaleKeys[uiScaleIndex]);
+
   this.resize(this.width, this.height);
 };
 
