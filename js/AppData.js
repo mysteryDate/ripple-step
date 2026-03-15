@@ -5,7 +5,7 @@ var Settings = {
 
 var Constants = {
   BASE_COLOR: "#1c1a1a",
-  TONE_MATRIX_BACKGROUND: "#1c1a1a",
+  TONE_MATRIX_BACKGROUND: "#0e0d0d",
   MIN_UI_PADDING: 0.2,
   BACKGROUND_COLOR: "#000000",
   SECONDARY_BASE_COLOR: "#aaaaaa",
