@@ -67,12 +67,13 @@ function Application(selector, width, height, options) {
     scene: scene,
     width: width,
     bgPlane: bgPlane,
+    audioContext: options.audioContext,
   });
 }
 
 Application.prototype.init = function() {
   // SYNTH
-  var synth = new RippleSynth(Constants.NUM_NOTES, {});
+  var synth = new RippleSynth(Constants.NUM_NOTES, {audioContext: this.audioContext});
   synth.setVolume(-6);
 
   // Controls for the envelope
