@@ -20,7 +20,7 @@ var Constants = {
 
 var Controls = {
   TEMPO: 120,
-  TEMPO_RATIO: 1, // Each scale's tempo = TEMPO * TEMPO_RATIO^(scale.tempo_exponent)
+  TEMPO_RATIO: Math.sqrt(2), // Each scale's tempo = TEMPO * TEMPO_RATIO^(scale.tempo_exponent)
   SWING: 0,
   NUM_NOTES_BEFORE_KNOBS_DISPLAY: 3,
   // NUM_NOTES_BEFORE_KNOBS_DISPLAY: 0,
