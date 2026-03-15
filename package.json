@@ -10,6 +10,7 @@
     "webpack": "^4.20.2"
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "dat.gui": "^0.7.5",
     "eslint": "^4.18.2",
     "eslint-config-airbnb-base": "^12.1.0",
@@ -22,7 +23,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev:server": "webpack-dev-server"
+    "dev:server": "webpack-dev-server",
+    "build": "cross-env PRODUCTION=true npx webpack"
   },
   "repository": {
     "type": "git",

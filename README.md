@@ -9,12 +9,24 @@ npm install
 npm run dev:server
 ```
 
-This starts webpack-dev-server at [http://localhost:8080/dev.html](http://localhost:8080/dev.html).
+This starts webpack-dev-server at [http://localhost:8080](http://localhost:8080). The app is available at both `/index.html` (production entry) and `/dev.html` (testbed entry).
 
-## Production Build
+## Build & Deploy
+
+The site is hosted on GitHub Pages from the `main` branch. The root `index.html` loads `dist/app.bundle.js` directly, so the built bundle is committed to the repo.
+
+To build and deploy:
 
 ```bash
-PRODUCTION=true npx webpack
+# 1. Build the production bundle
+npm run build
+
+# 2. Commit the updated bundle
+git add dist/
+git commit -m "Build for deploy"
+
+# 3. Push to main (triggers GitHub Pages)
+git push origin main
 ```
 
-Output goes to `dist/`.
+The `build` script runs webpack in production mode, outputting minified bundles to `dist/`.
