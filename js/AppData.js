@@ -5,7 +5,7 @@ var Settings = {
 
 var Constants = {
   BASE_COLOR: "#1c1a1a",
-  TONE_MATRIX_BACKGROUND: "#030303",
+  TONE_MATRIX_BACKGROUND: "#0e0d0d",
   MIN_UI_PADDING: 0.2,
   BACKGROUND_COLOR: "#000000",
   SECONDARY_BASE_COLOR: "#aaaaaa",
@@ -20,7 +20,7 @@ var Constants = {
 
 var Controls = {
   TEMPO: 120,
-  TEMPO_RATIO: Math.sqrt(2), // Each scale's tempo = TEMPO * TEMPO_RATIO^(scale.tempo_exponent)
+  TEMPO_RATIO: 1, // Each scale's tempo = TEMPO * TEMPO_RATIO^(scale.tempo_exponent)
   SWING: 0,
   NUM_NOTES_BEFORE_KNOBS_DISPLAY: 3,
   // NUM_NOTES_BEFORE_KNOBS_DISPLAY: 0,
