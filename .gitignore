@@ -1,6 +1,5 @@
 # node js packages
 node_modules/
 _notes
-package-lock.json
 .claude/
 CLAUDE.md
