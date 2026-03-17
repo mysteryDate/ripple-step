@@ -261,7 +261,7 @@ Application.prototype.update = function() {
   this.transportNames.forEach(function(scaleName) {
     var transport = self.transports[scaleName];
     transport.update(function() {
-      if (!self.muted && !window.app.muted) {
+      if (!self.muted && !window.app.muted && self.scaleChooser.isScaleAudible(scaleName)) {
         var notes = self.toneMatrix.getActiveNotesInColumn(transport.position);
         notes.forEach(function(note) {
           if (note.scale === Scales[scaleName]) {
@@ -275,7 +275,9 @@ Application.prototype.update = function() {
   // Set per-button active state based on each scale's transport position
   var scaleColumnMap = new Map();
   this.transportNames.forEach(function(scaleName) {
-    scaleColumnMap.set(Scales[scaleName], self.transports[scaleName].position);
+    if (self.scaleChooser.isScaleAudible(scaleName)) {
+      scaleColumnMap.set(Scales[scaleName], self.transports[scaleName].position);
+    }
   });
   this.toneMatrix.activateByScale(scaleColumnMap);
 
