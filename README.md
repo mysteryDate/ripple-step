@@ -46,3 +46,13 @@ git push origin main
 ```
 
 The `build` script runs webpack in production mode, outputting minified bundles to `dist/`.
+
+## Query Parameters
+
+| Parameter | Description |
+|---|---|
+| `?skipGate` | Skip the "Sound On" interaction gate (useful during development) |
+| `?fps` | Show an FPS counter in the top-left corner |
+| `?hiRes` | Use high-resolution ripple simulation with half-float precision, higher-res backing textures, and double-speed ping-pong buffering. Sharper waves that persist longer, but more GPU-intensive. Default is the lo-res 8-bit simulation which has a cleaner, more stylized look. |
+
+Parameters can be combined: `http://localhost:8080/?skipGate&fps&hiRes`

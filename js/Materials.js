@@ -70,7 +70,7 @@ Materials.ripple = function(options) {
         //  make an average and subtract the center value
         sum = (sum / 2.0) - texture2D(u_backTex, v_uv);
         sum *= u_damping;
-        sum *= step(1.0 / 128.0, abs(sum)); // Noise floor — mimics 8-bit quantization
+        sum *= step(1.0 / 255.0, abs(sum)); // Noise floor — mimics 8-bit quantization
 
         vec4 sceneCol = texture2D(u_sceneTex, v_uv) * u_sourceStrength;
         gl_FragColor = sum + sceneCol;

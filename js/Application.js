@@ -314,7 +314,7 @@ Application.prototype.update = function() {
     // } else {
     //   dampingValue = MathUtils.mapLinear(release, MathUtils.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, maxDamping);
     // }
-    return MathUtils.mapLinear(release, minRelease, maxRelease, 0.9, 0.995);
+    return MathUtils.mapLinear(release, minRelease, maxRelease, 0.9, 0.9999999995);
     // return dampingValue;
   })();
   this.toneMatrix.setDamping(newDamping);
