@@ -42,7 +42,7 @@ function Application(selector, width, height, options) {
   var transports = {};
   Object.keys(Scales).forEach(function(scaleName) {
     transports[scaleName] = new Transport({
-      tempoMultiplier: Math.pow(Controls.TEMPO_RATIO, Scales[scaleName].tempo_exponent),
+      tempoMultiplier: Scales[scaleName].tempo_multiplier,
     });
   });
 
