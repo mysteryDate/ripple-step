@@ -1,4 +1,4 @@
-import {Scene, Box3, Vector3, OrthographicCamera, WebGLRenderTarget, Vector2} from "three";
+import {Scene, Box3, Vector3, OrthographicCamera, WebGLRenderTarget, Vector2, HalfFloatType} from "three";
 import Materials from "./Materials";
 import {blitTexture} from "./Graphics";
 
@@ -29,26 +29,30 @@ function makeShadowScene(group) {
   return scene;
 }
 
-var RATIO = 0.4;
+var RIPPLE_RESOLUTION = 128;
+var STEPS_PER_FRAME = 2; // Compensate for higher resolution — wave speed ∝ texelSize * steps
 function Rippleizer(group) {
   var rippleMaterial = Materials.ripple();
   var shadowScene = makeShadowScene(group);
   rippleMaterial.uniforms.u_sceneTex.value = shadowScene.texture;
 
-  var subTextureResolution = RATIO * RENDER_TEXTURE_RESOLUTION;
-  var mainTarget = new WebGLRenderTarget(subTextureResolution, subTextureResolution, rtOptions);
+  var rippleRtOptions = Object.assign({type: HalfFloatType}, rtOptions);
+  var mainTarget = new WebGLRenderTarget(RIPPLE_RESOLUTION, RIPPLE_RESOLUTION, rippleRtOptions);
   var backTarget = mainTarget.clone();
   var finalTarget = mainTarget.clone();
-  rippleMaterial.uniforms.u_texelSize.value = new Vector2(1/subTextureResolution, 1/subTextureResolution);
+  rippleMaterial.uniforms.u_texelSize.value = new Vector2(1/RIPPLE_RESOLUTION, 1/RIPPLE_RESOLUTION);
 
   function render(renderer, shadowDirty) {
     if (shadowDirty !== false) {
       shadowScene.render(renderer);
     }
-    rippleMaterial.uniforms.u_mainTex.value = mainTarget.texture;
-    rippleMaterial.uniforms.u_backTex.value = backTarget.texture;
-    blitTexture(renderer, rippleMaterial, finalTarget);
-    [finalTarget, backTarget, mainTarget] = [backTarget, mainTarget, finalTarget]; // Ping-pong
+    for (var i = 0; i < STEPS_PER_FRAME; i++) {
+      rippleMaterial.uniforms.u_sourceStrength.value = (shadowDirty !== false && i === 0) ? 1.0 : 0.0;
+      rippleMaterial.uniforms.u_mainTex.value = mainTarget.texture;
+      rippleMaterial.uniforms.u_backTex.value = backTarget.texture;
+      blitTexture(renderer, rippleMaterial, finalTarget);
+      [finalTarget, backTarget, mainTarget] = [backTarget, mainTarget, finalTarget]; // Ping-pong
+    }
   }
 
   function getActiveTexture() {

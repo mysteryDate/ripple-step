@@ -34,6 +34,7 @@ Materials.ripple = function(options) {
       u_texelSize: {value: new Vector2(1/options.width, 1/options.height)},
       u_damping: {value: 0.999},
       u_speed: {value: 1.0},
+      u_sourceStrength: {value: 0.0},
     },
     vertexShader: `
       varying vec2 v_uv;
@@ -51,6 +52,7 @@ Materials.ripple = function(options) {
       uniform vec2 u_texelSize;
       uniform float u_damping;
       uniform float u_speed;
+      uniform float u_sourceStrength;
 
       vec2 offset[4];
 
@@ -68,9 +70,9 @@ Materials.ripple = function(options) {
         //  make an average and subtract the center value
         sum = (sum / 2.0) - texture2D(u_backTex, v_uv);
         sum *= u_damping;
+        sum *= step(1.0 / 128.0, abs(sum)); // Noise floor — mimics 8-bit quantization
 
-        vec4 sceneCol = texture2D(u_sceneTex, v_uv);
-        gl_FragColor = mix(sum, sceneCol, sceneCol.a);
+        vec4 sceneCol = texture2D(u_sceneTex, v_uv) * u_sourceStrength;
         gl_FragColor = sum + sceneCol;
       }
     `,

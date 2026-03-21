@@ -304,16 +304,18 @@ Application.prototype.update = function() {
     var release = window.app.synth.getControl("release");
     var minRelease = Controls.Envelope.release.minValue;
     var maxRelease = Controls.Envelope.release.maxValue;
-    var dampingValue;
-    var firstStop = 0.05;
-    if (release < MathUtils.lerp(minRelease, maxRelease, firstStop)) {
-      dampingValue = MathUtils.mapLinear(release, minRelease, MathUtils.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
-    } else if (release === Controls.Envelope.release.maxValue) {
-      dampingValue = 0.9999;
-    } else {
-      dampingValue = MathUtils.mapLinear(release, MathUtils.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.9999);
-    }
-    return dampingValue;
+    // var dampingValue;
+    // var firstStop = 0.05;
+    // const maxDamping = 0.95;
+    // if (release < MathUtils.lerp(minRelease, maxRelease, firstStop)) {
+    //   dampingValue = MathUtils.mapLinear(release, minRelease, MathUtils.lerp(minRelease, maxRelease, firstStop), 0.9, maxDamping);
+    // } else if (release === Controls.Envelope.release.maxValue) {
+    //   dampingValue = maxDamping;
+    // } else {
+    //   dampingValue = MathUtils.mapLinear(release, MathUtils.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, maxDamping);
+    // }
+    return MathUtils.mapLinear(release, minRelease, maxRelease, 0.9, 0.995);
+    // return dampingValue;
   })();
   this.toneMatrix.setDamping(newDamping);
 };
