@@ -11,11 +11,13 @@ function interactionCallback() {
   // AudioContext must be created inside a user gesture for mobile Chrome
   var audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+  var hiRes = new URLSearchParams(window.location.search).has("hiRes");
   window.app = new Application("#app", window.innerWidth, window.innerHeight, {
     audioContext: audioContext,
     numSteps: Constants.NUM_STEPS,
     numNotes: Constants.NUM_NOTES,
     isMobile: isMobile,
+    hiRes: hiRes,
   });
   window.app.init();
   window.app.render();

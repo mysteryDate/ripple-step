@@ -32,7 +32,8 @@ function Application(selector, width, height, options) {
   var scaleKeys = Object.keys(Scales);
   var currentScaleName = scaleKeys[Math.floor(Math.random() * scaleKeys.length)];
   var currentScale = Scales[currentScaleName];
-  var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes);
+  var hiRes = options.hiRes === true;
+  var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes, {hiRes: hiRes});
   scene.add(toneMatrix);
 
   var scaleChooser = new ScaleChooser(Scales, currentScaleName);
@@ -75,6 +76,7 @@ function Application(selector, width, height, options) {
     width: width,
     bgPlane: bgPlane,
     audioContext: options.audioContext,
+    hiRes: hiRes,
   });
 }
 
@@ -304,18 +306,19 @@ Application.prototype.update = function() {
     var release = window.app.synth.getControl("release");
     var minRelease = Controls.Envelope.release.minValue;
     var maxRelease = Controls.Envelope.release.maxValue;
-    // var dampingValue;
-    // var firstStop = 0.05;
-    // const maxDamping = 0.95;
-    // if (release < MathUtils.lerp(minRelease, maxRelease, firstStop)) {
-    //   dampingValue = MathUtils.mapLinear(release, minRelease, MathUtils.lerp(minRelease, maxRelease, firstStop), 0.9, maxDamping);
-    // } else if (release === Controls.Envelope.release.maxValue) {
-    //   dampingValue = maxDamping;
-    // } else {
-    //   dampingValue = MathUtils.mapLinear(release, MathUtils.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, maxDamping);
-    // }
-    return MathUtils.mapLinear(release, minRelease, maxRelease, 0.9, 0.9999999995);
-    // return dampingValue;
+    if (self.hiRes) {
+      return MathUtils.mapLinear(release, minRelease, maxRelease, 0.9, 0.9999999995);
+    }
+    var dampingValue;
+    var firstStop = 0.05;
+    if (release < MathUtils.lerp(minRelease, maxRelease, firstStop)) {
+      dampingValue = MathUtils.mapLinear(release, minRelease, MathUtils.lerp(minRelease, maxRelease, firstStop), 0.9, 0.995);
+    } else if (release === Controls.Envelope.release.maxValue) {
+      dampingValue = 0.9999;
+    } else {
+      dampingValue = MathUtils.mapLinear(release, MathUtils.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.9999);
+    }
+    return dampingValue;
   })();
   this.toneMatrix.setDamping(newDamping);
 };

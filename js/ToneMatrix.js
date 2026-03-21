@@ -170,7 +170,7 @@ function MatrixButton(column, row, buttonIndex, armedBuffer, colorBuffer, shadow
 }
 
 class ToneMatrix extends Group {
-  constructor(numHorizontalSteps, numVerticalSteps) {
+  constructor(numHorizontalSteps, numVerticalSteps, options) {
     super();
     // Some hacky debouncing
     var arming = true;
@@ -248,7 +248,7 @@ class ToneMatrix extends Group {
     var shadowKeyMaterial = makeShadowKeyMaterial({numHorizontalNotes: numHorizontalSteps, numVerticalNotes: numVerticalSteps});
     shadowGroup.add(new Mesh(keyGeometry, shadowKeyMaterial));
     shadowGroup.add(clickScreen.clone()); // So that it has a proper BB
-    var rippleizer = new Rippleizer(shadowGroup);
+    var rippleizer = new Rippleizer(shadowGroup, options);
     var shadowDirty = true;
 
     function setButtonUniform(uniformName, value, shadowValue) {

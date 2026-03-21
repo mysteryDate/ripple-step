@@ -29,24 +29,30 @@ function makeShadowScene(group) {
   return scene;
 }
 
-var RIPPLE_RESOLUTION = 128;
-var STEPS_PER_FRAME = 2; // Compensate for higher resolution — wave speed ∝ texelSize * steps
-function Rippleizer(group) {
+var LORES_RATIO = 0.4;
+var HIRES_RESOLUTION = 128;
+var HIRES_STEPS_PER_FRAME = 2; // Compensate for higher resolution — wave speed ∝ texelSize * steps
+function Rippleizer(group, options) {
+  var hiRes = options && options.hiRes;
   var rippleMaterial = Materials.ripple();
   var shadowScene = makeShadowScene(group);
   rippleMaterial.uniforms.u_sceneTex.value = shadowScene.texture;
 
-  var rippleRtOptions = Object.assign({type: HalfFloatType}, rtOptions);
-  var mainTarget = new WebGLRenderTarget(RIPPLE_RESOLUTION, RIPPLE_RESOLUTION, rippleRtOptions);
+  var resolution = hiRes ? HIRES_RESOLUTION : (LORES_RATIO * RENDER_TEXTURE_RESOLUTION);
+  var targetOptions = hiRes ? Object.assign({type: HalfFloatType}, rtOptions) : rtOptions;
+  var mainTarget = new WebGLRenderTarget(resolution, resolution, targetOptions);
   var backTarget = mainTarget.clone();
   var finalTarget = mainTarget.clone();
-  rippleMaterial.uniforms.u_texelSize.value = new Vector2(1/RIPPLE_RESOLUTION, 1/RIPPLE_RESOLUTION);
+  rippleMaterial.uniforms.u_texelSize.value = new Vector2(1/resolution, 1/resolution);
+  rippleMaterial.uniforms.u_noiseFloor.value = hiRes ? (1.0/255.0) : (1.0/128.0);
+
+  var stepsPerFrame = hiRes ? HIRES_STEPS_PER_FRAME : 1;
 
   function render(renderer, shadowDirty) {
     if (shadowDirty !== false) {
       shadowScene.render(renderer);
     }
-    for (var i = 0; i < STEPS_PER_FRAME; i++) {
+    for (var i = 0; i < stepsPerFrame; i++) {
       rippleMaterial.uniforms.u_sourceStrength.value = (shadowDirty !== false && i === 0) ? 1.0 : 0.0;
       rippleMaterial.uniforms.u_mainTex.value = mainTarget.texture;
       rippleMaterial.uniforms.u_backTex.value = backTarget.texture;
