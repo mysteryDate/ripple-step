@@ -193,6 +193,7 @@ Application.prototype.resize = function(width, height) {
     scaleChooserSize *= width/numScales;
   }
   this.scaleChooser.scale.set(scaleChooserSize, scaleChooserSize, 1);
+  this.scaleChooser.setVertical(controlPanelLayout === "vertical");
 
   this.width = width;
   this.height = height;
@@ -280,6 +281,15 @@ Application.prototype.update = function() {
     }
   });
   this.toneMatrix.activateByScale(scaleColumnMap);
+
+  // Dim buttons belonging to inaudible scales
+  var mutedScales = new Set();
+  this.transportNames.forEach(function(scaleName) {
+    if (!self.scaleChooser.isScaleAudible(scaleName)) {
+      mutedScales.add(Scales[scaleName]);
+    }
+  });
+  this.toneMatrix.setMutedScales(mutedScales);
 
   this.scaleChooser.update(this.currentTime);
 

@@ -22,6 +22,7 @@ function makeKeyMaterial(options) {
       attribute vec2 relativePosition;
       attribute float isArmed;
       attribute float isActive;
+      attribute float isMuted;
       attribute vec3 buttonColor;
       uniform float u_numHorizontalNotes;
       uniform float u_numVerticalNotes;
@@ -29,12 +30,14 @@ function makeKeyMaterial(options) {
       varying vec2 v_uv;
       varying float v_armed;
       varying float v_active;
+      varying float v_muted;
       varying vec3 v_buttonColor;
       ${Materials.Include.map}
       void main() {
         v_uv = uv;
         v_armed = isArmed;
         v_active = isActive;
+        v_muted = isMuted;
         v_relativePosition = relativePosition;
         v_buttonColor = buttonColor;
 
@@ -54,6 +57,7 @@ function makeKeyMaterial(options) {
       varying vec2 v_uv;
       varying float v_armed;
       varying float v_active;
+      varying float v_muted;
       varying vec3 v_buttonColor;
 
       float rectangleSDF(vec2 st, vec2 s) {
@@ -68,7 +72,8 @@ function makeKeyMaterial(options) {
       #define MUTE_COLOR_VALUE ${Constants.MUTE_COLOR_VALUE.toFixed(3)}
       void main() {
         vec3 col = mix(v_buttonColor, v_buttonColor * MUTE_COLOR_VALUE, u_muted);
-        col = mix(u_baseColor, col, v_armed);
+        float effectiveArmed = v_armed * (1.0 - v_muted * 0.6);
+        col = mix(u_baseColor, col, effectiveArmed);
         col = mix(col, vec3(1.0), v_active);
 
         vec3 rippleTex = texture2D(u_rippleTex, (v_uv + v_relativePosition) / vec2(u_numHorizontalNotes, u_numVerticalNotes)).rgb;
@@ -198,6 +203,7 @@ class ToneMatrix extends Group {
     var activeBuffer = new InstancedBufferAttribute(new Float32Array(numButtons), 1); // 0 = inactive, 1 = playing
     var colorBuffer = new InstancedBufferAttribute(new Float32Array(numButtons * 3), 3);
     var shadowColorBuffer = new InstancedBufferAttribute(new Float32Array(numButtons * 3), 3);
+    var mutedBuffer = new InstancedBufferAttribute(new Float32Array(numButtons), 1);
 
     // Current scale state for newly armed buttons
     var currentButtonColor = new Color(0xffffff);
@@ -221,11 +227,13 @@ class ToneMatrix extends Group {
     activeBuffer.setUsage(DynamicDrawUsage);
     colorBuffer.setUsage(DynamicDrawUsage);
     shadowColorBuffer.setUsage(DynamicDrawUsage);
+    mutedBuffer.setUsage(DynamicDrawUsage);
     keyGeometry.setAttribute("relativePosition", relativePositions);
     keyGeometry.setAttribute("isArmed", armedBuffer);
     keyGeometry.setAttribute("isActive", activeBuffer);
     keyGeometry.setAttribute("buttonColor", colorBuffer);
     keyGeometry.setAttribute("buttonShadowColor", shadowColorBuffer);
+    keyGeometry.setAttribute("isMuted", mutedBuffer);
     var keyMaterial = makeKeyMaterial({
       numHorizontalNotes: numHorizontalSteps,
       numVerticalNotes: numVerticalSteps,
@@ -331,6 +339,21 @@ class ToneMatrix extends Group {
       }
     }
 
+    function setMutedScales(mutedSet) {
+      var changed = false;
+      for (var i = 0; i < buttons.length; i++) {
+        var btn = buttons[i];
+        var m = (btn.isArmed() && btn.scale && mutedSet.has(btn.scale)) ? 1 : 0;
+        if (mutedBuffer.getX(i) !== m) {
+          mutedBuffer.setX(i, m);
+          changed = true;
+        }
+      }
+      if (changed) {
+        mutedBuffer.needsUpdate = true;
+      }
+    }
+
     function render(renderer) {
       rippleizer.render(renderer, shadowDirty);
       shadowDirty = false;
@@ -342,6 +365,7 @@ class ToneMatrix extends Group {
       setButtonUniform: setButtonUniform,
       setCurrentScale: setCurrentScale,
       activateByScale: activateByScale,
+      setMutedScales: setMutedScales,
       uvToButtonIndex: uvToButtonIndex,
       deactivateAll: deactivateAll,
       touchActive: touchActive,
