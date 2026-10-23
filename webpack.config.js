@@ -23,7 +23,7 @@ module.exports = {
   stats: {maxModules: Infinity, exclude: undefined},
   devServer: {
     host: '0.0.0.0',//your ip address
-    port: 8080,
+    publicPath: "/dist/", // matches the bundle path in index.html
   },
   devtool: isProduction ? "source-map" : "cheap-module-eval-source-map",
   target: "web",

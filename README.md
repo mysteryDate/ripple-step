@@ -9,7 +9,7 @@ npm install
 npm run dev:server
 ```
 
-This starts webpack-dev-server at [http://localhost:8080](http://localhost:8080). The app is available at both `/index.html` (production entry) and `/dev.html` (testbed entry).
+This starts webpack-dev-server at [http://localhost:8080](http://localhost:8080), serving `index.html` with a live-reloading bundle. If 8080 is taken (e.g. another worktree), it uses the next free port and prints it.
 
 ## Mobile Device Testing
 
@@ -29,23 +29,9 @@ If it doesn't connect, you may need to allow port 8080 through Windows Firewall.
 
 ## Build & Deploy
 
-The site is hosted on GitHub Pages from the `main` branch. The root `index.html` loads `dist/app.bundle.js` directly, so the built bundle is committed to the repo.
+Pushing to `main` deploys. `.github/workflows/deploy.yml` runs `npm run build` and publishes the site to GitHub Pages. `dist/` is not committed.
 
-To build and deploy:
-
-```bash
-# 1. Build the production bundle
-npm run build
-
-# 2. Commit the updated bundle
-git add dist/
-git commit -m "Build for deploy"
-
-# 3. Push to main (triggers GitHub Pages)
-git push origin main
-```
-
-The `build` script runs webpack in production mode, outputting minified bundles to `dist/`.
+To build locally, run `npm run build`; output goes to `dist/`.
 
 ## Query Parameters
 
