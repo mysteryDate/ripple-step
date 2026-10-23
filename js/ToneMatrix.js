@@ -6,6 +6,7 @@ import {
 import {Constants} from "./AppData"; // TODO pass in as options
 import Materials from "./Materials";
 import Rippleizer from "./Rippleizer";
+import {desaturate} from "./Graphics";
 
 var bgColor = new Color(Constants.BACKGROUND_COLOR);
 
@@ -36,6 +37,7 @@ function makeKeyMaterial(options) {
       u_numVerticalNotes: {value: options.numVerticalNotes},
       u_rippleTex: {value: []},
       u_rippleColors: {value: options.rippleColorMatrices},
+      u_scaleSaturations: {value: options.scaleSaturations},
       u_muted: {value: false},
     },
     vertexShader: `
@@ -44,8 +46,10 @@ function makeKeyMaterial(options) {
       attribute float isActive;
       attribute float isMuted;
       attribute vec3 buttonColor;
+      attribute float scaleIndex;
       uniform float u_numHorizontalNotes;
       uniform float u_numVerticalNotes;
+      uniform float u_scaleSaturations[${options.scaleSaturations.length}];
       varying vec2 v_relativePosition;
       varying vec2 v_uv;
       varying float v_armed;
@@ -54,12 +58,14 @@ function makeKeyMaterial(options) {
       varying vec3 v_buttonColor;
       ${Materials.Include.map}
       void main() {
+        float lightness = (max(max(buttonColor.r, buttonColor.g), buttonColor.b) + min(min(buttonColor.r, buttonColor.g), buttonColor.b)) / 2.0;
+        vec3 desaturatedColor = mix(vec3(lightness), buttonColor, u_scaleSaturations[int(scaleIndex)]);
         v_uv = uv;
         v_armed = isArmed;
         v_active = isActive;
         v_muted = isMuted;
         v_relativePosition = relativePosition;
-        v_buttonColor = buttonColor;
+        v_buttonColor = desaturatedColor;
 
         vec2 offset = map(relativePosition, vec2(0.0), vec2(u_numHorizontalNotes, u_numVerticalNotes), vec2(0.0), vec2(1.0));
         vec3 pos = vec3(position.xy + offset - 0.5, 1.0); // Center it with -0.5
@@ -238,13 +244,16 @@ class ToneMatrix extends Group {
 
     var scaleList = Object.values(options.scales);
     var numRippleBuffers = Math.ceil(scaleList.length / SCALES_PER_RIPPLE_BUFFER);
+    var rippleColors = scaleList.map(function(scale) {
+      return new Color(scale.ripple_color);
+    });
     var rippleColorMatrices = [];
     for (var b = 0; b < numRippleBuffers; b++) {
-      var bufferScales = scaleList.slice(b * SCALES_PER_RIPPLE_BUFFER, (b + 1) * SCALES_PER_RIPPLE_BUFFER);
-      rippleColorMatrices.push(makeRippleColorMatrix(bufferScales.map(function(scale) {
-        return new Color(scale.ripple_color);
-      })));
+      rippleColorMatrices.push(makeRippleColorMatrix(rippleColors.slice(b * SCALES_PER_RIPPLE_BUFFER, (b + 1) * SCALES_PER_RIPPLE_BUFFER)));
     }
+    var scaleSaturations = scaleList.map(function() {
+      return 1;
+    });
     var buttonIndex = 0;
     for (var col = 0; col < numHorizontalSteps; col++) {
       columns.push([]);
@@ -273,6 +282,7 @@ class ToneMatrix extends Group {
       numVerticalNotes: numVerticalSteps,
       baseColor: Constants.TONE_MATRIX_BACKGROUND,
       rippleColorMatrices: rippleColorMatrices,
+      scaleSaturations: scaleSaturations,
     });
     this.add(new Mesh(keyGeometry, keyMaterial));
 
@@ -350,6 +360,14 @@ class ToneMatrix extends Group {
       rippleizer.damping.value.setComponent(scaleIndex % SCALES_PER_RIPPLE_BUFFER, newDamping);
     }
 
+    function setScaleSaturation(scale, saturation) {
+      var scaleIndex = scaleList.indexOf(scale);
+      scaleSaturations[scaleIndex] = saturation;
+      var channel = scaleIndex % SCALES_PER_RIPPLE_BUFFER;
+      var matrix = rippleColorMatrices[Math.floor(scaleIndex / SCALES_PER_RIPPLE_BUFFER)];
+      desaturate(rippleColors[scaleIndex], saturation).toArray(matrix.elements, channel * 3); // Column-major
+    }
+
     // Set per-button active state based on each scale's transport position
     // scaleColumnMap: Map<scaleObject, columnPosition>
     function activateByScale(scaleColumnMap) {
@@ -423,6 +441,7 @@ class ToneMatrix extends Group {
       touchActive: touchActive,
       clickScreen: clickScreen,
       setDamping: setDamping,
+      setScaleSaturation: setScaleSaturation,
       getButton: getButton,
       armButton: armButton,
       render: render,

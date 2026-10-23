@@ -1,4 +1,4 @@
-import {OrthographicCamera, Scene, Mesh, PlaneGeometry} from "three";
+import {OrthographicCamera, Scene, Mesh, PlaneGeometry, Color} from "three";
 
 // Render a texture with a particular shader, useful for blurs
 var blitTexture = (function() {
@@ -16,4 +16,10 @@ var blitTexture = (function() {
   };
 })();
 
-export {blitTexture};
+// Moves a colour toward its HSL lightness, which scales HSL saturation linearly
+function desaturate(color, saturation) {
+  var lightness = (Math.max(color.r, color.g, color.b) + Math.min(color.r, color.g, color.b)) / 2;
+  return new Color(lightness, lightness, lightness).lerp(color, saturation);
+}
+
+export {blitTexture, desaturate};

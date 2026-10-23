@@ -10,6 +10,7 @@ import ScaleChooser from "./ScaleChooser";
 import RippleSynth from "./RippleSynth";
 import ControlPanel from "./ControlPanel";
 import Transport from "./Transport";
+import {desaturate} from "./Graphics";
 
 var _mouse = new Vector2();
 
@@ -126,7 +127,6 @@ Application.prototype.setScale = function(newScale) {
   this.toneMatrix.setCurrentScale(new Color(this.currentScale.color), this.currentScale);
   this.synth.scale = this.currentScale;
   this.knobPanel.animateToValues(this.synth.getControl);
-  this.knobPanel.setColor(new Color(this.currentScale.color));
 };
 
 Application.prototype.resize = function(width, height) {
@@ -224,10 +224,7 @@ Application.prototype.clear = function() {
 
 Application.prototype.toggleMute = function() {
   this.muted = !this.muted;
-  this.toneMatrix.mute(this.muted);
-  this.knobPanel.setColor(new Color(this.currentScale.color).multiplyScalar(
-    MathUtils.lerp(1.0, Constants.MUTE_COLOR_VALUE, this.muted)
-  )); // TODO set damping
+  this.toneMatrix.mute(this.muted); // TODO set damping
 };
 
 Application.prototype.togglePaused = function() {
@@ -315,8 +312,19 @@ Application.prototype.update = function() {
     return dampingValue;
   }
   this.transportNames.forEach(function(scaleName) {
-    var release = self.synth.getControl("release", Scales[scaleName]);
-    self.toneMatrix.setDamping(Scales[scaleName], releaseToDamping(release));
+    var scale = Scales[scaleName];
+    var release = self.synth.getControl("release", scale);
+    self.toneMatrix.setDamping(scale, releaseToDamping(release));
+    var frequency = self.synth.getControl("frequency", scale);
+    var frequencyKnob = Controls.Filter.frequency;
+    var cutoffAmount = MathUtils.inverseLerp(frequencyKnob.minValue, frequencyKnob.maxValue, frequency);
+    var saturation = MathUtils.lerp(Constants.MIN_FILTER_SATURATION, 1, cutoffAmount);
+    self.toneMatrix.setScaleSaturation(scale, saturation);
+    self.scaleChooser.setScaleSaturation(scaleName, saturation);
+    if (scale === self.currentScale) {
+      var muteFactor = MathUtils.lerp(1.0, Constants.MUTE_COLOR_VALUE, self.muted);
+      self.knobPanel.setColor(desaturate(new Color(scale.color), saturation).multiplyScalar(muteFactor));
+    }
   });
 };
 

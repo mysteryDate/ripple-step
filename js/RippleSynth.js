@@ -55,6 +55,18 @@ function makeBlendedWave(ctx, waveform) {
   return ctx.createPeriodicWave(real, imag);
 }
 
+// Each scale starts somewhere random within its knobs' musical range
+function randomKnobValue(knob) {
+  var randomMinValue = (knob.randomMinValue === undefined) ? knob.minValue : knob.randomMinValue;
+  return randomMinValue + Math.random() * (knob.maxValue - randomMinValue);
+}
+
+// Starts on a pure waveform rather than a blend
+function randomPureWaveform() {
+  var knob = Controls.Oscillator.waveform;
+  return knob.minValue + Math.floor(Math.random() * (knob.maxValue - knob.minValue + 1));
+}
+
 // Minimum value for setTargetAtTime (matches Tone.js _minOutput)
 var MIN_OUTPUT = 0.00001;
 
@@ -79,11 +91,11 @@ function RippleSynth(numVoices, options) {
       attack: {value: 0.005},
       decay: {value: 0.1},
       sustain: {value: 0.3},
-      release: {value: Controls.Envelope.release.initialValue},
-      frequency: {value: 2000},
+      release: {value: randomKnobValue(Controls.Envelope.release)},
+      frequency: {value: randomKnobValue(Controls.Filter.frequency)},
       Q: {value: 1},
       swing: {value: 0},
-      waveform: {value: 1},
+      waveform: {value: randomPureWaveform()},
     };
   }
 

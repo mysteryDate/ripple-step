@@ -16,6 +16,7 @@ var Constants = {
   RELATIVE: false,
   MUTE_COLOR_VALUE: 0.7,
   MAX_KNOB_RADIUS: 70,
+  MIN_FILTER_SATURATION: 0.5, // Colour saturation at the lowest filter cutoff
 };
 
 var Controls = {
@@ -50,7 +51,7 @@ Controls.Envelope = {
     minValue: 0.001,
     maxValue: 20,
     numLights: 100,
-    initialValue: 20,
+    randomMinValue: 0.5,
     icon: ["M4 4c2 9 6 14 17 15", "M3 20h18"],
   },
 };
@@ -58,7 +59,7 @@ Controls.Envelope = {
 Controls.Filter = {
   frequency: {
     control: "frequency",
-    minValue: 0,
+    minValue: 1000,
     maxValue: 5000,
     numLights: 50,
     icon: ["M2 8h10c3 0 5 3 6 6l2 6"],

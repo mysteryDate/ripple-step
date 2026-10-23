@@ -1,5 +1,6 @@
 import {Group, ShaderMaterial, Color, Mesh, PlaneGeometry, CanvasTexture, LinearFilter} from "three";
 import {Constants} from "./AppData";
+import {desaturate} from "./Graphics";
 
 function makeChooserMaterial(color) {
   return new ShaderMaterial({
@@ -168,6 +169,19 @@ class ScaleChooser extends Group {
     });
   }
 }
+
+ScaleChooser.prototype.setScaleSaturation = function(scaleName, saturation) {
+  var color = desaturate(new Color(this.scales[scaleName].color), saturation);
+  this.children.forEach(function(child) {
+    if (child.scaleName === scaleName) {
+      ["u_color", "u_scaleColor", "u_activeColor"].forEach(function(uniformName) {
+        if (child.material.uniforms[uniformName]) {
+          child.material.uniforms[uniformName].value.copy(color);
+        }
+      });
+    }
+  });
+};
 
 ScaleChooser.prototype.selectScale = function(scaleName) {
   this.scaleButtons.forEach(function(key) {

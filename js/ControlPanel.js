@@ -30,7 +30,7 @@ function makeKnobs(knobOptions, getter, setter) {
   var numKnobs = knobOptions.length;
   for (var i = 0; i < numKnobs; i++) {
     var knob = new Knob(Object.assign(knobOptions[i], {
-      currentValue: knobOptions[i].initialValue || getter(knobOptions[i].control),
+      currentValue: getter(knobOptions[i].control),
       sensitivity: 2 / window.devicePixelRatio,
     }));
     setter(knob.control, knob.getValue());
