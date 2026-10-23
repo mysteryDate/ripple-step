@@ -89,13 +89,13 @@ Controls.Oscillator = {
 };
 
 Controls.Knobs = [
+  Controls.Oscillator.waveform,
   Controls.Filter.frequency,
   // Controls.Filter.resonance,
   // Controls.Envelope.attack,
   // Controls.Envelope.decay,
   // Controls.Envelope.sustain,
   Controls.Envelope.release,
-  Controls.Oscillator.waveform,
 ];
 
 var Scales = {

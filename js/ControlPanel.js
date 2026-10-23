@@ -66,6 +66,18 @@ class ControlPanel extends Group {
       });
     };
 
+    this.animateToValues = function(getter) {
+      knobGroup.children.forEach(function(knob) {
+        knob.animateToValue(getter(knob.control));
+      });
+    };
+
+    this.update = function(time) {
+      knobGroup.children.forEach(function(knob) {
+        knob.update(time);
+      });
+    };
+
     this.setColor = function(color) {
       knobGroup.children.forEach(function(knob) {
         knob.setColor(color);

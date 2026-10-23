@@ -10,6 +10,11 @@ import {Constants} from "./AppData";
 const ICON_VIEWBOX_SIZE = 24;
 const ICON_STROKE_WIDTH = 2;
 const ICON_TEXTURE_SIZE = 128;
+const VALUE_ANIMATION_DURATION_MS = 500;
+
+function easeOutQuart(progress) {
+  return 1 - Math.pow(1 - progress, 4);
+}
 
 function makeIconTexture(iconPaths) {
   var canvas = document.createElement("canvas");
@@ -129,9 +134,41 @@ class Knob extends Group {
       return currentValue;
     };
 
+    var animation = null;
+    function finishAnimation() {
+      if (animation) {
+        setRotation(animation.toRotation);
+        updateIconOpacities(currentValue);
+        animation = null;
+      }
+    }
+
+    this.animateToValue = function(value) {
+      currentValue = value;
+      animation = {
+        fromRotation: -body.rotation.z,
+        toRotation: getRotationFromValue(value),
+        startTime: performance.now(),
+      };
+    };
+
+    this.update = function(time) {
+      if (!animation) {
+        return;
+      }
+      var progress = MathUtils.clamp((time - animation.startTime) / VALUE_ANIMATION_DURATION_MS, 0, 1);
+      var rotation = MathUtils.lerp(animation.fromRotation, animation.toRotation, easeOutQuart(progress));
+      setRotation(rotation);
+      updateIconOpacities(getValueFromRotation(rotation));
+      if (progress === 1) {
+        animation = null;
+      }
+    };
+
     this.touchStart = function(raycaster, mouse) {
       var touch = raycaster.intersectObjects(this.children)[0];
       if (touch) {
+        finishAnimation();
         isActive = true;
         touchStartPos = mouse;
         touchStartRotation = -body.rotation.z;

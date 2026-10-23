@@ -81,8 +81,12 @@ function Application(selector, width, height, options) {
 }
 
 Application.prototype.init = function() {
+  // Arm the initial note in a random scale color
+  var scaleKeys = Object.keys(Scales);
+  var noteScaleName = scaleKeys[Math.floor(Math.random() * scaleKeys.length)];
+
   // SYNTH
-  var synth = new RippleSynth(Constants.NUM_NOTES, {audioContext: this.audioContext});
+  var synth = new RippleSynth(Constants.NUM_NOTES, {audioContext: this.audioContext, scale: Scales[noteScaleName]});
   synth.setVolume(-6);
 
   // Controls for the envelope
@@ -95,9 +99,6 @@ Application.prototype.init = function() {
   this.synth = synth;
   this.knobPanel = knobPanel;
 
-  // Arm the initial note in a random scale color
-  var scaleKeys = Object.keys(Scales);
-  var noteScaleName = scaleKeys[Math.floor(Math.random() * scaleKeys.length)];
   this.setScale(Scales[noteScaleName]);
   this.scaleChooser.selectScale(noteScaleName);
 
@@ -128,6 +129,7 @@ Application.prototype.setScale = function(newScale) {
     this.currentScale
   );
   this.synth.scale = this.currentScale;
+  this.knobPanel.animateToValues(this.synth.getControl);
   this.knobPanel.setColor(new Color(this.currentScale.color));
 };
 
@@ -290,6 +292,7 @@ Application.prototype.update = function() {
   this.toneMatrix.setMutedScales(mutedScales);
 
   this.scaleChooser.update(this.currentTime);
+  this.knobPanel.update(this.currentTime);
 
   // TODO have more robust control infrastructure
   var swingValue = this.synth.getControl("swing");

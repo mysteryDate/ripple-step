@@ -1,3 +1,5 @@
+import {Controls} from "./AppData";
+
 var NOTE_SEMITONES = {C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11};
 
 function noteToFrequency(noteName, octave) {
@@ -70,47 +72,62 @@ function RippleSynth(numVoices, options) {
   compressor.connect(ctx.destination);
 
   this.scale = options.scale;
+  var self = this;
 
-  var controls = {
-    attack: {value: 0.005},
-    decay: {value: 0.1},
-    sustain: {value: 0.3},
-    release: {value: 1.0},
-    frequency: {value: 2000},
-    Q: {value: 1},
-    swing: {value: 0},
-    waveform: {value: 1},
-  };
+  function makeDefaultControls() {
+    return {
+      attack: {value: 0.005},
+      decay: {value: 0.1},
+      sustain: {value: 0.3},
+      release: {value: Controls.Envelope.release.initialValue},
+      frequency: {value: 2000},
+      Q: {value: 1},
+      swing: {value: 0},
+      waveform: {value: 1},
+    };
+  }
 
-  // Track active nodes so knob changes apply to playing notes
-  var activeFilters = [];
-  var activeOscillators = [];
-  var currentWave = makeBlendedWave(ctx, controls.waveform.value);
-  var activeVoices = []; // {env, releaseStart, sustainLevel}
+  // Each scale keeps its own controls and the wave built from them
+  var scaleStates = new Map();
+  function getScaleState(scale) {
+    if (!scaleStates.has(scale)) {
+      var controls = makeDefaultControls();
+      scaleStates.set(scale, {controls: controls, wave: makeBlendedWave(ctx, controls.waveform.value)});
+    }
+    return scaleStates.get(scale);
+  }
+
+  // Track active nodes so knob changes apply to playing notes of the same scale
+  var activeVoices = []; // {scale, osc, filters, env, releaseStart, sustainLevel}
 
   this.getControl = function(param) {
-    return controls[param].value;
+    return getScaleState(self.scale).controls[param].value;
   };
 
   this.setControl = function(param, value) {
-    var previousValue = controls[param].value;
-    controls[param].value = value;
+    var scaleState = getScaleState(self.scale);
+    var previousValue = scaleState.controls[param].value;
+    scaleState.controls[param].value = value;
+    var scaleVoices = activeVoices.filter(function(voice) {
+      return voice.scale === self.scale;
+    });
     if (param === "frequency" || param === "Q") {
-      for (var i = 0; i < activeFilters.length; i++) {
-        activeFilters[i][param].value = value;
-      }
+      scaleVoices.forEach(function(voice) {
+        voice.filters.forEach(function(filter) {
+          filter[param].value = value;
+        });
+      });
     }
     if (param === "waveform" && value !== previousValue) {
-      currentWave = makeBlendedWave(ctx, value);
-      activeOscillators.forEach(function(oscillator) {
-        oscillator.setPeriodicWave(currentWave);
+      scaleState.wave = makeBlendedWave(ctx, value);
+      scaleVoices.forEach(function(voice) {
+        voice.osc.setPeriodicWave(scaleState.wave);
       });
     }
     if (param === "release") {
       var now = ctx.currentTime;
       var tc = toneTimeConstant(value);
-      for (var j = 0; j < activeVoices.length; j++) {
-        var voice = activeVoices[j];
+      scaleVoices.forEach(function(voice) {
         voice.env.gain.cancelScheduledValues(
           Math.max(now, voice.releaseStart)
         );
@@ -118,7 +135,7 @@ function RippleSynth(numVoices, options) {
         var anchorVal = Math.max(voice.env.gain.value, MIN_OUTPUT);
         voice.env.gain.setValueAtTime(anchorVal, anchorTime);
         voice.env.gain.setTargetAtTime(MIN_OUTPUT, anchorTime, tc);
-      }
+      });
     }
   };
 
@@ -137,6 +154,8 @@ function RippleSynth(numVoices, options) {
     octave += s.octaves[row % s.notes.length];
     var frequency = noteToFrequency(noteName, octave);
 
+    var scaleState = getScaleState(s);
+    var controls = scaleState.controls;
     var now = ctx.currentTime;
     var attack = controls.attack.value;
     var decay = controls.decay.value;
@@ -145,7 +164,7 @@ function RippleSynth(numVoices, options) {
 
     // Oscillator
     var osc = ctx.createOscillator();
-    osc.setPeriodicWave(currentWave);
+    osc.setPeriodicWave(scaleState.wave);
     osc.frequency.value = frequency;
 
     // Two cascaded lowpass biquads for -24dB/oct rolloff
@@ -193,19 +212,16 @@ function RippleSynth(numVoices, options) {
     osc.start(now);
     osc.stop(stopTime);
 
-    activeFilters.push(filter1, filter2);
-    activeOscillators.push(osc);
-    var voice = {env: env, releaseStart: releaseStart, sustainLevel: sustainLevel};
+    var voice = {
+      scale: s, osc: osc, filters: [filter1, filter2], env: env, releaseStart: releaseStart, sustainLevel: sustainLevel,
+    };
     activeVoices.push(voice);
     osc.onended = function() {
       osc.disconnect();
       filter1.disconnect();
       filter2.disconnect();
       env.disconnect();
-      activeFilters.splice(activeFilters.indexOf(filter1), 1);
-      activeFilters.splice(activeFilters.indexOf(filter2), 1);
       activeVoices.splice(activeVoices.indexOf(voice), 1);
-      activeOscillators.splice(activeOscillators.indexOf(osc), 1);
     };
   };
 }
