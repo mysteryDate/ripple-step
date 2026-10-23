@@ -20,6 +20,33 @@ mixpanel.init("0f4e13f4157a63f82c8e447d3a441222");
     <h1 id="soundOn">LOADING</h1>
   </div>
   <canvas id="app" width=0 height=0></canvas>
+  <div id="cornerButtons" hidden>
+    <button id="playPauseButton" class="cornerButton" type="button" tabindex="-1" aria-label="Pause" data-tooltip="Pause (or press space)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <g class="pauseIcon">
+          <path d="M8 5v14"/>
+          <path d="M16 5v14"/>
+        </g>
+        <path class="playIcon" d="M7 4l13 8-13 8z"/>
+      </svg>
+    </button>
+    <button id="muteButton" class="cornerButton" type="button" tabindex="-1" aria-label="Mute all" aria-pressed="false" data-tooltip="Mute all (or press &quot;m&quot;)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 5L6 9H2v6h4l5 4z"/>
+        <g class="muteX">
+          <path d="M16 9l6 6"/>
+          <path d="M22 9l-6 6"/>
+        </g>
+      </svg>
+    </button>
+    <button id="clearButton" class="cornerButton" type="button" tabindex="-1" aria-label="Clear all notes" data-tooltip="Clear all notes (or press &quot;c&quot;)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14.5 3.5l6 6-10 10h-5l-3-3a1.4 1.4 0 0 1 0-2z"/>
+        <path d="M8 10l6 6"/>
+        <path d="M11 19.5h10"/>
+      </svg>
+    </button>
+  </div>
   <script src="app.bundle.js"></script>
 </body>
 </html>

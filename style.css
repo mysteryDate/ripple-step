@@ -45,3 +45,64 @@ h1 {
   0% {opacity: 0.25;}
   100% {opacity: 1;}
 }
+#cornerButtons {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+#cornerButtons[hidden] {
+  display: none;
+}
+.cornerButton {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 8px;
+  border: none;
+  background: none;
+  color: white;
+  opacity: 0.35;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.cornerButton[aria-pressed="true"] {
+  opacity: 0.9;
+}
+#muteButton[aria-pressed="false"] .muteX,
+#playPauseButton .playIcon,
+#playPauseButton.paused .pauseIcon {
+  display: none;
+}
+#playPauseButton.paused .playIcon {
+  display: inline;
+}
+.cornerButton svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+@media (hover: hover) {
+  .cornerButton:hover {
+    opacity: 0.9;
+  }
+  .cornerButton::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    right: 0;
+    bottom: 100%;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    font-family: bebas;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: white;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+  .cornerButton:hover::after {
+    opacity: 1;
+  }
+}

@@ -51,6 +51,7 @@ Controls.Envelope = {
     maxValue: 20,
     numLights: 100,
     initialValue: 20,
+    icon: ["M4 4c2 9 6 14 17 15", "M3 20h18"],
   },
 };
 
@@ -60,6 +61,7 @@ Controls.Filter = {
     minValue: 0,
     maxValue: 5000,
     numLights: 50,
+    icon: ["M2 8h10c3 0 5 3 6 6l2 6"],
   },
   resonance: {
     control: "Q",
@@ -82,6 +84,7 @@ Controls.Knobs = [
     minValue: 0,
     maxValue: 0.5,
     numLights: 10,
+    icon: ["M9 17V6l10-2v11", "M3 17a3 3 0 1 0 6 0a3 3 0 1 0-6 0", "M13 15a3 3 0 1 0 6 0a3 3 0 1 0-6 0"],
   },
 ];
 

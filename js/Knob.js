@@ -1,9 +1,31 @@
 import {
   Group, CircleGeometry, MeshBasicMaterial, Mesh, InstancedBufferGeometry,
-  BufferAttribute, InstancedBufferAttribute, Vector2, Color, MathUtils
+  BufferAttribute, InstancedBufferAttribute, Vector2, Color, MathUtils,
+  PlaneGeometry, CanvasTexture
 } from "three";
 import Materials from "./Materials";
 import {Constants} from "./AppData";
+
+// Icons are SVG path strings drawn in a 24x24 viewBox
+const ICON_VIEWBOX_SIZE = 24;
+const ICON_STROKE_WIDTH = 2;
+const ICON_TEXTURE_SIZE = 128;
+
+function makeIconTexture(iconPaths) {
+  var canvas = document.createElement("canvas");
+  canvas.width = ICON_TEXTURE_SIZE;
+  canvas.height = ICON_TEXTURE_SIZE;
+  var context = canvas.getContext("2d");
+  context.scale(ICON_TEXTURE_SIZE / ICON_VIEWBOX_SIZE, ICON_TEXTURE_SIZE / ICON_VIEWBOX_SIZE);
+  context.strokeStyle = "white";
+  context.lineWidth = ICON_STROKE_WIDTH;
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  iconPaths.forEach(function(pathData) {
+    context.stroke(new Path2D(pathData));
+  });
+  return new CanvasTexture(canvas);
+}
 
 class Knob extends Group {
   constructor(options) {
@@ -11,6 +33,8 @@ class Knob extends Group {
     const NUM_CIRCLE_SEGMENTS = 100; // How smooth is the circle
     const INDICATOR_LIGHT_DISTANCE_RATIO = 1.25; // distance of indicator lights relative to radius
     const INDICATOR_LIGHT_SIZE_RATIO = 0.2; // radius of lights relative to knob radius
+    const ICON_SIZE_RATIO = 1.0; // icon width relative to knob radius
+    const ICON_DEPTH_OFFSET = 0.01;
 
     options = options || {};
     var sensitivity = options.sensitivity || 1; // How many degrees the knob turns per pixel
@@ -36,6 +60,15 @@ class Knob extends Group {
     nib.scale.multiplyScalar(0.1);
     body.add(nib);
     nib.position.y += radius * 0.8;
+
+    var icon = null;
+    if (options.icon) {
+      var iconMat = new MeshBasicMaterial({map: makeIconTexture(options.icon), transparent: true});
+      icon = new Mesh(new PlaneGeometry(1, 1), iconMat);
+      icon.scale.setScalar(ICON_SIZE_RATIO * radius);
+      icon.position.z = ICON_DEPTH_OFFSET;
+      this.add(icon);
+    }
 
     var lights = (function makeLights() {
       var icRadius = INDICATOR_LIGHT_SIZE_RATIO * radius;
@@ -113,6 +146,9 @@ class Knob extends Group {
 
     this.setColor = function(color) {
       lights.material.uniforms.u_color.value = new Color(color); // TODO come in as a three.color?
+      if (icon) {
+        icon.material.color.set(color);
+      }
     };
   }
 }

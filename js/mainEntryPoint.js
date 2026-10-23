@@ -36,16 +36,32 @@ function interactionCallback() {
   function touchEnd(event) {
     mouseUp(event);
   }
+  var muteButton = document.getElementById("muteButton");
+  function toggleMute() {
+    window.app.toggleMute();
+    var muteLabel = window.app.muted ? "Unmute all" : "Mute all";
+    muteButton.setAttribute("aria-pressed", window.app.muted);
+    muteButton.setAttribute("aria-label", muteLabel);
+    muteButton.dataset.tooltip = muteLabel + ' (or press "m")';
+  }
+  var playPauseButton = document.getElementById("playPauseButton");
+  function togglePaused() {
+    window.app.togglePaused();
+    var playPauseLabel = window.app.paused ? "Play" : "Pause";
+    playPauseButton.classList.toggle("paused", window.app.paused);
+    playPauseButton.setAttribute("aria-label", playPauseLabel);
+    playPauseButton.dataset.tooltip = playPauseLabel + " (or press space)";
+  }
   function onDocumentKeyPress(event) {
     switch (event.code) {
       case "KeyC":
         window.app.clear();
         break;
       case "KeyM":
-        window.app.toggleMute();
+        toggleMute();
         break;
       case "Space":
-        window.app.togglePaused();
+        togglePaused();
         break;
       default:
         break;
@@ -63,6 +79,21 @@ function interactionCallback() {
     document.addEventListener("keypress", onDocumentKeyPress, false);
   }
   window.onresize = windowResize;
+  var cornerButtons = document.getElementById("cornerButtons");
+  // Stopping propagation keeps the document handlers from treating the press as a canvas touch
+  cornerButtons.addEventListener("mousedown", function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  cornerButtons.addEventListener("touchstart", function(event) {
+    event.stopPropagation();
+  });
+  document.getElementById("clearButton").addEventListener("click", function() {
+    window.app.clear();
+  });
+  muteButton.addEventListener("click", toggleMute);
+  playPauseButton.addEventListener("click", togglePaused);
+  cornerButtons.hidden = false;
   var showFps = new URLSearchParams(window.location.search).has("fps");
   var fpsEl = null;
   var frameCount = 0;
