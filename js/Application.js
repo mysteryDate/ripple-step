@@ -33,7 +33,7 @@ function Application(selector, width, height, options) {
   var currentScaleName = scaleKeys[Math.floor(Math.random() * scaleKeys.length)];
   var currentScale = Scales[currentScaleName];
   var hiRes = options.hiRes === true;
-  var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes, {hiRes: hiRes});
+  var toneMatrix = new ToneMatrix(options.numSteps, options.numNotes, {hiRes: hiRes, scales: Scales});
   scene.add(toneMatrix);
 
   var scaleChooser = new ScaleChooser(Scales, currentScaleName);
@@ -123,11 +123,7 @@ Application.prototype.setScale = function(newScale) {
       self.currentScaleName = name;
     }
   });
-  this.toneMatrix.setCurrentScale(
-    new Color(this.currentScale.color),
-    new Color(this.currentScale.ripple_color),
-    this.currentScale
-  );
+  this.toneMatrix.setCurrentScale(new Color(this.currentScale.color), this.currentScale);
   this.synth.scale = this.currentScale;
   this.knobPanel.animateToValues(this.synth.getControl);
   this.knobPanel.setColor(new Color(this.currentScale.color));
@@ -301,8 +297,7 @@ Application.prototype.update = function() {
   });
 
   // TODO, this is hideous
-  var newDamping = (function getRelease() {
-    var release = window.app.synth.getControl("release");
+  function releaseToDamping(release) {
     var minRelease = Controls.Envelope.release.minValue;
     var maxRelease = Controls.Envelope.release.maxValue;
     if (self.hiRes) {
@@ -318,8 +313,11 @@ Application.prototype.update = function() {
       dampingValue = MathUtils.mapLinear(release, MathUtils.lerp(minRelease, maxRelease, firstStop), maxRelease, 0.995, 0.9999);
     }
     return dampingValue;
-  })();
-  this.toneMatrix.setDamping(newDamping);
+  }
+  this.transportNames.forEach(function(scaleName) {
+    var release = self.synth.getControl("release", Scales[scaleName]);
+    self.toneMatrix.setDamping(Scales[scaleName], releaseToDamping(release));
+  });
 };
 
 export default Application;

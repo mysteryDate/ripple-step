@@ -1,4 +1,4 @@
-import {ShaderMaterial, Vector2, Color} from "three";
+import {ShaderMaterial, Vector2, Vector3, Color} from "three";
 
 var Materials = {};
 
@@ -32,7 +32,7 @@ Materials.ripple = function(options) {
       u_backTex: {value: null}, // Texture of the previous frame
       u_sceneTex: {value: null}, // New additions from the scene
       u_texelSize: {value: new Vector2(1/options.width, 1/options.height)},
-      u_damping: {value: 0.999},
+      u_damping: {value: new Vector3(0.999, 0.999, 0.999)}, // Per colour channel
       u_speed: {value: 1.0},
       u_sourceStrength: {value: 0.0},
       u_noiseFloor: {value: 1.0/128.0},
@@ -51,7 +51,7 @@ Materials.ripple = function(options) {
       uniform sampler2D u_backTex;
       uniform sampler2D u_sceneTex;
       uniform vec2 u_texelSize;
-      uniform float u_damping;
+      uniform vec3 u_damping;
       uniform float u_speed;
       uniform float u_sourceStrength;
       uniform float u_noiseFloor;
@@ -71,7 +71,7 @@ Materials.ripple = function(options) {
         }
         //  make an average and subtract the center value
         sum = (sum / 2.0) - texture2D(u_backTex, v_uv);
-        sum *= u_damping;
+        sum *= vec4(u_damping, 0.0);
         sum *= step(u_noiseFloor, abs(sum)); // Noise floor — mimics 8-bit quantization
 
         vec4 sceneCol = texture2D(u_sceneTex, v_uv) * u_sourceStrength;

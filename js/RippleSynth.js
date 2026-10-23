@@ -100,8 +100,8 @@ function RippleSynth(numVoices, options) {
   // Track active nodes so knob changes apply to playing notes of the same scale
   var activeVoices = []; // {scale, osc, filters, env, releaseStart, sustainLevel}
 
-  this.getControl = function(param) {
-    return getScaleState(self.scale).controls[param].value;
+  this.getControl = function(param, scale) {
+    return getScaleState(scale || self.scale).controls[param].value;
   };
 
   this.setControl = function(param, value) {
