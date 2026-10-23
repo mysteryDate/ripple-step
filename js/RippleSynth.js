@@ -16,6 +16,43 @@ function toneTimeConstant(time) {
   return Math.log(time + 1) / Math.log(200);
 }
 
+var NUM_HARMONICS = 64;
+
+// Limiter-style settings so overlapping voices don't clip the output
+var COMPRESSOR_THRESHOLD_DB = -6;
+var COMPRESSOR_KNEE_DB = 6;
+var COMPRESSOR_RATIO = 20;
+var COMPRESSOR_ATTACK_SECONDS = 0.003;
+var COMPRESSOR_RELEASE_SECONDS = 0.25;
+
+// Sine-term Fourier coefficients as defined for Web Audio's built-in oscillator types
+var WAVEFORM_HARMONICS = [
+  function sine(n) {
+    return n === 1 ? 1 : 0;
+  },
+  function triangle(n) {
+    return 8 * Math.sin(Math.PI * n / 2) / Math.pow(Math.PI * n, 2);
+  },
+  function square(n) {
+    return (2 / (Math.PI * n)) * (1 - Math.pow(-1, n));
+  },
+  function sawtooth(n) {
+    return (2 / (Math.PI * n)) * Math.pow(-1, n + 1);
+  },
+];
+
+// waveform is a float index into WAVEFORM_HARMONICS, blending the two neighbours
+function makeBlendedWave(ctx, waveform) {
+  var lowerIndex = Math.min(Math.floor(waveform), WAVEFORM_HARMONICS.length - 2);
+  var blend = waveform - lowerIndex;
+  var real = new Float32Array(NUM_HARMONICS + 1);
+  var imag = new Float32Array(NUM_HARMONICS + 1);
+  for (var n = 1; n <= NUM_HARMONICS; n++) {
+    imag[n] = (1 - blend) * WAVEFORM_HARMONICS[lowerIndex](n) + blend * WAVEFORM_HARMONICS[lowerIndex + 1](n);
+  }
+  return ctx.createPeriodicWave(real, imag);
+}
+
 // Minimum value for setTargetAtTime (matches Tone.js _minOutput)
 var MIN_OUTPUT = 0.00001;
 
@@ -23,7 +60,14 @@ function RippleSynth(numVoices, options) {
   var ctx = options.audioContext;
   var masterGain = ctx.createGain();
   masterGain.gain.value = 1.0;
-  masterGain.connect(ctx.destination);
+  var compressor = ctx.createDynamicsCompressor();
+  compressor.threshold.value = COMPRESSOR_THRESHOLD_DB;
+  compressor.knee.value = COMPRESSOR_KNEE_DB;
+  compressor.ratio.value = COMPRESSOR_RATIO;
+  compressor.attack.value = COMPRESSOR_ATTACK_SECONDS;
+  compressor.release.value = COMPRESSOR_RELEASE_SECONDS;
+  masterGain.connect(compressor);
+  compressor.connect(ctx.destination);
 
   this.scale = options.scale;
 
@@ -35,10 +79,13 @@ function RippleSynth(numVoices, options) {
     frequency: {value: 2000},
     Q: {value: 1},
     swing: {value: 0},
+    waveform: {value: 1},
   };
 
   // Track active nodes so knob changes apply to playing notes
   var activeFilters = [];
+  var activeOscillators = [];
+  var currentWave = makeBlendedWave(ctx, controls.waveform.value);
   var activeVoices = []; // {env, releaseStart, sustainLevel}
 
   this.getControl = function(param) {
@@ -46,11 +93,18 @@ function RippleSynth(numVoices, options) {
   };
 
   this.setControl = function(param, value) {
+    var previousValue = controls[param].value;
     controls[param].value = value;
     if (param === "frequency" || param === "Q") {
       for (var i = 0; i < activeFilters.length; i++) {
         activeFilters[i][param].value = value;
       }
+    }
+    if (param === "waveform" && value !== previousValue) {
+      currentWave = makeBlendedWave(ctx, value);
+      activeOscillators.forEach(function(oscillator) {
+        oscillator.setPeriodicWave(currentWave);
+      });
     }
     if (param === "release") {
       var now = ctx.currentTime;
@@ -91,7 +145,7 @@ function RippleSynth(numVoices, options) {
 
     // Oscillator
     var osc = ctx.createOscillator();
-    osc.type = "triangle";
+    osc.setPeriodicWave(currentWave);
     osc.frequency.value = frequency;
 
     // Two cascaded lowpass biquads for -24dB/oct rolloff
@@ -140,6 +194,7 @@ function RippleSynth(numVoices, options) {
     osc.stop(stopTime);
 
     activeFilters.push(filter1, filter2);
+    activeOscillators.push(osc);
     var voice = {env: env, releaseStart: releaseStart, sustainLevel: sustainLevel};
     activeVoices.push(voice);
     osc.onended = function() {
@@ -150,6 +205,7 @@ function RippleSynth(numVoices, options) {
       activeFilters.splice(activeFilters.indexOf(filter1), 1);
       activeFilters.splice(activeFilters.indexOf(filter2), 1);
       activeVoices.splice(activeVoices.indexOf(voice), 1);
+      activeOscillators.splice(activeOscillators.indexOf(osc), 1);
     };
   };
 }

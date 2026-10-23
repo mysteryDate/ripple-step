@@ -61,14 +61,24 @@ class Knob extends Group {
     body.add(nib);
     nib.position.y += radius * 0.8;
 
-    var icon = null;
-    if (options.icon) {
-      var iconMat = new MeshBasicMaterial({map: makeIconTexture(options.icon), transparent: true});
-      icon = new Mesh(new PlaneGeometry(1, 1), iconMat);
+    // Multiple icons are spread evenly across the value range and crossfade between neighbours
+    var icons = (options.icons || (options.icon ? [options.icon] : [])).map(function(iconPaths) {
+      var iconMat = new MeshBasicMaterial({map: makeIconTexture(iconPaths), transparent: true});
+      var icon = new Mesh(new PlaneGeometry(1, 1), iconMat);
       icon.scale.setScalar(ICON_SIZE_RATIO * radius);
       icon.position.z = ICON_DEPTH_OFFSET;
+      return icon;
+    });
+    icons.forEach(function(icon) {
       this.add(icon);
+    }, this);
+    function updateIconOpacities(value) {
+      var iconPosition = MathUtils.mapLinear(value, minValue, maxValue, 0, icons.length - 1);
+      icons.forEach(function(icon, i) {
+        icon.material.opacity = Math.max(0, 1 - Math.abs(iconPosition - i));
+      });
     }
+    updateIconOpacities(currentValue);
 
     var lights = (function makeLights() {
       var icRadius = INDICATOR_LIGHT_SIZE_RATIO * radius;
@@ -141,14 +151,15 @@ class Knob extends Group {
         newRotation = MathUtils.clamp(newRotation, minRotation, maxRotation);
         setRotation(newRotation);
         currentValue = getValueFromRotation(newRotation);
+        updateIconOpacities(currentValue);
       }
     };
 
     this.setColor = function(color) {
       lights.material.uniforms.u_color.value = new Color(color); // TODO come in as a three.color?
-      if (icon) {
+      icons.forEach(function(icon) {
         icon.material.color.set(color);
-      }
+      });
     };
   }
 }

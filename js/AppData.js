@@ -72,6 +72,22 @@ Controls.Filter = {
   },
 };
 
+Controls.Oscillator = {
+  // Values blend sine (0) -> triangle (1) -> square (2) -> sawtooth (3)
+  waveform: {
+    control: "waveform",
+    minValue: 0,
+    maxValue: 3,
+    numLights: 31,
+    icons: [
+      ["M2 12c2.5-8 7.5-8 10 0s7.5 8 10 0"],
+      ["M2 12l5-8l10 16l5-8"],
+      ["M2 18V6h10v12h10V6"],
+      ["M2 18L12 6v12l10-12v12"],
+    ],
+  },
+};
+
 Controls.Knobs = [
   Controls.Filter.frequency,
   // Controls.Filter.resonance,
@@ -79,13 +95,7 @@ Controls.Knobs = [
   // Controls.Envelope.decay,
   // Controls.Envelope.sustain,
   Controls.Envelope.release,
-  {
-    control: "swing",
-    minValue: 0,
-    maxValue: 0.5,
-    numLights: 10,
-    icon: ["M9 17V6l10-2v11", "M3 17a3 3 0 1 0 6 0a3 3 0 1 0-6 0", "M13 15a3 3 0 1 0 6 0a3 3 0 1 0-6 0"],
-  },
+  Controls.Oscillator.waveform,
 ];
 
 var Scales = {
